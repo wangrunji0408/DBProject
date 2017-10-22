@@ -14,6 +14,10 @@ file(GLOB SOURCES
 
 add_executable(DBProject ${SOURCES})
 
+list(REMOVE_ITEM SOURCES src/main.cpp)
+
+add_library(DBLib SHARED ${SOURCES})
+
 project(Test)
 
 # Download and unpack googletest at configure time
@@ -47,8 +51,11 @@ if (CMAKE_VERSION VERSION_LESS 2.8.11)
   include_directories("${gtest_SOURCE_DIR}/include")
 endif()
 
+file(GLOB TEST_SOURCES test/*.cpp)
+
 # Now simply link against gtest or gtest_main as needed. Eg
-add_executable(Test test/test.cpp test/main.cpp)
+add_executable(Test ${TEST_SOURCES})
+target_link_libraries(Test DBLib)
 target_link_libraries(Test gtest gtest_main)
 target_link_libraries(Test gmock gmock_main)
 #add_test(NAME example_test COMMAND example)

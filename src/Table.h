@@ -15,10 +15,10 @@ class RecordScanner;
 class Table{
 public:
 	size_t getRecordLength()const;
-	Record getRecord(const RID);
+	Record getRecord(RID);
 	const RID insertRecord(BufType data);
-	void deleteRecord(const RID);
-	void updateRecord(const Record);
+	void deleteRecord(RID);
+	void updateRecord(Record);
 	RecordScanner iterateRecords(::std::function<const Record(bool)> filter);
 };
 

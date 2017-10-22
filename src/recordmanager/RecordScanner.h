@@ -4,9 +4,9 @@
 #include "recordmanager/Record.h"
 
 class RecordScanner{
+public:
 	RecordScanner();
 	~RecordScanner();
-public:
 	Record* next();
 };
 

@@ -5,7 +5,7 @@
 #include "RID.h"
 
 struct Record{
-	const RID recordID;
+	RID recordID;
 	BufType data;
 };
 
