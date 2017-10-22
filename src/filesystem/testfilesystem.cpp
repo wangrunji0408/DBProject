@@ -13,7 +13,7 @@
  * 其次，多个文件就要对应多个fileID，在BufPageManager中是利用一个hash函数
  * 将(fileID,pageID)映射为一个整数，但由于我设计的hash函数过于简单，就是fileID和
  * pageID的和，所以不同文件的页很有可能映射为同一个数，增加了hash的碰撞率，影响效率
- * 
+ *
  * 还有非常重要的一点，BufType b = bpm->allocPage(...)
  * 在利用上述allocPage函数或者getPage函数获得指向申请缓存的指针后，
  * 不要自行进行类似的delete[] b操作，内存的申请和释放都在BufPageManager中做好
@@ -34,7 +34,7 @@ int main() {
 	fm->createFile("testfile2.txt");
 	int fileID, f2;
 	fm->openFile("testfile.txt", fileID); //打开文件，fileID是返回的文件id
-        fm->openFile("testfile2.txt", f2);
+    fm->openFile("testfile2.txt", f2);
 	for (int pageID = 0; pageID < 1000; ++ pageID) {
 		int index;
 		//为pageID获取一个缓存页

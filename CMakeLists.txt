@@ -4,8 +4,8 @@ project(DBProject)
 set(CMAKE_CXX_STANDARD 14)
 
 file(GLOB SOURCES
-        filesystem/testfilesystem.cpp
-        filesystem/*/*.h)
+        src/filesystem/testfilesystem.cpp
+        src/filesystem/*/*.h)
 
 add_executable(DBProject ${SOURCES})
 
