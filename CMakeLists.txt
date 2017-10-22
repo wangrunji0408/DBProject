@@ -3,9 +3,14 @@ project(DBProject)
 
 set(CMAKE_CXX_STANDARD 14)
 
+include_directories(src)
+
 file(GLOB SOURCES
-        src/filesystem/testfilesystem.cpp
-        src/filesystem/*/*.h)
+        src/filesystem/*/*.h
+        src/recordmanager/*.h
+        src/recordmanager/*.cpp
+        src/*.h
+        src/*.cpp)
 
 add_executable(DBProject ${SOURCES})
 

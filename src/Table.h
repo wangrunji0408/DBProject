@@ -8,6 +8,10 @@
 #include "recordmanager/RecordScanner.h"
 #include "filesystem/utils/pagedef.h"
 
+struct RID;
+struct Record;
+class RecordScanner;
+
 class Table{
 public:
 	size_t getRecordLength()const;

@@ -11,11 +11,11 @@ class DatabaseManager{
 	::std::unique_ptr<FileManager> fileManager;
 	::std::unique_ptr<BufPageManager> bufPageManager;
 	::std::unique_ptr<Database> currentDatabase;
+public:
 	DatabaseManager(){
-		fileManager=::std::make_unique<FileManager>()
+		fileManager=::std::make_unique<FileManager>();
 		bufPageManager=::std::make_unique<BufPageManager>(fileManager.get());
 	};
-public:
 	void createDatabase(::std::string name);
 	void useDatabase(::std::string name);
 	Database* getCurrentDatabase();
