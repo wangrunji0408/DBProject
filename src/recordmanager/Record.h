@@ -5,8 +5,10 @@
 #include "RID.h"
 
 struct Record{
-	const RID recordID;
+	RID recordID;
 	BufType data;
+	template <class T>
+	T& getDataRef() const { return *(T*)data; }
 };
 
 #endif //RECORD_H

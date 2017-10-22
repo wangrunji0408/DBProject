@@ -18,3 +18,15 @@ void DatabaseManager::createDatabase(::std::string name){
 	delete[] firstPageBuffer;
 	this->fileManager->closeFile(fileID);
 }
+
+void DatabaseManager::useDatabase(::std::string name) {
+
+}
+
+Database *DatabaseManager::getCurrentDatabase() {
+	return nullptr;
+}
+
+void DatabaseManager::deleteCurrentDatabase() {
+
+}

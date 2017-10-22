@@ -12,14 +12,16 @@ struct RID;
 struct Record;
 class RecordScanner;
 
+bool any_filter(const Record& record);
+
 class Table{
 public:
 	size_t getRecordLength()const;
-	Record getRecord(const RID);
+	Record getRecord(RID);
 	const RID insertRecord(BufType data);
-	void deleteRecord(const RID);
-	void updateRecord(const Record);
-	RecordScanner iterateRecords(::std::function<const Record(bool)> filter);
+	void deleteRecord(RID);
+	void updateRecord(Record);
+	RecordScanner iterateRecords(::std::function<bool(const Record&)> filter = any_filter);
 };
 
 #endif //TABLE_H
