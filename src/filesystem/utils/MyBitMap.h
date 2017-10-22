@@ -10,21 +10,14 @@ typedef unsigned int uint;
 #include <iostream>
 using namespace std;
 
-#define LEAF_BIT 32
-#define MAX_LEVEL 5
-#define MAX_INNER_NUM 67
-//#define MOD 61
-#define BIAS 5
-unsigned char h[61];
-
-
 class MyBitMap {
 protected:
-//	static const int LEAF_BIT = 32;
-//	static const int MAX_LEVEL = 5;
-//	static const int MAX_INNER_NUM = 10;
+	static const int LEAF_BIT = 32;
+	static const int MAX_LEVEL = 5;
+	static const int MAX_INNER_NUM = 67;
 //	static const int MOD = 61;
-//	static unsigned char h[MOD];
+	static const int BIAS = 5;
+	static unsigned char h[MOD];
 	static uint getMask(int k) {
 		uint s = 0;
 		for (int i = 0; i < k; ++ i) {
