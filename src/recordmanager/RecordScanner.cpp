@@ -9,10 +9,14 @@ RecordScanner::~RecordScanner() {
 
 }
 
-Record *RecordScanner::next() {
-	return nullptr;
-}
-
 RecordScanner::RecordScanner() {
 
+}
+
+Record RecordScanner::getNext() {
+	return Record();
+}
+
+bool RecordScanner::hasNext() {
+	return false;
 }

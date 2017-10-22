@@ -5,6 +5,11 @@
 #include <recordmanager/Record.h>
 #include "Table.h"
 
+bool any_filter(const Record& record)
+{
+	return true;
+}
+
 unsigned long Table::getRecordLength() const {
 	return 0;
 }
@@ -25,6 +30,6 @@ void Table::updateRecord(const Record) {
 
 }
 
-RecordScanner Table::iterateRecords(::std::function<const Record(bool)> filter) {
+RecordScanner Table::iterateRecords(::std::function<bool(const Record &)> filter) {
 	return RecordScanner();
 }

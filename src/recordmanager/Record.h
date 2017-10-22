@@ -7,6 +7,8 @@
 struct Record{
 	RID recordID;
 	BufType data;
+	template <class T>
+	T& getDataRef() const { return *(T*)data; }
 };
 
 #endif //RECORD_H

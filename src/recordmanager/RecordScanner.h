@@ -7,7 +7,8 @@ class RecordScanner{
 public:
 	RecordScanner();
 	~RecordScanner();
-	Record* next();
+	Record getNext();
+	bool hasNext();
 };
 
 #endif //RECORDSCANNER_H
