@@ -16,9 +16,11 @@ private:
 	MyBitMap* fm;
 	MyBitMap* tm;
 	int _createFile(const char* name) {
+		if( access( name, 0 ) != -1 ) {
+			return 1;
+		}
 		FILE* f = fopen(name, "a+");
 		if (f == NULL) {
-			cout << "fail" << endl;
 			return -1;
 		}
 		fclose(f);
@@ -99,24 +101,22 @@ public:
 	 * @函数名createFile
 	 * @参数name:文件名
 	 * 功能:新建name指定的文件名
-	 * 返回:操作成功，返回true
+	 * 返回:操作成功，返回0
 	 */
-	bool createFile(const char* name) {
-		_createFile(name);
-		return true;
+	int createFile(const char* name) {
+		return _createFile(name);
 	}
 	/*
 	 * @函数名openFile
 	 * @参数name:文件名
 	 * @参数fileID:函数返回时，如果成功打开文件，那么为该文件分配一个id，记录在fileID中
 	 * 功能:打开文件
-	 * 返回:如果成功打开，在fileID中存储为该文件分配的id，返回true，否则返回false
+	 * 返回:如果成功打开，在fileID中存储为该文件分配的id，返回0，否则返回-1
 	 */
-	bool openFile(const char* name, int& fileID) {
+	int openFile(const char* name, int& fileID) {
 		fileID = fm->findLeftOne();
 		fm->setBit(fileID, 0);
-		_openFile(name, fileID);
-		return true;
+		return _openFile(name, fileID);
 	}
 	int newType() {
 		int t = tm->findLeftOne();

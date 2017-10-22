@@ -5,9 +5,10 @@
 #include <string>
 #include "Table.h"
 #include "Database.h"
+#include "DatabaseManager.h"
 
 Database::~Database() {
-
+	this->databaseManager.fileManager->closeFile(this->fileID);
 }
 
 void Database::createTable(::std::string name, size_t recordLength) {

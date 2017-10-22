@@ -8,11 +8,13 @@ class Table;
 class DatabaseManager;
 
 class Database{
+	friend class DatabaseManager;
 	DatabaseManager& databaseManager;
-	const int fileId;
-	Database(DatabaseManager& db,int fileId):databaseManager(db),fileId(fileId){}
+	const int fileID;
+	::std::string name;
+	Database(DatabaseManager& db,int fileID,::std::string name):databaseManager(db),fileID(fileID),name(name){}
 public:
-	~Database(){};
+	~Database();
 	void createTable(::std::string name,size_t recordLength);
 	Table* getTable(::std::string name);
 	void deleteTable(Table* table);

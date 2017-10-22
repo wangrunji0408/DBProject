@@ -10,7 +10,7 @@ bool any_filter(const Record& record)
 	return true;
 }
 
-unsigned long Table::getRecordLength() const {
+size_t Table::getRecordLength() const {
 	return 0;
 }
 

@@ -8,6 +8,7 @@
 #include "Database.h"
 
 class DatabaseManager{
+	friend class Database;
 	::std::unique_ptr<FileManager> fileManager;
 	::std::unique_ptr<BufPageManager> bufPageManager;
 	::std::unique_ptr<Database> currentDatabase;
