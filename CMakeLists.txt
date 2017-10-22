@@ -7,6 +7,7 @@ include_directories(src)
 
 file(GLOB SOURCES
         src/filesystem/*/*.h
+        src/filesystem/*/*.cpp
         src/recordmanager/*.h
         src/recordmanager/*.cpp
         src/*.h
