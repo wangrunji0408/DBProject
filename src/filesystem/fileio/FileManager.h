@@ -8,6 +8,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 //#include "../MyLinkList.h"
+#ifndef O_BINARY
+#define O_BINARY 0
+#endif
 using namespace std;
 class FileManager {
 private:
@@ -19,7 +22,7 @@ private:
 		if( access( name, 0 ) != -1 ) {
 			return 1;
 		}
-		FILE* f = fopen(name, "a+");
+		FILE* f = fopen(name, "ab+");
 		if (f == NULL) {
 			return -1;
 		}
@@ -27,7 +30,7 @@ private:
 		return 0;
 	}
 	int _openFile(const char* name, int fileID) {
-		int f = open(name, O_RDWR);
+		int f = open(name, O_RDWR | O_BINARY);
 		if (f == -1) {
 			return -1;
 		}

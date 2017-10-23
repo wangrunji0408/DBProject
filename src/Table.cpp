@@ -10,6 +10,10 @@ bool any_filter(const Record& record)
 	return true;
 }
 
+void Table::deleteData(){
+
+}
+
 size_t Table::getRecordLength() const {
 	return 0;
 }

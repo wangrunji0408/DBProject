@@ -3,6 +3,7 @@
 //
 
 #include <string>
+#include <cstring>
 #include <exception>
 #include "Table.h"
 #include "Database.h"
@@ -53,14 +54,87 @@ Database::~Database() {
 	this->databaseManager.fileManager->closeFile(this->fileID);
 }
 
-void Database::createTable(::std::string name, size_t recordLength) {
+void Database::recoverTables() {
+	BufType firstPageBuffer;
+	int firstPageIndex;
+	firstPageBuffer=this->databaseManager.bufPageManager->getPage(fileID,0,firstPageIndex);
+	tableCount=firstPageBuffer[63];
+	for(int i=0;i<tableCount;i++){
+		BufType tableRecordPos=firstPageBuffer+64+i*32;
+		int tablePageID=*tableRecordPos;
+		unsigned char* tableNamePos=(unsigned char*)(tableRecordPos+1);
+		unsigned char tableName[125];
+		memcpy(tableName,tableNamePos,124);
+		tableName[125]='\0';
+		::std::string name((char*)(tableName));
+		tables[i].reset(new Table(*this,name,tablePageID));
+	}
+	this->databaseManager.bufPageManager->access(firstPageIndex);
+}
 
+void Database::createTable(::std::string name, size_t recordLength) {
+	if(tableCount>=30){
+		throw ::std::runtime_error("Table count exceeded");
+	}
+	if(name.length()>124){
+		throw ::std::runtime_error("Table name too long");
+	}
+	for(int i=0;i<tableCount;i++){
+		if(tables[i]->name==name){
+			throw ::std::runtime_error("A table with this name is already exist");
+		}
+	}
+	int tablePageID=acquireNewPage();
+	BufType tablePageBuffer;
+	int tablePageIndex;
+	tablePageBuffer=this->databaseManager.bufPageManager->getPage(fileID,tablePageID,tablePageIndex);
+	::std::memset(tablePageBuffer,0,8192);
+	tablePageBuffer[62]=(unsigned int)(recordLength);
+	tablePageBuffer[61]=-1;
+	this->databaseManager.bufPageManager->markDirty(tablePageIndex);
+	BufType firstPageBuffer;
+	int firstPageIndex;
+	firstPageBuffer=this->databaseManager.bufPageManager->getPage(fileID,0,firstPageIndex);
+	int tableIndex=firstPageBuffer[63];
+	firstPageBuffer[63]++;
+	tableCount++;
+	BufType tableRecordPos=firstPageBuffer+64+tableIndex*32;
+	*tableRecordPos=tablePageID;
+	unsigned char* tableNamePos=(unsigned char*)(tableRecordPos+1);
+	strncpy((char*)tableNamePos,name.c_str(),124);
+	this->databaseManager.bufPageManager->markDirty(firstPageIndex);
+	tables[tableIndex].reset(new Table(*this,name,tablePageID));
 }
 
 void Database::deleteTable(Table *table) {
-
+	for(int i=0;i<tableCount;i++){
+		if(tables[i].get()==table){
+			releasePage(tables[i]->tablePageID);
+			tables[i]->deleteData();
+			BufType firstPageBuffer;
+			int firstPageIndex;
+			firstPageBuffer=this->databaseManager.bufPageManager->getPage(fileID,0,firstPageIndex);
+			tableCount--;
+			firstPageBuffer[63]--;
+			if(i!=tableCount){
+				unsigned char* oldTablePos=(unsigned char*)(firstPageBuffer+64+i*32);
+				unsigned char* lastTablePos=(unsigned char*)(firstPageBuffer+64+tableCount*32);
+				memcpy(oldTablePos,lastTablePos,128);
+				tables[i].swap(tables[tableCount]);
+			}
+			tables[tableCount].reset(nullptr);
+			this->databaseManager.bufPageManager->markDirty(firstPageIndex);
+			return;
+		}
+	}
+	throw ::std::runtime_error("This table pointer do not appear in the database");
 }
 
 Table *Database::getTable(::std::string name) {
-	return nullptr;
+	for(int i=0;i<tableCount;i++){
+		if(tables[i]->name==name){
+			return tables[i].get();
+		}
+	}
+	throw ::std::runtime_error("A table with this name do not exist");
 }

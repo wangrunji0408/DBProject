@@ -19,15 +19,15 @@ Divide the file into pages by 8KB. The first page of the file is database metada
 ## Table metadata page
 
 - 0-243: Reserved
-- 244-247: Page ID of first data page of the table
+- 244-247: Page ID of first data page of the table (-1 if there is no data page)
 - 248-251: Length of records
 - 252-255: Number of records
 - 256-8191: Reserved
 
 ## Data page
 
-- 0-3: Page ID of previous data page of the table
-- 4-7: Page ID of next data page of the table
+- 0-3: Page ID of previous data page of the table (-1 if this is first data page)
+- 4-7: Page ID of next data page of the table (-1 if this is last data page)
 - 8-87: Reserved
 - 88-91: Length of records
 - 92-95: Number of records
