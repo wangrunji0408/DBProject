@@ -9,11 +9,6 @@
 #include "Database.h"
 #include "DatabaseManager.h"
 
-bool any_filter(const Record& record)
-{
-	return true;
-}
-
 void Table::deleteData(){
 	BufType currentPageBuffer;
 	int currentPageIndex;
@@ -178,6 +173,6 @@ void Table::updateRecord(Record const& record) {
 	this->database.databaseManager.bufPageManager->markDirty(currentPageIndex);
 }
 
-RecordScanner Table::iterateRecords(::std::function<bool(const Record &)> filter) {
-	return RecordScanner(this);
+RecordScanner Table::iterateRecords() {
+		return RecordScanner(this);
 }

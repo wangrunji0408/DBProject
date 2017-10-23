@@ -11,8 +11,6 @@
 
 class Database;
 
-bool any_filter(const Record& record);
-
 class Table{
 	friend class Database;
 	Database& database;
@@ -32,7 +30,7 @@ public:
 	RID insertRecord(unsigned char* data);
 	void deleteRecord(RID const&);
 	void updateRecord(Record const&);
-	RecordScanner iterateRecords(::std::function<bool(const Record&)> filter = any_filter);
+	RecordScanner iterateRecords();
 };
 
 #endif //TABLE_H
