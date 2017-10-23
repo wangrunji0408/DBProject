@@ -6,6 +6,8 @@
 #include "DatabaseManager.h"
 #include "filesystem/utils/pagedef.h"
 
+#include<iostream>
+
 void DatabaseManager::createDatabase(::std::string name){
 	::std::string filename=name+".dbf";
 	int created=this->fileManager->createFile(filename.c_str());

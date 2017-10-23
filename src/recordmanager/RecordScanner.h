@@ -6,6 +6,12 @@
 class Table;
 class RecordScanner{
 	Table* table;
+	int currentPage;
+	int nextPage;
+	int fieldId;
+	bool needUpdate=true;
+	bool end=false;
+	void update();
 public:
 	RecordScanner(Table* table);
 	~RecordScanner();

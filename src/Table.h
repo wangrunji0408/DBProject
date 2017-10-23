@@ -13,6 +13,7 @@ class Database;
 
 class Table{
 	friend class Database;
+	friend class RecordScanner;
 	Database& database;
 	::std::string name;
 	size_t recordLength;

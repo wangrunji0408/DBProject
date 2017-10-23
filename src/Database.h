@@ -7,10 +7,12 @@
 #include "Table.h"
 
 class DatabaseManager;
+class RecordScanner;
 
 class Database{
 	friend class DatabaseManager;
 	friend class Table;
+	friend class RecordScanner;
 	DatabaseManager& databaseManager;
 	::std::unique_ptr<Table> tables[30];
 	size_t tableCount;

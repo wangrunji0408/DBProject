@@ -8,9 +8,12 @@
 #include "Database.h"
 #include "Table.h"
 
+class RecordScanner;
+
 class DatabaseManager{
 	friend class Database;
 	friend class Table;
+	friend class RecordScanner;
 	::std::unique_ptr<FileManager> fileManager;
 	::std::unique_ptr<BufPageManager> bufPageManager;
 	::std::unique_ptr<Database> currentDatabase;
