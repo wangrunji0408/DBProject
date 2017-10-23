@@ -3,6 +3,7 @@
 
 #include <string>
 #include <cstddef>
+#include <iostream>
 
 class Table;
 class DatabaseManager;
@@ -12,6 +13,8 @@ class Database{
 	DatabaseManager& databaseManager;
 	const int fileID;
 	::std::string name;
+	int acquireNewPage();
+	void releasePage(int pageID);
 	Database(DatabaseManager& db,int fileID,::std::string name):databaseManager(db),fileID(fileID),name(name){}
 public:
 	~Database();

@@ -46,10 +46,11 @@ void DatabaseManager::useDatabase(::std::string name) {
 	BufType firstPageBuffer=this->bufPageManager->getPage(fileID,0,pageIndex);
 	unsigned char* firstPageCharBuffer=((unsigned char*)firstPageBuffer);
 	if(firstPageCharBuffer[0]!='D'||firstPageCharBuffer[1]!='T'||firstPageCharBuffer[2]!='B'||firstPageCharBuffer[3]!='S'){
+		this->bufPageManager->close();
 		this->fileManager->closeFile(fileID);
 		throw ::std::runtime_error("The file required is not a database");
 	}
-	bpm->access(pageIndex);
+	this->bufPageManager->access(pageIndex);
 	this->currentDatabase.reset(new Database(*this,fileID,name));
 }
 
