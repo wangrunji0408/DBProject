@@ -11,13 +11,14 @@ class TestDatabase : public testing::Test
 {
 protected:
 	virtual void SetUp() {
-		dbm = new DatabaseManager();
-		dbm->createDatabase("db1");
-		dbm->useDatabase("db1");
-		db = dbm->getCurrentDatabase();
+		system("rm *.dbf");
+		dbm =  DatabaseManager();
+		dbm.createDatabase("db1");
+		dbm.useDatabase("db1");
+		db = dbm.getCurrentDatabase();
 	}
 
-	DatabaseManager* dbm;
+	DatabaseManager dbm;
 	Database* db;
 };
 

@@ -17,10 +17,10 @@ bool any_filter(const Record& record);
 class Table{
 public:
 	size_t getRecordLength()const;
-	Record getRecord(RID);
-	const RID insertRecord(BufType data);
-	void deleteRecord(RID);
-	void updateRecord(Record);
+	Record getRecord(RID const&);
+	RID insertRecord(BufType data);
+	void deleteRecord(RID const&);
+	void updateRecord(Record const&);
 	RecordScanner iterateRecords(::std::function<bool(const Record&)> filter = any_filter);
 };
 
