@@ -27,25 +27,23 @@ class TestTable : public TestBase
 {
 protected:
 	void SetUp() override {
-		ClearAllDatabase();
-		Reopen();
-	}
-
-	void Reopen() {
-		dbm = DatabaseManager();
-		if(first)
-			dbm.createDatabase("db1");
-		dbm.useDatabase("db1");
-		db = dbm.getCurrentDatabase();
+		TestBase::SetUp();
+		dbm->createDatabase("db1");
+		dbm->useDatabase("db1");
+		db = dbm->getCurrentDatabase();
 		db->createTable("table1", sizeof(Data));
 		table = db->getTable("table1");
-		first = false;
 	}
 
-	DatabaseManager dbm;
+	void Reopen() override {
+		TestBase::Reopen();
+		dbm->useDatabase("db1");
+		db = dbm->getCurrentDatabase();
+		table = db->getTable("table1");
+	}
+
 	Database* db;
 	Table* table;
-	bool first = true;
 };
 
 TEST_F(TestTable, GetRecordLength)
@@ -82,13 +80,11 @@ TEST_F(TestTable, CanUpdateRecord)
 	data.a = 0;
 	auto rid = table->insertRecord((uchar*)&data);
 	auto record = table->getRecord(rid);
-	auto dataInTable = record.getDataRef<Data>();
-	dataInTable.a = 1;
+	record.getDataRef<Data>().a = 1;
 	table->updateRecord(record);
 	Reopen();
 	record = table->getRecord(rid);
-	dataInTable = record.getDataRef<Data>();
-	ASSERT_EQ(1, dataInTable.a);
+	ASSERT_EQ(1, record.getDataRef<Data>().a);
 }
 
 TEST_F(TestTable, CanIterateAll)

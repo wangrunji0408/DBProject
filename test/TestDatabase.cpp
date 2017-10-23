@@ -12,22 +12,27 @@ class TestDatabase : public TestBase
 {
 protected:
 	void SetUp() override {
-		ClearAllDatabase();
-		dbm =  DatabaseManager();
-		dbm.createDatabase("db1");
-		dbm.useDatabase("db1");
-		db = dbm.getCurrentDatabase();
+		TestBase::SetUp();
+		dbm->createDatabase("db1");
+		dbm->useDatabase("db1");
+		db = dbm->getCurrentDatabase();
 	}
 
-	DatabaseManager dbm;
+	void Reopen () override {
+		TestBase::Reopen();
+		dbm->useDatabase("db1");
+		db = dbm->getCurrentDatabase();
+	}
+
 	Database* db;
 };
 
 TEST_F(TestDatabase, CanCreateAndGetTable)
 {
 	db->createTable("table", 10);
-	auto table = db->getTable("table");
-	ASSERT_NE(nullptr, table);
+	ASSERT_NE(nullptr, db->getTable("table"));
+	Reopen();
+	ASSERT_NE(nullptr, db->getTable("table"));
 }
 
 TEST_F(TestDatabase, ThrowWhenGetNotExistTable)
