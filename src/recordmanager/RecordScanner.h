@@ -3,9 +3,11 @@
 
 #include "recordmanager/Record.h"
 
+class Table;
 class RecordScanner{
+	Table* table;
 public:
-	RecordScanner();
+	RecordScanner(Table* table);
 	~RecordScanner();
 	Record getNext();
 	bool hasNext();

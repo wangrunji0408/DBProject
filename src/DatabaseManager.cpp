@@ -36,6 +36,7 @@ void DatabaseManager::createDatabase(::std::string name){
 }
 
 void DatabaseManager::useDatabase(::std::string name) {
+	this->currentDatabase.reset(nullptr);
 	::std::string filename=name+".dbf";
 	int fileID;
 	int opened=this->fileManager->openFile(filename.c_str(),fileID);

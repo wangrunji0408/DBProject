@@ -9,11 +9,7 @@
 #include "recordmanager/RecordScanner.h"
 #include "filesystem/utils/pagedef.h"
 
-struct RID;
-struct Record;
-class RecordScanner;
 class Database;
-class DatabaseManager;
 
 bool any_filter(const Record& record);
 

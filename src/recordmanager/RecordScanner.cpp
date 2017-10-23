@@ -4,12 +4,13 @@
 
 #include "Record.h"
 #include "RecordScanner.h"
+#include "Table.h"
 
 RecordScanner::~RecordScanner() {
 
 }
 
-RecordScanner::RecordScanner() {
+RecordScanner::RecordScanner(Table* table) {
 
 }
 
