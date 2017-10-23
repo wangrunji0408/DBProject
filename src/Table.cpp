@@ -5,6 +5,7 @@
 #include <recordmanager/Record.h>
 #include <cstring>
 #include <exception>
+#include <iostream>
 #include "Table.h"
 #include "Database.h"
 #include "DatabaseManager.h"
@@ -70,6 +71,8 @@ RID Table::insertRecord(unsigned char* data) {
 		if(currentPageBuffer[23]<maxRecordPerPage){
 			break;
 		}
+		lastPageID=currentPageID;
+		currentPageID=currentPageBuffer[1];
 		this->database.databaseManager.bufPageManager->access(currentPageIndex);
 	}
 	if(currentPageID<0){
@@ -77,6 +80,7 @@ RID Table::insertRecord(unsigned char* data) {
 		currentPageBuffer=this->database.databaseManager.bufPageManager->getPage(this->database.fileID,lastPageID,currentPageIndex);
 		if(lastPageID==tablePageID){
 			currentPageBuffer[62]=currentPageID;
+			firstDataPageID=currentPageID;
 		}else{
 			currentPageBuffer[1]=currentPageID;
 		}
@@ -103,7 +107,7 @@ RID Table::insertRecord(unsigned char* data) {
 	unsigned char mapDetail=recordMap[mapOffset];
 	while((mapDetail&0x1)!=0){
 		recordID++;
-		mapDetail>>1;
+		mapDetail>>=1;
 	}
 	recordMap[mapOffset]|=(1<<(recordID%8));
 	unsigned char* dest=(unsigned char*)(currentPageBuffer+24)+recordID*recordLength;

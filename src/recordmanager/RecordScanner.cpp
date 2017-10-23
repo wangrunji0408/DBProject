@@ -9,6 +9,7 @@
 #include "Database.h"
 #include "DatabaseManager.h"
 #include <iostream>
+#include <exception>
 
 void RecordScanner::update(){
 	needUpdate=false;
@@ -44,13 +45,16 @@ RecordScanner::~RecordScanner() {
 
 }
 
-RecordScanner::RecordScanner(Table* table) {
+RecordScanner::RecordScanner(Table* table):table(table){
 	currentPage=table->tablePageID;
 	nextPage=table->firstDataPageID;
 	fieldId=table->maxRecordPerPage;
 }
 
 Record RecordScanner::getNext() {
+	if(end){
+		throw ::std::runtime_error("There is no more record");
+	}
 	if(needUpdate){
 		update();
 	}

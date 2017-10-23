@@ -133,7 +133,7 @@ void Database::deleteTable(Table *table) {
 			return;
 		}
 	}
-	throw ::std::runtime_error("This table pointer do not appear in the database");
+	// throw ::std::runtime_error("This table pointer do not appear in the database");
 }
 
 Table *Database::getTable(::std::string name) {

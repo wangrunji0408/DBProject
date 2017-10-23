@@ -3,12 +3,13 @@
 
 #include "filesystem/utils/pagedef.h"
 #include "RID.h"
+#include <iostream>
 
 struct Record{
 	RID recordID;
-	unsigned char* data;
+	unsigned char* data=nullptr;
 	~Record(){
-		delete[] data;
+		//TODO: find a way to do something with the memory here
 	}
 	template <class T>
 	T& getDataRef() const { return *(T*)data; }
