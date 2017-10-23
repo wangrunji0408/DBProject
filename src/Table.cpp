@@ -9,11 +9,6 @@
 #include "Database.h"
 #include "DatabaseManager.h"
 
-bool any_filter(const Record& record)
-{
-	return true;
-}
-
 void Table::deleteData(){
 
 }
@@ -114,6 +109,6 @@ void Table::updateRecord(Record const&) {
 
 }
 
-RecordScanner Table::iterateRecords(::std::function<bool(const Record &)> filter) {
+RecordScanner Table::iterateRecords() {
 	return RecordScanner();
 }

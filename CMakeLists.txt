@@ -52,7 +52,7 @@ if (CMAKE_VERSION VERSION_LESS 2.8.11)
   include_directories("${gtest_SOURCE_DIR}/include")
 endif()
 
-file(GLOB TEST_SOURCES test/*.cpp)
+file(GLOB TEST_SOURCES test/*.cpp test/*.h)
 
 # Now simply link against gtest or gtest_main as needed. Eg
 add_executable(Test ${TEST_SOURCES})

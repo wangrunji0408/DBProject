@@ -4,26 +4,41 @@
 
 #include <gtest/gtest.h>
 #include <DatabaseManager.h>
+#include "TestBase.h"
 
 namespace {
 
-class TestDBManager : public testing::Test
+class TestDBManager : public TestBase
 {
 protected:
-	virtual void SetUp() {
-		system("del *.dbf");
+	void SetUp() override {
+		ClearAllDatabase();
 		dbm = DatabaseManager();
-		dbm.createDatabase("db1");
+		try {
+			dbm.createDatabase("db1");
+			dbm.useDatabase("db1");
+		} catch (std::exception const& e) {}
+	}
+
+	void Reopen() {
+		dbm = DatabaseManager();
 		dbm.useDatabase("db1");
 	}
 
 	DatabaseManager dbm;
 };
 
-TEST_F(TestDBManager, CanGetCurrent)
+TEST_F(TestDBManager, CanCreateAndGetCurrent)
 {
-	auto db = dbm.getCurrentDatabase();
-	ASSERT_NE(db, nullptr);
+	ASSERT_NE(nullptr, dbm.getCurrentDatabase());
+	Reopen();
+	ASSERT_NE(nullptr, dbm.getCurrentDatabase());
+}
+
+
+TEST_F(TestDBManager, ThrowWhenCreateNameExist)
+{
+	ASSERT_ANY_THROW( dbm.createDatabase("db1"); );
 }
 
 TEST_F(TestDBManager, ThrowWhenGetNotExist)
@@ -34,9 +49,10 @@ TEST_F(TestDBManager, ThrowWhenGetNotExist)
 TEST_F(TestDBManager, CanDelete)
 {
 	dbm.deleteCurrentDatabase();
+	ASSERT_ANY_THROW( dbm.getCurrentDatabase() );
+	ASSERT_ANY_THROW( dbm.useDatabase("db1") );
+	dbm = DatabaseManager(); // Reopen
 	ASSERT_ANY_THROW( dbm.useDatabase("db1") );
 }
-
-
 
 }

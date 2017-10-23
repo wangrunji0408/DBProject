@@ -142,6 +142,5 @@ Table *Database::getTable(::std::string name) {
 			return tables[i].get();
 		}
 	}
-	return nullptr;
-	// throw ::std::runtime_error("A table with this name do not exist");
+	throw ::std::runtime_error("A table with this name do not exist");
 }
