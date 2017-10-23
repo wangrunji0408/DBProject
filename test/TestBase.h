@@ -20,6 +20,22 @@ protected:
 		system("rm *.dbf");
 #endif
 	}
+
+	void SetUp() override {
+		ClearAllDatabase();
+		dbm = new DatabaseManager();
+	}
+
+	virtual void Reopen() {
+		delete dbm;
+		dbm = new DatabaseManager();
+	}
+
+	void TearDown () override {
+		delete dbm; dbm = nullptr;
+	}
+
+	DatabaseManager* dbm = nullptr;
 };
 
 
