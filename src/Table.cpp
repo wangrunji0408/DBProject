@@ -15,7 +15,17 @@ bool any_filter(const Record& record)
 }
 
 void Table::deleteData(){
-
+	BufType currentPageBuffer;
+	int currentPageIndex;
+	int lastPageID=tablePageID;
+	int currentPageID=firstDataPageID;
+	while(currentPageID>=0){
+		tablePageBuffer=this->database.databaseManager.bufPageManager->getPage(this->database.fileID,tablePageID,tablePageIndex);
+		lastPageID=currentPageID;
+		currentPageID=currentPageBuffer[1];
+		this->database.databaseManager.bufPageManager->access(tablePageIndex);
+		this->database.releasePage(lastPageID);
+	}
 }
 
 
@@ -23,8 +33,8 @@ void Table::recoverMetadata() {
 	BufType tablePageBuffer;
 	int tablePageIndex;
 	tablePageBuffer=this->database.databaseManager.bufPageManager->getPage(this->database.fileID,tablePageID,tablePageIndex);
-	recordLength=tablePageBuffer[62];
-	firstDataPageID=tablePageBuffer[61];
+	recordLength=tablePageBuffer[63];
+	firstDataPageID=tablePageBuffer[62];
 	maxRecordPerPage=(8*8096)/(8*recordLength+1);
 	this->database.databaseManager.bufPageManager->access(tablePageIndex);
 }
@@ -69,7 +79,7 @@ RID Table::insertRecord(unsigned char* data) {
 		currentPageID=this->database.acquireNewPage();
 		currentPageBuffer=this->database.databaseManager.bufPageManager->getPage(this->database.fileID,lastPageID,currentPageIndex);
 		if(lastPageID==tablePageID){
-			currentPageBuffer[61]=currentPageID;
+			currentPageBuffer[62]=currentPageID;
 		}else{
 			currentPageBuffer[1]=currentPageID;
 		}
@@ -106,12 +116,60 @@ RID Table::insertRecord(unsigned char* data) {
 	return {(unsigned int)currentPageID,recordID};
 }
 
-void Table::deleteRecord(RID const&) {
-
+void Table::deleteRecord(RID const& rid) {
+	int pageID=rid.pageId;
+	int recordID=rid.slotId;
+	BufType currentPageBuffer;
+	int currentPageIndex;
+	currentPageBuffer=this->database.databaseManager.bufPageManager->getPage(this->database.fileID,pageID,currentPageIndex);
+	if(currentPageBuffer[2]!=tablePageID){
+		throw ::std::runtime_error("This is not RID for this table");
+	}
+	unsigned char* recordMap=(unsigned char*)(currentPageBuffer)+8191;
+	if(((recordMap[-(recordID/8)]>>(recordID%8))&0x1)==0){
+		throw ::std::runtime_error("Double delete of record");
+	}
+	recordMap[-(recordID/8)]&=~(1<<(recordID%8));
+	currentPageBuffer[23]--;
+	int remain=currentPageBuffer[23];
+	int lastPageID=currentPageBuffer[0];
+	int nextPageID=currentPageBuffer[1];
+	this->database.databaseManager.bufPageManager->markDirty(currentPageIndex);
+	if(remain==0){
+		this->database.releasePage(pageID);
+		currentPageBuffer=this->database.databaseManager.bufPageManager->getPage(this->database.fileID,(lastPageID==-1)?tablePageID:lastPageID,currentPageIndex);
+		if(lastPageID==-1){
+			currentPageBuffer[62]=nextPageID;
+			firstDataPageID=nextPageID;
+		}else{
+			currentPageBuffer[1]=nextPageID;
+		}
+		this->database.databaseManager.bufPageManager->markDirty(currentPageIndex);
+		if(nextPageID!=-1){
+			currentPageBuffer=this->database.databaseManager.bufPageManager->getPage(this->database.fileID,(lastPageID==-1)?tablePageID:nextPageID,currentPageIndex);
+			currentPageBuffer[0]=lastPageID;
+			this->database.databaseManager.bufPageManager->markDirty(currentPageIndex);
+		}
+	}
 }
 
-void Table::updateRecord(Record const&) {
-
+void Table::updateRecord(Record const& record) {
+	RID rid=record.recordID;
+	int pageID=rid.pageId;
+	int recordID=rid.slotId;
+	BufType currentPageBuffer;
+	int currentPageIndex;
+	currentPageBuffer=this->database.databaseManager.bufPageManager->getPage(this->database.fileID,pageID,currentPageIndex);
+	if(currentPageBuffer[2]!=tablePageID){
+		throw ::std::runtime_error("This is not RID for this table");
+	}
+	unsigned char* recordMap=(unsigned char*)(currentPageBuffer)+8191;
+	if(((recordMap[-(recordID/8)]>>(recordID%8))&0x1)==0){
+		throw ::std::runtime_error("There is not a record for this RID");
+	}
+	unsigned char* dest=(unsigned char*)(currentPageBuffer+24)+recordID*recordLength;
+	::std::memcpy(dest,record.data,recordLength);
+	this->database.databaseManager.bufPageManager->markDirty(currentPageIndex);
 }
 
 RecordScanner Table::iterateRecords(::std::function<bool(const Record &)> filter) {

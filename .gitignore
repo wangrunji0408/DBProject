@@ -47,4 +47,5 @@ googletest-*
 .idea/
 /filesystem/Debug/
 .vscode
+*.dbf
 

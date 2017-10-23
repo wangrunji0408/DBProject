@@ -95,8 +95,8 @@ void Database::createTable(::std::string name, size_t recordLength) {
 	int tablePageIndex;
 	tablePageBuffer=this->databaseManager.bufPageManager->getPage(fileID,tablePageID,tablePageIndex);
 	::std::memset(tablePageBuffer,0,8192);
-	tablePageBuffer[62]=(unsigned int)(recordLength);
-	tablePageBuffer[61]=-1;
+	tablePageBuffer[63]=(unsigned int)(recordLength);
+	tablePageBuffer[62]=-1;
 	this->databaseManager.bufPageManager->markDirty(tablePageIndex);
 	BufType firstPageBuffer;
 	int firstPageIndex;
@@ -133,7 +133,7 @@ void Database::deleteTable(Table *table) {
 			return;
 		}
 	}
-	// throw ::std::runtime_error("This table pointer do not appear in the database");
+	throw ::std::runtime_error("This table pointer do not appear in the database");
 }
 
 Table *Database::getTable(::std::string name) {
@@ -142,6 +142,5 @@ Table *Database::getTable(::std::string name) {
 			return tables[i].get();
 		}
 	}
-	return nullptr;
-	// throw ::std::runtime_error("A table with this name do not exist");
+	throw ::std::runtime_error("A table with this name do not exist");
 }
