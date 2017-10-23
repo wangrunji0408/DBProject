@@ -13,6 +13,7 @@ struct RID;
 struct Record;
 class RecordScanner;
 class Database;
+class DatabaseManager;
 
 bool any_filter(const Record& record);
 
@@ -21,13 +22,18 @@ class Table{
 	Database& database;
 	::std::string name;
 	size_t recordLength;
+	size_t maxRecordPerPage;
 	const int tablePageID;
+	int firstDataPageID;
 	void deleteData();
-	Table(Database& database,::std::string name,int tablePageID):database(database),name(name),tablePageID(tablePageID){}
+	void recoverMetadata();
+	Table(Database& database,::std::string name,int tablePageID):database(database),name(name),tablePageID(tablePageID){
+		recoverMetadata();
+	}
 public:
 	size_t getRecordLength()const;
 	Record getRecord(RID const&);
-	RID insertRecord(BufType data);
+	RID insertRecord(unsigned char* data);
 	void deleteRecord(RID const&);
 	void updateRecord(Record const&);
 	RecordScanner iterateRecords(::std::function<bool(const Record&)> filter = any_filter);

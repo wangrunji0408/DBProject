@@ -64,7 +64,7 @@ void Database::recoverTables() {
 		int tablePageID=*tableRecordPos;
 		unsigned char* tableNamePos=(unsigned char*)(tableRecordPos+1);
 		unsigned char tableName[125];
-		memcpy(tableName,tableNamePos,124);
+		::std::memcpy(tableName,tableNamePos,124);
 		tableName[125]='\0';
 		::std::string name((char*)(tableName));
 		tables[i].reset(new Table(*this,name,tablePageID));
@@ -73,6 +73,12 @@ void Database::recoverTables() {
 }
 
 void Database::createTable(::std::string name, size_t recordLength) {
+	if(recordLength<=0){
+		throw ::std::runtime_error("The length of record is not positive");
+	}
+	if(recordLength>=8096){
+		throw ::std::runtime_error("The length of record is too large");
+	}
 	if(tableCount>=30){
 		throw ::std::runtime_error("Table count exceeded");
 	}
@@ -101,7 +107,7 @@ void Database::createTable(::std::string name, size_t recordLength) {
 	BufType tableRecordPos=firstPageBuffer+64+tableIndex*32;
 	*tableRecordPos=tablePageID;
 	unsigned char* tableNamePos=(unsigned char*)(tableRecordPos+1);
-	strncpy((char*)tableNamePos,name.c_str(),124);
+	::std::strncpy((char*)tableNamePos,name.c_str(),124);
 	this->databaseManager.bufPageManager->markDirty(firstPageIndex);
 	tables[tableIndex].reset(new Table(*this,name,tablePageID));
 }
@@ -119,7 +125,7 @@ void Database::deleteTable(Table *table) {
 			if(i!=tableCount){
 				unsigned char* oldTablePos=(unsigned char*)(firstPageBuffer+64+i*32);
 				unsigned char* lastTablePos=(unsigned char*)(firstPageBuffer+64+tableCount*32);
-				memcpy(oldTablePos,lastTablePos,128);
+				::std::memcpy(oldTablePos,lastTablePos,128);
 				tables[i].swap(tables[tableCount]);
 			}
 			tables[tableCount].reset(nullptr);
@@ -127,7 +133,7 @@ void Database::deleteTable(Table *table) {
 			return;
 		}
 	}
-	throw ::std::runtime_error("This table pointer do not appear in the database");
+	// throw ::std::runtime_error("This table pointer do not appear in the database");
 }
 
 Table *Database::getTable(::std::string name) {
@@ -136,5 +142,6 @@ Table *Database::getTable(::std::string name) {
 			return tables[i].get();
 		}
 	}
-	throw ::std::runtime_error("A table with this name do not exist");
+	return nullptr;
+	// throw ::std::runtime_error("A table with this name do not exist");
 }

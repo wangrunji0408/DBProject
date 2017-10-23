@@ -28,7 +28,7 @@ class TestTable : public testing::Test
 {
 protected:
 	virtual void SetUp() {
-		system("rm *.dbf");
+		system("del *.dbf");
 		dbm = DatabaseManager();
 		dbm.createDatabase("db1");
 		dbm.useDatabase("db1");
@@ -50,7 +50,7 @@ TEST_F(TestTable, GetRecordLength)
 TEST_F(TestTable, CanInsertAndGetRecord)
 {
 	auto data = Data();
-	auto rid = table->insertRecord((BufType)&data);
+	auto rid = table->insertRecord((unsigned char*)&data);
 	auto record = table->getRecord(rid);
 	ASSERT_EQ(rid, record.recordID);
 	ASSERT_NE((void*)&data, (void*)record.data);
@@ -60,7 +60,7 @@ TEST_F(TestTable, CanInsertAndGetRecord)
 TEST_F(TestTable, CanDeleteRecord)
 {
 	auto data = Data();
-	auto rid = table->insertRecord((BufType)&data);
+	auto rid = table->insertRecord((unsigned char*)&data);
 	table->deleteRecord(rid);
 	ASSERT_ANY_THROW( table->getRecord(rid) );
 }
@@ -70,7 +70,7 @@ TEST_F(TestTable, CanUpdateRecord)
 	throw ::std::runtime_error("Not Implemented.");
 	auto data = Data();
 	data.a = 0;
-	auto rid = table->insertRecord((BufType)&data);
+	auto rid = table->insertRecord((unsigned char*)&data);
 	auto record = table->getRecord(rid);
 	auto dataInTable = record.getDataRef<Data>();
 	dataInTable.a = 1;
@@ -82,7 +82,7 @@ TEST_F(TestTable, CanIterateAll)
 	for(int i=0; i<10; ++i)
 	{
 		auto data = Data{i, i+1, i+2};
-		table->insertRecord((BufType)&data);
+		table->insertRecord((unsigned char*)&data);
 	}
 	auto iter = table->iterateRecords();
 	int i = 0;
@@ -102,7 +102,7 @@ TEST_F(TestTable, CanIterateByFilter)
 	for(int i=0; i<10; ++i)
 	{
 		auto data = Data{i, i+1, i+2};
-		table->insertRecord((BufType)&data);
+		table->insertRecord((unsigned char*)&data);
 	}
 	auto iter = table->iterateRecords([](const Record& record){
 		return record.getDataRef<Data>().a == 5;

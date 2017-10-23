@@ -6,7 +6,10 @@
 
 struct Record{
 	RID recordID;
-	BufType data;
+	unsigned char* data;
+	~Record(){
+		delete[] data;
+	}
 	template <class T>
 	T& getDataRef() const { return *(T*)data; }
 };

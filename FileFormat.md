@@ -14,7 +14,7 @@ Divide the file into pages by 8KB. The first page of the file is database metada
 - 256-4095: 30 x 128 byte table data, for every table:
 	- 0-3: Page ID of table metadata page
 	- 4-128: Table name (zero terminated)
-- 4096-8191：Bitset that indicates whether a page is used (8*4096=32768 pages)
+- 4096-8191：Bitset that indicates whether a page is used (8*4096=32768 pages) (from left to right)
 
 ## Table metadata page
 
@@ -28,12 +28,13 @@ Divide the file into pages by 8KB. The first page of the file is database metada
 
 - 0-3: Page ID of previous data page of the table (-1 if this is first data page)
 - 4-7: Page ID of next data page of the table (-1 if this is last data page)
-- 8-87: Reserved
+- 8-11: Page ID of the table metadata page
+- 12-87: Reserved
 - 88-91: Length of records
 - 92-95: Number of records
 - 96-8191: Records:
 	- 96-?: Real Record data
-	- ?-8191: Bitset that indicates whether a record field is used
+	- ?-8191: Bitset that indicates whether a record field is used (from right to left)
 
 ## Index page
 

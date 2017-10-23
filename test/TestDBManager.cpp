@@ -11,7 +11,7 @@ class TestDBManager : public testing::Test
 {
 protected:
 	virtual void SetUp() {
-		system("rm *.dbf");
+		system("del *.dbf");
 		dbm = DatabaseManager();
 		dbm.createDatabase("db1");
 		dbm.useDatabase("db1");
