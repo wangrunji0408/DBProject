@@ -26,10 +26,10 @@ class Table{
 	Table(Database& database,::std::string name,int tablePageID):database(database),name(name),tablePageID(tablePageID){}
 public:
 	size_t getRecordLength()const;
-	Record getRecord(RID);
-	const RID insertRecord(BufType data);
-	void deleteRecord(RID);
-	void updateRecord(Record);
+	Record getRecord(RID const&);
+	RID insertRecord(BufType data);
+	void deleteRecord(RID const&);
+	void updateRecord(Record const&);
 	RecordScanner iterateRecords(::std::function<bool(const Record&)> filter = any_filter);
 };
 

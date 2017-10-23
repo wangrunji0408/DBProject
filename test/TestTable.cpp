@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 #include <DatabaseManager.h>
 #include <Table.h>
+#include <exception>
 
 namespace {
 
@@ -15,6 +16,8 @@ struct Data
 
 inline void ASSERT_DATA_EQ(void* a, void* b, size_t size)
 {
+	ASSERT_NE(nullptr, a);
+	ASSERT_NE(nullptr, b);
 	char *ca = (char*)a;
 	char *cb = (char*)b;
 	for(int i=0; i<size; ++i)
@@ -25,15 +28,16 @@ class TestTable : public testing::Test
 {
 protected:
 	virtual void SetUp() {
-		dbm = new DatabaseManager();
-		dbm->createDatabase("db1");
-		dbm->useDatabase("db1");
-		db = dbm->getCurrentDatabase();
+		system("rm *.dbf");
+		dbm = DatabaseManager();
+		dbm.createDatabase("db1");
+		dbm.useDatabase("db1");
+		db = dbm.getCurrentDatabase();
 		db->createTable("table1", sizeof(Data));
 		table = db->getTable("table1");
 	}
 
-	DatabaseManager* dbm;
+	DatabaseManager dbm;
 	Database* db;
 	Table* table;
 };
@@ -63,6 +67,7 @@ TEST_F(TestTable, CanDeleteRecord)
 
 TEST_F(TestTable, CanUpdateRecord)
 {
+	throw ::std::runtime_error("Not Implemented.");
 	auto data = Data();
 	data.a = 0;
 	auto rid = table->insertRecord((BufType)&data);
@@ -80,7 +85,8 @@ TEST_F(TestTable, CanIterateAll)
 		table->insertRecord((BufType)&data);
 	}
 	auto iter = table->iterateRecords();
-	for(int i=0; iter.hasNext(); i++)
+	int i = 0;
+	for(; iter.hasNext(); i++)
 	{
 		auto record = iter.getNext();
 		auto data = record.getDataRef<Data>();
@@ -88,6 +94,7 @@ TEST_F(TestTable, CanIterateAll)
 		ASSERT_EQ(i+1, data.b);
 		ASSERT_EQ(i+2, data.c);
 	}
+	ASSERT_EQ(10, i);
 }
 
 TEST_F(TestTable, CanIterateByFilter)

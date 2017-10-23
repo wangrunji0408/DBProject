@@ -18,19 +18,19 @@ size_t Table::getRecordLength() const {
 	return 0;
 }
 
-Record Table::getRecord(const RID) {
+Record Table::getRecord(RID const&) {
 	return Record();
 }
 
-const RID Table::insertRecord(BufType data) {
+RID Table::insertRecord(BufType data) {
 	return RID();
 }
 
-void Table::deleteRecord(const RID) {
+void Table::deleteRecord(RID const&) {
 
 }
 
-void Table::updateRecord(const Record) {
+void Table::updateRecord(Record const&) {
 
 }
 
