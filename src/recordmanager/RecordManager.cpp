@@ -6,16 +6,9 @@
 #include "Database.h"
 #include "DatabaseManager.h"
 
-int RecordManager::acquireNewPage() {return database.acquireNewPage();}
-void RecordManager::releasePage(int pageID) {database.releasePage(pageID);}
-
-
 RecordManager::RecordManager(Database &database):
-		database(database), databaseManager(database.databaseManager)
+	database(database)
 {
-	// TODO temp
-	fileID = database.fileID;
-
 	recoverTables();
 }
 
@@ -24,9 +17,8 @@ RecordManager::~RecordManager() {
 }
 
 void RecordManager::recoverTables() {
-	BufType firstPageBuffer;
-	int firstPageIndex;
-	firstPageBuffer=this->databaseManager.bufPageManager->getPage(fileID,0,firstPageIndex);
+	auto firstPage = database.getPage(0);
+	auto firstPageBuffer = (BufType)firstPage.getDataMutable();
 	tableCount=firstPageBuffer[63];
 	for(int i=0;i<tableCount;i++){
 		BufType tableRecordPos=firstPageBuffer+64+i*32;
@@ -38,7 +30,6 @@ void RecordManager::recoverTables() {
 		::std::string name((char*)(tableName));
 		tables[i].reset(new Table(*this,name,tablePageID));
 	}
-	this->databaseManager.bufPageManager->access(firstPageIndex);
 }
 
 void RecordManager::createTable(::std::string name, size_t recordLength) {
@@ -59,36 +50,32 @@ void RecordManager::createTable(::std::string name, size_t recordLength) {
 			throw ::std::runtime_error("A table with this name is already exist");
 		}
 	}
-	int tablePageID=acquireNewPage();
-	BufType tablePageBuffer;
-	int tablePageIndex;
-	tablePageBuffer=this->databaseManager.bufPageManager->getPage(fileID,tablePageID,tablePageIndex);
+
+	auto tablePage = database.acquireNewPage();
+	BufType tablePageBuffer = (BufType)tablePage.getDataMutable();
 	::std::memset(tablePageBuffer,0,8192);
 	tablePageBuffer[63]=(unsigned int)(recordLength);
 	tablePageBuffer[62]=-1;
-	this->databaseManager.bufPageManager->markDirty(tablePageIndex);
-	BufType firstPageBuffer;
-	int firstPageIndex;
-	firstPageBuffer=this->databaseManager.bufPageManager->getPage(fileID,0,firstPageIndex);
+
+	auto firstPage = database.getPage(0);
+	BufType firstPageBuffer = (BufType)firstPage.getDataMutable();
 	int tableIndex=firstPageBuffer[63];
 	firstPageBuffer[63]++;
 	tableCount++;
 	BufType tableRecordPos=firstPageBuffer+64+tableIndex*32;
-	*tableRecordPos=tablePageID;
+	*tableRecordPos=(uint)tablePage.pageId;
 	unsigned char* tableNamePos=(unsigned char*)(tableRecordPos+1);
 	::std::strncpy((char*)tableNamePos,name.c_str(),124);
-	this->databaseManager.bufPageManager->markDirty(firstPageIndex);
-	tables[tableIndex].reset(new Table(*this,name,tablePageID));
+	tables[tableIndex].reset(new Table(*this,name,tablePage.pageId));
 }
 
 void RecordManager::deleteTable(Table *table) {
 	for(int i=0;i<tableCount;i++){
 		if(tables[i].get()==table){
-			releasePage(tables[i]->tablePageID);
+			database.releasePage(tables[i]->tablePageID);
 			tables[i]->deleteData();
-			BufType firstPageBuffer;
-			int firstPageIndex;
-			firstPageBuffer=this->databaseManager.bufPageManager->getPage(fileID,0,firstPageIndex);
+			auto firstPage = database.getPage(0);
+			auto firstPageBuffer = (BufType)firstPage.getDataMutable();
 			tableCount--;
 			firstPageBuffer[63]--;
 			if(i!=tableCount){
@@ -98,7 +85,6 @@ void RecordManager::deleteTable(Table *table) {
 				tables[i].swap(tables[tableCount]);
 			}
 			tables[tableCount].reset(nullptr);
-			this->databaseManager.bufPageManager->markDirty(firstPageIndex);
 			return;
 		}
 	}

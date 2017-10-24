@@ -12,9 +12,7 @@ class RecordScanner;
 
 class DatabaseManager{
 	friend class Database;
-	friend class Table;
-	friend class RecordScanner;
-	friend class RecordManager; // TODO temp
+	friend class Table; // for codes not using class Page
 
 	::std::unique_ptr<FileManager> fileManager;
 	::std::unique_ptr<BufPageManager> bufPageManager;

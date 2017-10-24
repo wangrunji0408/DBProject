@@ -17,6 +17,8 @@ class Database{
 	friend class DatabaseManager;
 	friend class RecordManager;
 	friend class Index::IndexManager;
+	friend class RecordScanner;
+	friend class Table;
 
 	DatabaseManager& databaseManager;
 //	Index::IndexManager indexManager;
@@ -26,7 +28,7 @@ class Database{
 	::std::string name;
 
 	// 抽象页管理操作，封装BufManager，为底层Manager提供接口
-	int acquireNewPage();
+	Page acquireNewPage();
 	Page getPage(int pageId) const;
 	void releasePage(int pageID);
 

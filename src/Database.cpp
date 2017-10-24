@@ -9,7 +9,7 @@
 #include "Database.h"
 #include "DatabaseManager.h"
 
-int Database::acquireNewPage() {
+Page Database::acquireNewPage() {
 	BufType firstPageBuffer;
 	int firstPageIndex;
 	firstPageBuffer=this->databaseManager.bufPageManager->getPage(fileID,0,firstPageIndex);
@@ -32,8 +32,7 @@ int Database::acquireNewPage() {
 	}
 	pageMap[i]|=(1<<(7-(pageID%8)));
 	this->databaseManager.bufPageManager->markDirty(firstPageIndex);
-	return pageID;
-//	return Page(this->databaseManager.bufPageManager.get(), fileID, pageID);
+	return getPage(pageID);
 }
 
 void Database::releasePage(int pageID){

@@ -4,28 +4,29 @@
 
 #include "Page.h"
 
-const uchar* Page::getDataReadonly() const
+BufType Page::getDataReadonly()
 {
-	bufPageManager->access(0);
+	loadToBuf();
+	bufPageManager->access(bufIndex);
 	return bufData;
 }
 
-uchar* Page::getDataMutable()
+BufType Page::getDataMutable()
 {
-	bufPageManager->access(0);
-	dirty = true;
+	loadToBuf();
+	bufPageManager->markDirty(bufIndex);
 	return bufData;
 }
 
 Page::~Page()
 {
-	if(dirty)
-		bufPageManager->markDirty(bufIndex);
 }
 
 Page::Page(BufPageManager *bufPageManager, int fileId, int pageId):
-	fileId(fileId), pageId(pageId)
+	bufPageManager(bufPageManager), fileId(fileId), pageId(pageId)
 {
-	this->bufPageManager = bufPageManager;
-	bufPageManager->getPage(fileId, pageId, bufIndex);
+}
+
+void Page::loadToBuf() {
+	bufData = bufPageManager->getPage(fileId, pageId, bufIndex);
 }

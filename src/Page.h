@@ -10,15 +10,17 @@
 class Page {
 	friend class Database;
 
-	BufPageManager* bufPageManager;
-	const int fileId, pageId;
+	BufPageManager* const bufPageManager;
+
 	int bufIndex;
-	uchar* bufData = nullptr;
-	bool dirty = false;
+	BufType bufData = nullptr;
+
 	Page(BufPageManager* bufPageManager, int fileId, int pageId);
+	void loadToBuf();
 public:
-	const uchar* getDataReadonly() const;
-	uchar* getDataMutable();
+	const int fileId, pageId;
+	BufType getDataReadonly();
+	BufType getDataMutable();
 	~Page();
 };
 

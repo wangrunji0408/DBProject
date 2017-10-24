@@ -6,8 +6,8 @@
 class Table;
 class RecordScanner{
 	Table* table;
-	int currentPage;
-	int nextPage;
+	int currentPageId;
+	int nextPageId;
 	int fieldId;
 	bool needUpdate=true;
 	bool end=false;

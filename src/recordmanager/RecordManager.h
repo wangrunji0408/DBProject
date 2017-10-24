@@ -25,12 +25,6 @@ class RecordManager {
 	friend class ::Database;
 	Database& database;
 
-	// temp
-	int fileID;
-	DatabaseManager& databaseManager;
-	int acquireNewPage();
-	void releasePage(int pageID);
-
 	RecordManager(Database& database);
 public:
 	~RecordManager();

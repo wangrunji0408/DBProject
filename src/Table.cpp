@@ -10,29 +10,32 @@
 #include "Database.h"
 #include "DatabaseManager.h"
 
+Table::Table(RecordManager& recordManager,::std::string name,int tablePageID):
+	recordManager(recordManager), name(name), tablePageID(tablePageID),
+	database(recordManager.database), bufPageManager(recordManager.database.databaseManager.bufPageManager.get())
+{
+	recoverMetadata();
+}
+
 void Table::deleteData(){
-	BufType currentPageBuffer;
-	int currentPageIndex;
 	int lastPageID=tablePageID;
 	int currentPageID=firstDataPageID;
 	while(currentPageID>=0){
-		currentPageBuffer=this->database.databaseManager.bufPageManager->getPage(this->database.fileID,currentPageID,currentPageIndex);
+		auto currentPage = database.getPage(currentPageID);
+		BufType currentPageBuffer = currentPage.getDataReadonly();
 		lastPageID=currentPageID;
 		currentPageID=currentPageBuffer[1];
-		this->database.databaseManager.bufPageManager->access(currentPageIndex);
-		this->database.releasePage(lastPageID);
+		database.releasePage(lastPageID);
 	}
 }
 
 
 void Table::recoverMetadata() {
-	BufType tablePageBuffer;
-	int tablePageIndex;
-	tablePageBuffer=this->database.databaseManager.bufPageManager->getPage(this->database.fileID,tablePageID,tablePageIndex);
+	auto currentPage = database.getPage(tablePageID);
+	BufType tablePageBuffer = currentPage.getDataReadonly();
 	recordLength=tablePageBuffer[63];
 	firstDataPageID=tablePageBuffer[62];
 	maxRecordPerPage=(8*8096)/(8*recordLength+1);
-	this->database.databaseManager.bufPageManager->access(tablePageIndex);
 }
 
 size_t Table::getRecordLength() const {
@@ -42,22 +45,18 @@ size_t Table::getRecordLength() const {
 Record Table::getRecord(RID const& rid) {
 	int pageID=rid.pageId;
 	int recordID=rid.slotId;
-	BufType currentPageBuffer;
-	int currentPageIndex;
-	currentPageBuffer=this->database.databaseManager.bufPageManager->getPage(this->database.fileID,pageID,currentPageIndex);
+	auto currentPage = database.getPage(pageID);
+	BufType currentPageBuffer = currentPage.getDataReadonly();
 	if(currentPageBuffer[2]!=tablePageID){
-		this->database.databaseManager.bufPageManager->access(currentPageIndex);
 		throw ::std::runtime_error("This is not RID for this table");
 	}
 	unsigned char* recordMap=(unsigned char*)(currentPageBuffer)+8191;
 	if(((recordMap[-(recordID/8)]>>(recordID%8))&0x1)==0){
-		this->database.databaseManager.bufPageManager->access(currentPageIndex);
 		throw ::std::runtime_error("There is not a record for this RID");
 	}
 	unsigned char* source=(unsigned char*)(currentPageBuffer+24)+recordID*recordLength;
 	unsigned char* data=new unsigned char[recordLength];
 	::std::memcpy(data,source,recordLength);
-	this->database.databaseManager.bufPageManager->access(currentPageIndex);
 	return {rid,data};
 }
 
@@ -67,32 +66,32 @@ RID Table::insertRecord(unsigned char* data) {
 	int lastPageID=tablePageID;
 	int currentPageID=firstDataPageID;
 	while(currentPageID>=0){
-		currentPageBuffer=this->database.databaseManager.bufPageManager->getPage(this->database.fileID,currentPageID,currentPageIndex);
+		auto currentPage = database.getPage(currentPageID);
+		currentPageBuffer = currentPage.getDataReadonly();
 		if(currentPageBuffer[23]<maxRecordPerPage){
 			break;
 		}
 		lastPageID=currentPageID;
 		currentPageID=currentPageBuffer[1];
-		this->database.databaseManager.bufPageManager->access(currentPageIndex);
 	}
 	if(currentPageID<0){
-		currentPageID=this->database.acquireNewPage();
-		currentPageBuffer=this->database.databaseManager.bufPageManager->getPage(this->database.fileID,lastPageID,currentPageIndex);
+		currentPageID=database.acquireNewPage().pageId;
+		currentPageBuffer=bufPageManager->getPage(this->database.fileID,lastPageID,currentPageIndex);
 		if(lastPageID==tablePageID){
 			currentPageBuffer[62]=currentPageID;
 			firstDataPageID=currentPageID;
 		}else{
 			currentPageBuffer[1]=currentPageID;
 		}
-		this->database.databaseManager.bufPageManager->markDirty(currentPageIndex);
-		currentPageBuffer=this->database.databaseManager.bufPageManager->getPage(this->database.fileID,currentPageID,currentPageIndex);
+		bufPageManager->markDirty(currentPageIndex);
+		currentPageBuffer=bufPageManager->getPage(this->database.fileID,currentPageID,currentPageIndex);
 		::std::memset(currentPageBuffer,0,8192);
 		currentPageBuffer[0]=(lastPageID==tablePageID)?-1:lastPageID;
 		currentPageBuffer[1]=-1;
 		currentPageBuffer[2]=tablePageID;
 		currentPageBuffer[22]=recordLength;
 	}else{
-		currentPageBuffer=this->database.databaseManager.bufPageManager->getPage(this->database.fileID,currentPageID,currentPageIndex);
+		currentPageBuffer=bufPageManager->getPage(this->database.fileID,currentPageID,currentPageIndex);
 	}
 	unsigned char* recordMap=(unsigned char*)(currentPageBuffer)+8191;
 	unsigned int recordID=0;
@@ -113,7 +112,7 @@ RID Table::insertRecord(unsigned char* data) {
 	unsigned char* dest=(unsigned char*)(currentPageBuffer+24)+recordID*recordLength;
 	::std::memcpy(dest,data,recordLength);
 	currentPageBuffer[23]++;
-	this->database.databaseManager.bufPageManager->markDirty(currentPageIndex);
+	bufPageManager->markDirty(currentPageIndex);
 	return {(unsigned int)currentPageID,recordID};
 }
 
@@ -122,14 +121,14 @@ void Table::deleteRecord(RID const& rid) {
 	int recordID=rid.slotId;
 	BufType currentPageBuffer;
 	int currentPageIndex;
-	currentPageBuffer=this->database.databaseManager.bufPageManager->getPage(this->database.fileID,pageID,currentPageIndex);
+	currentPageBuffer=bufPageManager->getPage(this->database.fileID,pageID,currentPageIndex);
 	if(currentPageBuffer[2]!=tablePageID){
-		this->database.databaseManager.bufPageManager->access(currentPageIndex);
+		bufPageManager->access(currentPageIndex);
 		throw ::std::runtime_error("This is not RID for this table");
 	}
 	unsigned char* recordMap=(unsigned char*)(currentPageBuffer)+8191;
 	if(((recordMap[-(recordID/8)]>>(recordID%8))&0x1)==0){
-		this->database.databaseManager.bufPageManager->access(currentPageIndex);
+		bufPageManager->access(currentPageIndex);
 		throw ::std::runtime_error("Double delete of record");
 	}
 	recordMap[-(recordID/8)]&=~(1<<(recordID%8));
@@ -137,21 +136,21 @@ void Table::deleteRecord(RID const& rid) {
 	int remain=currentPageBuffer[23];
 	int lastPageID=currentPageBuffer[0];
 	int nextPageID=currentPageBuffer[1];
-	this->database.databaseManager.bufPageManager->markDirty(currentPageIndex);
+	bufPageManager->markDirty(currentPageIndex);
 	if(remain==0){
-		this->database.releasePage(pageID);
-		currentPageBuffer=this->database.databaseManager.bufPageManager->getPage(this->database.fileID,(lastPageID==-1)?tablePageID:lastPageID,currentPageIndex);
+		this->recordManager.database.releasePage(pageID);
+		currentPageBuffer=bufPageManager->getPage(this->database.fileID,(lastPageID==-1)?tablePageID:lastPageID,currentPageIndex);
 		if(lastPageID==-1){
 			currentPageBuffer[62]=nextPageID;
 			firstDataPageID=nextPageID;
 		}else{
 			currentPageBuffer[1]=nextPageID;
 		}
-		this->database.databaseManager.bufPageManager->markDirty(currentPageIndex);
+		bufPageManager->markDirty(currentPageIndex);
 		if(nextPageID!=-1){
-			currentPageBuffer=this->database.databaseManager.bufPageManager->getPage(this->database.fileID,(lastPageID==-1)?tablePageID:nextPageID,currentPageIndex);
+			currentPageBuffer=bufPageManager->getPage(this->database.fileID,(lastPageID==-1)?tablePageID:nextPageID,currentPageIndex);
 			currentPageBuffer[0]=lastPageID;
-			this->database.databaseManager.bufPageManager->markDirty(currentPageIndex);
+			bufPageManager->markDirty(currentPageIndex);
 		}
 	}
 }
@@ -162,21 +161,21 @@ void Table::updateRecord(Record const& record) {
 	int recordID=rid.slotId;
 	BufType currentPageBuffer;
 	int currentPageIndex;
-	currentPageBuffer=this->database.databaseManager.bufPageManager->getPage(this->database.fileID,pageID,currentPageIndex);
+	currentPageBuffer=bufPageManager->getPage(this->database.fileID,pageID,currentPageIndex);
 	if(currentPageBuffer[2]!=tablePageID){
-		this->database.databaseManager.bufPageManager->access(currentPageIndex);
+		bufPageManager->access(currentPageIndex);
 		throw ::std::runtime_error("This is not RID for this table");
 	}
 	unsigned char* recordMap=(unsigned char*)(currentPageBuffer)+8191;
 	if(((recordMap[-(recordID/8)]>>(recordID%8))&0x1)==0){
-		this->database.databaseManager.bufPageManager->access(currentPageIndex);
+		bufPageManager->access(currentPageIndex);
 		throw ::std::runtime_error("There is not a record for this RID");
 	}
 	unsigned char* dest=(unsigned char*)(currentPageBuffer+24)+recordID*recordLength;
 	::std::memcpy(dest,record.data,recordLength);
-	this->database.databaseManager.bufPageManager->markDirty(currentPageIndex);
+	bufPageManager->markDirty(currentPageIndex);
 }
 
 RecordScanner Table::iterateRecords() {
-		return RecordScanner(this);
+	return RecordScanner(this);
 }

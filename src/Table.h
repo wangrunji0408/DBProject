@@ -11,11 +11,16 @@
 #include "filesystem/utils/pagedef.h"
 
 class RecordManager;
+class Database;
+class BufPageManager;
 
 class Table{
 	friend class RecordManager;
 	friend class RecordScanner;
-	RecordManager& database;
+	RecordManager& recordManager;
+	Database& database;
+	[[deprecated("Use Page class from database")]]
+	BufPageManager* bufPageManager;
 	::std::string name;
 	size_t recordLength;
 	size_t maxRecordPerPage;
@@ -23,9 +28,7 @@ class Table{
 	int firstDataPageID;
 	void deleteData();
 	void recoverMetadata();
-	Table(RecordManager& database,::std::string name,int tablePageID):database(database),name(name),tablePageID(tablePageID){
-		recoverMetadata();
-	}
+	Table(RecordManager& recordManager,::std::string name,int tablePageID);
 public:
 	size_t getRecordLength()const;
 	Record getRecord(RID const&);
