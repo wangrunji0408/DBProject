@@ -14,6 +14,8 @@ class DatabaseManager{
 	friend class Database;
 	friend class Table;
 	friend class RecordScanner;
+	friend class RecordManager; // TODO temp
+
 	::std::unique_ptr<FileManager> fileManager;
 	::std::unique_ptr<BufPageManager> bufPageManager;
 	::std::unique_ptr<Database> currentDatabase;

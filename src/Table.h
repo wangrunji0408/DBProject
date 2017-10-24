@@ -4,17 +4,18 @@
 #include <cstddef>
 #include <functional>
 #include <string>
+#include <recordmanager/RecordManager.h>
 #include "recordmanager/Record.h"
 #include "recordmanager/RID.h"
 #include "recordmanager/RecordScanner.h"
 #include "filesystem/utils/pagedef.h"
 
-class Database;
+class RecordManager;
 
 class Table{
-	friend class Database;
+	friend class RecordManager;
 	friend class RecordScanner;
-	Database& database;
+	RecordManager& database;
 	::std::string name;
 	size_t recordLength;
 	size_t maxRecordPerPage;
@@ -22,7 +23,7 @@ class Table{
 	int firstDataPageID;
 	void deleteData();
 	void recoverMetadata();
-	Table(Database& database,::std::string name,int tablePageID):database(database),name(name),tablePageID(tablePageID){
+	Table(RecordManager& database,::std::string name,int tablePageID):database(database),name(name),tablePageID(tablePageID){
 		recoverMetadata();
 	}
 public:

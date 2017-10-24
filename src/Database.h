@@ -4,31 +4,46 @@
 #include <string>
 #include <cstddef>
 #include <memory>
+#include <recordmanager/RecordManager.h>
+#include "indexmanager/IndexManager.h"
 #include "Table.h"
+#include "Page.h"
 
 class DatabaseManager;
 class RecordScanner;
 
 class Database{
+
 	friend class DatabaseManager;
-	friend class Table;
-	friend class RecordScanner;
+	friend class RecordManager;
+	friend class Index::IndexManager;
+
 	DatabaseManager& databaseManager;
-	::std::unique_ptr<Table> tables[30];
-	size_t tableCount;
+	Index::IndexManager indexManager;
+	RecordManager recordManager;
+
 	const int fileID;
 	::std::string name;
+
+	// 抽象页管理操作，封装BufManager，为底层Manager提供接口
 	int acquireNewPage();
+	Page getPage(int pageId) const;
 	void releasePage(int pageID);
-	void recoverTables();
-	Database(DatabaseManager& db,int fileID,::std::string name):databaseManager(db),fileID(fileID),name(name){
-		recoverTables();
+
+	Database(DatabaseManager& db,int fileID,::std::string name):
+		databaseManager(db),fileID(fileID),name(name),
+		recordManager(*this), indexManager(*this)
+	{
+
 	}
 public:
 	~Database();
 	void createTable(::std::string name,size_t recordLength);
-	Table* getTable(::std::string name);
 	void deleteTable(Table* table);
+	Table* getTable(::std::string name);
+	void createIndex(std::string tableName, std::string attrName);
+	void deleteIndex(std::string tableName, std::string attrName);
+	Index::IndexHandle* getIndex(std::string tableName, std::string attrName);
 };
 
 #endif //DATABASE_H
