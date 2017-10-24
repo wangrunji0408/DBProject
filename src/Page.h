@@ -17,7 +17,11 @@ class Page {
 
 	Page(BufPageManager* bufPageManager, int fileId, int pageId);
 	void loadToBuf();
+
 public:
+	friend bool operator==(const Page &lhs, const Page &rhs);
+	friend bool operator!=(const Page &lhs, const Page &rhs);
+
 	const int fileId, pageId;
 	BufType getDataReadonly();
 	BufType getDataMutable();

@@ -27,10 +27,14 @@ class Database{
 	const int fileID;
 	::std::string name;
 
+public: // TODO 这里为了测试暂时公开，寻找测试私有函数的解决方案
 	// 抽象页管理操作，封装BufManager，为底层Manager提供接口
 	Page acquireNewPage();
 	Page getPage(int pageId) const;
 	void releasePage(int pageID);
+	bool isPageUsed(int pageId) const;
+
+private:
 
 	Database(DatabaseManager& db,int fileID,::std::string name):
 		databaseManager(db),fileID(fileID),name(name)

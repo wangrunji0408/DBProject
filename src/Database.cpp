@@ -10,9 +10,8 @@
 #include "DatabaseManager.h"
 
 Page Database::acquireNewPage() {
-	BufType firstPageBuffer;
-	int firstPageIndex;
-	firstPageBuffer=this->databaseManager.bufPageManager->getPage(fileID,0,firstPageIndex);
+	auto firstPage = getPage(0);
+	BufType firstPageBuffer = firstPage.getDataMutable();
 	unsigned char* pageMap=(unsigned char*)(firstPageBuffer+1024);
 	int pageID=0;
 	int i=0;
@@ -31,14 +30,22 @@ Page Database::acquireNewPage() {
 		mapDetail<<=1;
 	}
 	pageMap[i]|=(1<<(7-(pageID%8)));
-	this->databaseManager.bufPageManager->markDirty(firstPageIndex);
-	return getPage(pageID);
+	return Page(this->databaseManager.bufPageManager.get(), fileID, pageID);
+}
+
+bool Database::isPageUsed(int pageID) const {
+	if(pageID == 0)	return true;
+	auto firstPage = getPage(0);
+	BufType firstPageBuffer = firstPage.getDataReadonly();
+	unsigned char* pageMap=(unsigned char*)(firstPageBuffer+1024);
+	int pos=pageID/8;
+	int offset=pageID%8;
+	return (bool)((pageMap[pos]<<offset)&0x80);
 }
 
 void Database::releasePage(int pageID){
-	BufType firstPageBuffer;
-	int firstPageIndex;
-	firstPageBuffer=this->databaseManager.bufPageManager->getPage(fileID,0,firstPageIndex);
+	auto firstPage = getPage(0);
+	BufType firstPageBuffer = firstPage.getDataMutable();
 	unsigned char* pageMap=(unsigned char*)(firstPageBuffer+1024);
 	int pos=pageID/8;
 	int offset=pageID%8;
@@ -46,11 +53,11 @@ void Database::releasePage(int pageID){
 		throw ::std::runtime_error("Double page release");
 	}
 	pageMap[pos]&=~(1<<(7-offset));
-	this->databaseManager.bufPageManager->markDirty(firstPageIndex);
 }
 
 Page Database::getPage(int pageId) const {
-	// TODO check exist
+	if(!isPageUsed(pageId))
+		throw ::std::runtime_error("Try to get a unused page.");
 	return Page(this->databaseManager.bufPageManager.get(), fileID, pageId);
 }
 

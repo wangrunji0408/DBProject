@@ -30,3 +30,12 @@ Page::Page(BufPageManager *bufPageManager, int fileId, int pageId):
 void Page::loadToBuf() {
 	bufData = bufPageManager->getPage(fileId, pageId, bufIndex);
 }
+
+bool operator==(const Page &lhs, const Page &rhs) {
+	return lhs.fileId == rhs.fileId &&
+		   lhs.pageId == rhs.pageId;
+}
+
+bool operator!=(const Page &lhs, const Page &rhs) {
+	return !(rhs == lhs);
+}

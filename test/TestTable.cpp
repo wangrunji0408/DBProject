@@ -13,16 +13,6 @@ struct Data
 	int a, b, c;
 };
 
-inline void ASSERT_DATA_EQ(void* a, void* b, size_t size)
-{
-	ASSERT_NE(nullptr, a);
-	ASSERT_NE(nullptr, b);
-	char *ca = (char*)a;
-	char *cb = (char*)b;
-	for(int i=0; i<size; ++i)
-		ASSERT_EQ(ca[i], cb[i]);
-}
-
 class TestTable : public TestBase
 {
 protected:

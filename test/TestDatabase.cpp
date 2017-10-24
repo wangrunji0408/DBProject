@@ -87,4 +87,37 @@ TEST_F(TestDatabase, NothingHappensWhenDeleteNullTable)
 	db->deleteTable(nullptr);
 }
 
+TEST_F(TestDatabase, CanAcquireAndGetPage)
+{
+	auto page1 = db->acquireNewPage();
+	ASSERT_EQ(page1, db->getPage(1));
+	ASSERT_TRUE(db->isPageUsed(1));
+	ASSERT_FALSE(db->isPageUsed(2));
+}
+
+TEST_F(TestDatabase, CanKeepPageData)
+{
+	int pageId;
+	uchar data[8192];
+	{
+		auto page1 = db->acquireNewPage();
+		pageId = page1.pageId;
+		std::memcpy(page1.getDataMutable(), data, 8192);
+	}
+	Reopen();
+	{
+		auto page1 = db->getPage(pageId);
+		ASSERT_DATA_EQ(page1.getDataReadonly(), data, 8192);
+	}
+}
+
+TEST_F(TestDatabase, CanReleasePage)
+{
+	auto page1 = db->acquireNewPage();
+	ASSERT_TRUE(db->isPageUsed(1));
+	db->releasePage(1);
+	ASSERT_FALSE(db->isPageUsed(1));
+	ASSERT_ANY_THROW( db->releasePage(2) );
+}
+
 }
