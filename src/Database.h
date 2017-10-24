@@ -19,8 +19,8 @@ class Database{
 	friend class Index::IndexManager;
 
 	DatabaseManager& databaseManager;
-	Index::IndexManager indexManager;
-	RecordManager recordManager;
+//	Index::IndexManager indexManager;
+	std::unique_ptr<RecordManager> recordManager;
 
 	const int fileID;
 	::std::string name;
@@ -31,10 +31,9 @@ class Database{
 	void releasePage(int pageID);
 
 	Database(DatabaseManager& db,int fileID,::std::string name):
-		databaseManager(db),fileID(fileID),name(name),
-		recordManager(*this), indexManager(*this)
+		databaseManager(db),fileID(fileID),name(name)
 	{
-
+		recordManager = std::unique_ptr<RecordManager>(new RecordManager(*this));
 	}
 public:
 	~Database();

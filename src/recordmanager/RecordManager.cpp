@@ -13,9 +13,10 @@ void RecordManager::releasePage(int pageID) {database.releasePage(pageID);}
 RecordManager::RecordManager(Database &database):
 		database(database), databaseManager(database.databaseManager)
 {
-	recoverTables();
 	// TODO temp
 	fileID = database.fileID;
+
+	recoverTables();
 }
 
 RecordManager::~RecordManager() {

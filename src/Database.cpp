@@ -61,13 +61,13 @@ Database::~Database() {
 }
 
 void Database::createTable(::std::string name, size_t recordLength) {
-	recordManager.createTable(name, recordLength);
+	recordManager->createTable(name, recordLength);
 }
 
 void Database::deleteTable(Table *table) {
-	recordManager.deleteTable(table);
+	recordManager->deleteTable(table);
 }
 
 Table *Database::getTable(::std::string name) {
-	return recordManager.getTable(name);
+	return recordManager->getTable(name);
 }

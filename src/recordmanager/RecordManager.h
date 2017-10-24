@@ -25,16 +25,15 @@ class RecordManager {
 	friend class ::Database;
 	Database& database;
 
-	RecordManager(Database& database);
-	~RecordManager();
-
 	// temp
 	int fileID;
 	DatabaseManager& databaseManager;
 	int acquireNewPage();
 	void releasePage(int pageID);
 
+	RecordManager(Database& database);
 public:
+	~RecordManager();
 	void createTable(::std::string name,size_t recordLength);
 	void deleteTable(Table* table);
 	Table* getTable(::std::string name);
