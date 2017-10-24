@@ -8,6 +8,8 @@
 
 #include<iostream>
 
+bool DatabaseManager::hasInstance = false;
+
 void DatabaseManager::createDatabase(::std::string name){
 	::std::string filename=name+".dbf";
 	int created=this->fileManager->createFile(filename.c_str());
