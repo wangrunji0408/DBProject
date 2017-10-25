@@ -14,7 +14,8 @@ class TestDBManager : public TestBase
 {
 protected:
 	void SetUp() override {
-		TestBase::SetUp();
+		ClearAllDatabase();
+		dbm = new DatabaseManager();
 		try {
 			dbm->createDatabase("db1");
 			dbm->useDatabase("db1");
@@ -22,7 +23,8 @@ protected:
 	}
 
 	void Reopen() override {
-		TestBase::Reopen();
+		delete dbm;
+		dbm = new DatabaseManager();
 		dbm->useDatabase("db1");
 	}
 };
@@ -54,7 +56,8 @@ TEST_F(TestDBManager, CanDelete)
 	dbm->deleteCurrentDatabase();
 	ASSERT_ANY_THROW( dbm->getCurrentDatabase() );
 	ASSERT_ANY_THROW( dbm->useDatabase("db1") );
-	TestBase::Reopen();
+	delete dbm;
+	dbm = new DatabaseManager();
 	ASSERT_ANY_THROW( dbm->useDatabase("db1") );
 }
 

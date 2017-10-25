@@ -20,6 +20,9 @@ class Database{
 	friend class RecordScanner;
 	friend class Table;
 
+	static const int DBMETA_PAGEID = 0;
+	static const int SYSINDEX_PAGEID = 1;
+
 	DatabaseManager& databaseManager;
 	std::unique_ptr<IndexManager> indexManager;
 	std::unique_ptr<RecordManager> recordManager;
@@ -33,6 +36,8 @@ public: // TODO 这里为了测试暂时公开，寻找测试私有函数的解�
 	Page getPage(int pageId) const;
 	void releasePage(int pageID);
 	bool isPageUsed(int pageId) const;
+	// for test
+	IndexManager* getIndexManager() const {return indexManager.get();}
 
 private:
 

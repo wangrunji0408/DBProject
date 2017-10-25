@@ -16,10 +16,12 @@ class Index {
 	Database& database;
 
 	Index(Database& database, int rootPageID);
+	RID findEntryIndexPos(const void *pData);
 public:
 	~Index() = default;
-	void insertEntry(void *pData, RID const& rid);
-	void deleteEntry(void *pData, RID const& rid);
+	void insertEntry(const void *pData, RID const& rid);
+	void deleteEntry(const void *pData, RID const& rid);
+	RID findEntry(const void *pData);
 };
 
 #endif //TEST_INDEXHANDLE_H

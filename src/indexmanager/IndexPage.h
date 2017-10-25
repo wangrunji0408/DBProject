@@ -16,10 +16,10 @@ struct RID;
  * 定义了索引页的存储结构
  * size = 8192
  * 只能将从Page处获得的data指针转换成该类型指针使用
- * 每次使用前需 checkAndInit()
  */
 class IndexPage {
 	friend class Index;
+	friend class IndexManager;
 	typedef std::function<bool(const void*, const void*)> TCompare;
 
 	int tablePageID;	// 0-3
@@ -32,8 +32,7 @@ class IndexPage {
 	short capacity; 	// = 8096 / slotLength
 	bool cluster;
 	bool leaf;
-	TCompare compare;	// 48
-	unsigned char reserved[100];
+	unsigned char reserved[100-24];
 	unsigned char records[8096];
 
 	int& refPageID(int i);
@@ -41,14 +40,15 @@ class IndexPage {
 	void* refKey(int i);
 	const void* refKey(int i) const;
 
-	void checkAndInit();
+	void check();
 	void makeRootPage(int tablePageID, DataType keyType, short keyLength);
 
-	int lowerBound(void* key) const;
+	int lowerBound(const void* key) const;
+	int lowerBound(const void* key, TCompare const& compare) const;
 
 	TCompare makeCompare() const;
-	void insert(int i, void* key, RID rid);
-	void insert(int i, void* key, int pageID);
+	void insert(int i, const void* key, RID rid);
+	void insert(int i, const void* key, int pageID);
 	void remove(int i);
 
 	IndexPage() = delete;

@@ -35,6 +35,16 @@ Divide the file into pages by 8KB. The first page of the file is database metada
 	- 96-?: Real Record data
 	- ?-8191: Bitset that indicates whether a record field is used (from right to left)
 
+## SysIndex page
+
+- 0-95: Not sure. See `SysIndexPage` class for details.
+- 96-8191: 506 x 16 byte index data, for every index:
+    - 0-3: Index root page ID
+    - 4-7: Table meta page ID
+    - 8-9: Key type
+    - 10-11: Key length
+    - 12-15: Reserved
+
 ## Index page
 
 - 0-95: Not sure. See `IndexPage` class for details.

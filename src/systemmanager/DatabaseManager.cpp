@@ -1,5 +1,6 @@
 #include <cstring>
 #include <string>
+#include <indexmanager/SysIndexPage.h>
 #include "DatabaseManager.h"
 #include "DatabaseMetaPage.h"
 
@@ -20,7 +21,9 @@ void DatabaseManager::createDatabase(::std::string name){
 		throw ::std::runtime_error("Cannot open database file");
 	}
 	auto firstPage = DatabaseMetaPage();
+	auto sysIndexPage = SysIndexPage();
 	this->fileManager->writePage(fileID,0,(BufType)&firstPage,0);
+	this->fileManager->writePage(fileID,1,(BufType)&sysIndexPage,0);
 	this->fileManager->closeFile(fileID);
 }
 

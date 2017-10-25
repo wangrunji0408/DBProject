@@ -18,21 +18,15 @@ class TestTable : public TestBase
 protected:
 	void SetUp() override {
 		TestBase::SetUp();
-		dbm->createDatabase("db1");
-		dbm->useDatabase("db1");
-		db = dbm->getCurrentDatabase();
 		db->createTable("table1", sizeof(Data));
 		table = db->getTable("table1");
 	}
 
 	void Reopen() override {
 		TestBase::Reopen();
-		dbm->useDatabase("db1");
-		db = dbm->getCurrentDatabase();
 		table = db->getTable("table1");
 	}
 
-	Database* db;
 	Table* table;
 };
 

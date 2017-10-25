@@ -6,6 +6,7 @@
 #define TEST_INDEXMANAGER_H
 
 #include <string>
+#include <ast/TableDef.h>
 #include "Index.h"
 
 class Database;
@@ -13,13 +14,14 @@ class Database;
 class IndexManager {
 	friend class Database;
 	Database& database;
+	Page sysIndexPage;
 
 	IndexManager(Database& database);
 public:
-	~IndexManager();
-	void createIndex(int tableID, int indexNo);
-	void deleteIndex(int tableID, int indexNo);
-	Index getIndex(std::string tableName, int indexNo);
+	~IndexManager() = default;
+	int createIndex(int tablePageID, DataType keyType, short keyLength);
+	void deleteIndex(int indexID);
+	Index* getIndex(int indexID); // TODO 内存管理
 };
 
 #endif //TEST_INDEXMANAGER_H

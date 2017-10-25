@@ -16,7 +16,8 @@ void DatabaseMetaPage::check() const {
 void DatabaseMetaPage::makeInit() {
 	std::memset(this, 0, sizeof(DatabaseMetaPage));
 	std::memcpy(magicValue, MAGIC_VALUE, 4);
-	pageUsedBitset.set(0);
+	pageUsedBitset.set(0); // DatabaseMetaPage
+	pageUsedBitset.set(1); // SysIndexPage
 }
 
 int DatabaseMetaPage::acquireNewPage() {

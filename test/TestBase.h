@@ -24,11 +24,16 @@ protected:
 	void SetUp() override {
 		ClearAllDatabase();
 		dbm = new DatabaseManager();
+		dbm->createDatabase("db1");
+		dbm->useDatabase("db1");
+		db = dbm->getCurrentDatabase();
 	}
 
 	virtual void Reopen() {
 		delete dbm;
 		dbm = new DatabaseManager();
+		dbm->useDatabase("db1");
+		db = dbm->getCurrentDatabase();
 	}
 
 	void TearDown () override {
@@ -36,6 +41,7 @@ protected:
 	}
 
 	DatabaseManager* dbm = nullptr;
+	Database* db = nullptr;
 };
 
 inline void ASSERT_DATA_EQ(const void* a, const void* b, size_t size)

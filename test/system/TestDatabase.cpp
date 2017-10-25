@@ -13,18 +13,11 @@ class TestDatabase : public TestBase
 protected:
 	void SetUp() override {
 		TestBase::SetUp();
-		dbm->createDatabase("db1");
-		dbm->useDatabase("db1");
-		db = dbm->getCurrentDatabase();
 	}
 
 	void Reopen () override {
 		TestBase::Reopen();
-		dbm->useDatabase("db1");
-		db = dbm->getCurrentDatabase();
 	}
-
-	Database* db;
 };
 
 TEST_F(TestDatabase, CanCreateAndGetTable)
@@ -90,9 +83,9 @@ TEST_F(TestDatabase, NothingHappensWhenDeleteNullTable)
 TEST_F(TestDatabase, CanAcquireAndGetPage)
 {
 	auto page1 = db->acquireNewPage();
-	ASSERT_EQ(page1, db->getPage(1));
-	ASSERT_TRUE(db->isPageUsed(1));
-	ASSERT_FALSE(db->isPageUsed(2));
+	ASSERT_EQ(page1, db->getPage(page1.pageId));
+	ASSERT_TRUE(db->isPageUsed(page1.pageId));
+	ASSERT_FALSE(db->isPageUsed(100));
 }
 
 TEST_F(TestDatabase, CanKeepPageData)
@@ -114,10 +107,10 @@ TEST_F(TestDatabase, CanKeepPageData)
 TEST_F(TestDatabase, CanReleasePage)
 {
 	auto page1 = db->acquireNewPage();
-	ASSERT_TRUE(db->isPageUsed(1));
-	db->releasePage(1);
-	ASSERT_FALSE(db->isPageUsed(1));
-	ASSERT_ANY_THROW( db->releasePage(2) );
+	ASSERT_TRUE(db->isPageUsed(page1.pageId));
+	db->releasePage(page1.pageId);
+	ASSERT_FALSE(db->isPageUsed(page1.pageId));
+	ASSERT_ANY_THROW( db->releasePage(100) );
 }
 
 }
