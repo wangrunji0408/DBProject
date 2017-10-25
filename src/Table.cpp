@@ -113,7 +113,7 @@ RID Table::insertRecord(unsigned char* data) {
 	::std::memcpy(dest,data,recordLength);
 	currentPageBuffer[23]++;
 	bufPageManager->markDirty(currentPageIndex);
-	return {(unsigned int)currentPageID,recordID};
+	return RID(currentPageID,recordID);
 }
 
 void Table::deleteRecord(RID const& rid) {

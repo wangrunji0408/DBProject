@@ -4,10 +4,10 @@
 
 #include "IndexManager.h"
 
-Index::IndexManager::IndexManager(Database &database): database(database){
+IndexManager::IndexManager(Database &database): database(database){
 
 }
 
-Index::IndexManager::~IndexManager() {
+IndexManager::~IndexManager() {
 
 }

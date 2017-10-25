@@ -49,7 +49,5 @@ typedef unsigned short ushort;
 typedef unsigned char uchar;
 typedef unsigned long long ull;
 typedef long long ll;
-typedef double db;
-typedef int INT;
 typedef int(cf)(uchar*, uchar*);
 #endif

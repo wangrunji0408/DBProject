@@ -5,8 +5,8 @@
 #ifndef TEST_TESTBASE_H
 #define TEST_TESTBASE_H
 
-
 #include <gtest/gtest.h>
+#include "DatabaseManager.h"
 
 class TestBase : public testing::Test
 {

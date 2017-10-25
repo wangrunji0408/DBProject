@@ -37,7 +37,11 @@ Divide the file into pages by 8KB. The first page of the file is database metada
 
 ## Index page
 
-- 0-8191: Reserved
+- 0-95: Not sure. See `IndexPage` class for details.
+- 96-8191: Index records
+    - Not Leaf: k0 p0 k1 p1 ... k\[n-1] p\[n-1]
+    - Leaf:     k0 r0 k1 r1 ... k\[n-1] r\[n-1]
+
 
 ## Empty page
 

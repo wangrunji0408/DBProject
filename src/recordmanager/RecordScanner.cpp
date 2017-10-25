@@ -57,7 +57,7 @@ Record RecordScanner::getNext() {
 		update();
 	}
 	needUpdate=true;
-	return table->getRecord({(unsigned int)currentPageId,(unsigned int)fieldId});
+	return table->getRecord(RID(currentPageId,fieldId));
 }
 
 bool RecordScanner::hasNext() {

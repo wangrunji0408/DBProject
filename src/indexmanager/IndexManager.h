@@ -6,25 +6,20 @@
 #define TEST_INDEXMANAGER_H
 
 #include <string>
-#include "IndexHandle.h"
+#include "Index.h"
 
 class Database;
 
-namespace Index {
-
 class IndexManager {
-	friend class ::Database;
+	friend class Database;
 	Database& database;
 
 	IndexManager(Database& database);
-	~IndexManager();
 public:
-	void CreateIndex(std::string tableName, int indexNo);
-	void DestroyIndex(std::string tableName, int indexNo);
-	IndexHandle OpenIndex(std::string tableName, int indexNo);
-	void CloseIndex(IndexHandle const& indexHandle);
+	~IndexManager();
+	void createIndex(std::string tableName, int indexNo);
+	void destroyIndex(std::string tableName, int indexNo);
+	Index getIndex(std::string tableName, int indexNo);
 };
-
-}
 
 #endif //TEST_INDEXMANAGER_H

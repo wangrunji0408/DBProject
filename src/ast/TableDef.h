@@ -9,7 +9,12 @@
 #include <vector>
 
 enum DataType {
-	INT, CHAR, VARCHAR, FLOAT, DATE
+	UNKNOWN = 0,
+	INT = 1,
+	CHAR = 2,
+	VARCHAR = 3,
+	FLOAT = 4,
+	DATE = 5
 };
 
 struct ColomnDef {

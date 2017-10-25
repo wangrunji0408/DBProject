@@ -12,6 +12,7 @@ file(GLOB SOURCES
         src/recordmanager/*.cpp
         src/indexmanager/*.h
         src/indexmanager/*.cpp
+        src/ast/*.h
         src/*.h
         src/*.cpp)
 

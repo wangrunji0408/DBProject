@@ -16,12 +16,12 @@ class Database{
 
 	friend class DatabaseManager;
 	friend class RecordManager;
-	friend class Index::IndexManager;
+	friend class IndexManager;
 	friend class RecordScanner;
 	friend class Table;
 
 	DatabaseManager& databaseManager;
-//	Index::IndexManager indexManager;
+	std::unique_ptr<IndexManager> indexManager;
 	std::unique_ptr<RecordManager> recordManager;
 
 	const int fileID;
@@ -40,6 +40,7 @@ private:
 		databaseManager(db),fileID(fileID),name(name)
 	{
 		recordManager = std::unique_ptr<RecordManager>(new RecordManager(*this));
+		indexManager = std::unique_ptr<IndexManager>(new IndexManager(*this));
 	}
 public:
 	~Database();
@@ -48,7 +49,7 @@ public:
 	Table* getTable(::std::string name);
 	void createIndex(std::string tableName, std::string attrName);
 	void deleteIndex(std::string tableName, std::string attrName);
-	Index::IndexHandle* getIndex(std::string tableName, std::string attrName);
+	Index* getIndex(std::string tableName, std::string attrName);
 };
 
 #endif //DATABASE_H
