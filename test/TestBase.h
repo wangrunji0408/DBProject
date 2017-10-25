@@ -38,7 +38,7 @@ protected:
 	DatabaseManager* dbm = nullptr;
 };
 
-inline void ASSERT_DATA_EQ(void* a, void* b, size_t size)
+inline void ASSERT_DATA_EQ(const void* a, const void* b, size_t size)
 {
 	ASSERT_NE(nullptr, a);
 	ASSERT_NE(nullptr, b);

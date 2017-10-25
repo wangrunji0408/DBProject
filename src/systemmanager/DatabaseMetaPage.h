@@ -7,10 +7,7 @@
 
 #include <bitset>
 
-class DatabaseMetaPage {
-
-	friend class DatabaseManager;
-	friend class Database;
+struct DatabaseMetaPage {
 
 	static const int MAX_PAGE_NUM = 1 << 15;
 	static const int MAX_TABLE_NUM = 30;

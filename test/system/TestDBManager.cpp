@@ -5,6 +5,8 @@
 #include <gtest/gtest.h>
 #include <systemmanager/DatabaseManager.h>
 #include "../TestBase.h"
+#include "systemmanager/DatabaseMetaPage.h"
+
 
 namespace {
 
@@ -54,6 +56,22 @@ TEST_F(TestDBManager, CanDelete)
 	ASSERT_ANY_THROW( dbm->useDatabase("db1") );
 	TestBase::Reopen();
 	ASSERT_ANY_THROW( dbm->useDatabase("db1") );
+}
+
+TEST_F(TestDBManager, StructureOfDatabaseMetaPage)
+{
+	ASSERT_EQ(8192, sizeof(DatabaseMetaPage));
+
+	auto meta = DatabaseMetaPage();
+#define OFFSET(attr) ((char*)&meta.attr - (char*)&meta)
+	ASSERT_EQ(0, OFFSET(magicValue));
+	ASSERT_EQ(252, OFFSET(tableCount));
+	ASSERT_EQ(256, OFFSET(tableInfo));
+	ASSERT_EQ(256, OFFSET(tableInfo[0].metaPageID));
+	ASSERT_EQ(260, OFFSET(tableInfo[0].name));
+	ASSERT_EQ(256+128, OFFSET(tableInfo[1]));
+	ASSERT_EQ(4096, OFFSET(pageUsedBitset));
+#undef OFFSET
 }
 
 }

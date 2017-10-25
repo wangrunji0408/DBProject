@@ -2,6 +2,7 @@
 // Created by 王润基 on 2017/10/24.
 //
 
+#include <systemmanager/DatabaseMetaPage.h>
 #include "RecordManager.h"
 #include "systemmanager/Database.h"
 
@@ -17,17 +18,11 @@ RecordManager::~RecordManager() {
 
 void RecordManager::recoverTables() {
 	auto firstPage = database.getPage(0);
-	auto firstPageBuffer = (BufType)firstPage.getDataMutable();
-	tableCount=firstPageBuffer[63];
+	auto metaInfo = (const DatabaseMetaPage*)firstPage.getDataReadonly();
+	tableCount = static_cast<size_t>(metaInfo->tableCount);
 	for(int i=0;i<tableCount;i++){
-		BufType tableRecordPos=firstPageBuffer+64+i*32;
-		int tablePageID=*tableRecordPos;
-		unsigned char* tableNamePos=(unsigned char*)(tableRecordPos+1);
-		unsigned char tableName[125];
-		::std::memcpy(tableName,tableNamePos,124);
-		tableName[125]='\0';
-		::std::string name((char*)(tableName));
-		tables[i].reset(new Table(*this,name,tablePageID));
+		auto const& tableInfo = metaInfo->tableInfo[i];
+		tables[i].reset(new Table(*this,tableInfo.name,tableInfo.metaPageID));
 	}
 }
 
