@@ -2,9 +2,9 @@
 // Created by 王润基 on 2017/10/23.
 //
 
-#include "TestBase.h"
+#include "../TestBase.h"
 #include "indexmanager/IndexPage.h"
-#include "DatabaseMetaPage.h"
+#include "systemmanager/DatabaseMetaPage.h"
 
 namespace {
 

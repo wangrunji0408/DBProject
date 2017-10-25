@@ -6,7 +6,7 @@
 #include "filesystem/bufmanager/BufPageManager.h"
 #include "filesystem/fileio/FileManager.h"
 #include "Database.h"
-#include "Table.h"
+#include "recordmanager/Table.h"
 
 class RecordScanner;
 

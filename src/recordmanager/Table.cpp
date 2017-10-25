@@ -3,12 +3,10 @@
 //
 
 #include <recordmanager/Record.h>
-#include <cstring>
-#include <exception>
-#include <iostream>
 #include "Table.h"
-#include "Database.h"
-#include "DatabaseManager.h"
+#include "systemmanager/Database.h"
+#include "systemmanager/DatabaseManager.h"
+#include "RecordScanner.h"
 
 Table::Table(RecordManager& recordManager,::std::string name,int tablePageID):
 	recordManager(recordManager), name(name), tablePageID(tablePageID),

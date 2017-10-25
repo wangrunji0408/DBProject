@@ -4,11 +4,9 @@
 #include <cstddef>
 #include <functional>
 #include <string>
-#include <recordmanager/RecordManager.h>
-#include "recordmanager/Record.h"
-#include "recordmanager/RID.h"
-#include "recordmanager/RecordScanner.h"
-#include "filesystem/utils/pagedef.h"
+#include "RID.h"
+#include "Record.h"
+#include "RecordScanner.h"
 
 class RecordManager;
 class Database;

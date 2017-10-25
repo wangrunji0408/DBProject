@@ -5,7 +5,7 @@
 #ifndef TEST_INDEXHANDLE_H
 #define TEST_INDEXHANDLE_H
 
-#include <Page.h>
+#include <filesystem/page/Page.h>
 
 class RID;
 class Database;

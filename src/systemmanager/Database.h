@@ -6,8 +6,8 @@
 #include <memory>
 #include <recordmanager/RecordManager.h>
 #include "indexmanager/IndexManager.h"
-#include "Table.h"
-#include "Page.h"
+#include "recordmanager/Table.h"
+#include "filesystem/page/Page.h"
 
 class DatabaseManager;
 class RecordScanner;

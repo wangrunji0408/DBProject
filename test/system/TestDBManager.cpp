@@ -3,8 +3,8 @@
 //
 
 #include <gtest/gtest.h>
-#include <DatabaseManager.h>
-#include "TestBase.h"
+#include <systemmanager/DatabaseManager.h>
+#include "../TestBase.h"
 
 namespace {
 

@@ -1,8 +1,8 @@
 #include <iostream>
 #include <string>
-#include "Table.h"
-#include "Database.h"
-#include "DatabaseManager.h"
+#include "recordmanager/Table.h"
+#include "systemmanager/Database.h"
+#include "systemmanager/DatabaseManager.h"
 
 int main(int argc,char** argv){
 	DatabaseManager dbm;

@@ -6,7 +6,7 @@
 #define TEST_TESTBASE_H
 
 #include <gtest/gtest.h>
-#include "DatabaseManager.h"
+#include "systemmanager/DatabaseManager.h"
 
 class TestBase : public testing::Test
 {

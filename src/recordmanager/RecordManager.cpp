@@ -3,8 +3,7 @@
 //
 
 #include "RecordManager.h"
-#include "Database.h"
-#include "DatabaseManager.h"
+#include "systemmanager/Database.h"
 
 RecordManager::RecordManager(Database &database):
 	database(database)
