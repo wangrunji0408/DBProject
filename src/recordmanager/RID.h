@@ -2,8 +2,8 @@
 #define RID_H
 
 struct RID{
-	const unsigned int pageId;
-	const unsigned int slotId;
+	const unsigned short pageId;
+	const unsigned short slotId;
 
 	bool operator==(const RID &rhs) const {
 		return pageId == rhs.pageId &&
@@ -19,7 +19,7 @@ struct RID{
 		return RID(rid.pageId, rid.slotId);
 	}
 
-	RID(unsigned int pageId, unsigned int slotId) :
+	RID(unsigned short pageId, unsigned short slotId) :
 			pageId(pageId), slotId(slotId) {}
 };
 

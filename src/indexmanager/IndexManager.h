@@ -17,8 +17,8 @@ class IndexManager {
 	IndexManager(Database& database);
 public:
 	~IndexManager();
-	void createIndex(std::string tableName, int indexNo);
-	void destroyIndex(std::string tableName, int indexNo);
+	void createIndex(int tableID, int indexNo);
+	void deleteIndex(int tableID, int indexNo);
 	Index getIndex(std::string tableName, int indexNo);
 };
 

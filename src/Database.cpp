@@ -3,56 +3,34 @@
 //
 
 #include <string>
-#include <cstring>
-#include <exception>
+#include <cassert>
 #include "Table.h"
 #include "Database.h"
 #include "DatabaseManager.h"
+#include "DatabaseMetaPage.h"
 
 Page Database::acquireNewPage() {
 	auto firstPage = getPage(0);
-	BufType firstPageBuffer = firstPage.getDataMutable();
-	unsigned char* pageMap=(unsigned char*)(firstPageBuffer+1024);
-	int pageID=0;
-	int i=0;
-	for(;i<4096;i++){
-		if(pageMap[i]!=0xFF){
-			break;
-		}
-		pageID+=8;
-	}
-	if(pageID>=32768){
-		throw ::std::runtime_error("No more page available");
-	}
-	unsigned char mapDetail=pageMap[i];
-	while((mapDetail&0x80)!=0){
-		pageID++;
-		mapDetail<<=1;
-	}
-	pageMap[i]|=(1<<(7-(pageID%8)));
+	auto dbMetaInfo = (DatabaseMetaPage*) firstPage.getDataMutable();
+	int pageID = dbMetaInfo->acquireNewPage();
 	return Page(this->databaseManager.bufPageManager.get(), fileID, pageID);
 }
 
 bool Database::isPageUsed(int pageID) const {
+	assert(pageID >= 0 && pageID < DatabaseMetaPage::MAX_PAGE_NUM);
 	if(pageID == 0)	return true;
 	auto firstPage = getPage(0);
-	BufType firstPageBuffer = firstPage.getDataReadonly();
-	unsigned char* pageMap=(unsigned char*)(firstPageBuffer+1024);
-	int pos=pageID/8;
-	int offset=pageID%8;
-	return (bool)((pageMap[pos]<<offset)&0x80);
+	auto dbMetaInfo = (DatabaseMetaPage*) firstPage.getDataReadonly();
+	return dbMetaInfo->pageUsedBitset[pageID];
 }
 
 void Database::releasePage(int pageID){
+	assert(pageID > 0 && pageID < DatabaseMetaPage::MAX_PAGE_NUM);
 	auto firstPage = getPage(0);
-	BufType firstPageBuffer = firstPage.getDataMutable();
-	unsigned char* pageMap=(unsigned char*)(firstPageBuffer+1024);
-	int pos=pageID/8;
-	int offset=pageID%8;
-	if(((pageMap[pos]<<offset)&0x80)==0){
+	auto dbMetaInfo = (DatabaseMetaPage*) firstPage.getDataMutable();
+	if(!dbMetaInfo->pageUsedBitset[pageID])
 		throw ::std::runtime_error("Double page release");
-	}
-	pageMap[pos]&=~(1<<(7-offset));
+	dbMetaInfo->pageUsedBitset.reset(pageID);
 }
 
 Page Database::getPage(int pageId) const {

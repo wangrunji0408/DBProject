@@ -4,6 +4,7 @@
 
 #include "TestBase.h"
 #include "indexmanager/IndexPage.h"
+#include "DatabaseMetaPage.h"
 
 namespace {
 
@@ -21,8 +22,14 @@ protected:
 
 TEST_F(TestIndex, SizeofIndexPage)
 {
-	ASSERT_EQ(48, sizeof(std::function<bool(void *, void *)>));
+	ASSERT_EQ(48, sizeof(std::function<bool(const void *, const void *)>));
 	ASSERT_EQ(8192, sizeof(IndexPage));
+}
+
+
+TEST_F(TestIndex, SizeofDbMetaPage)
+{
+	ASSERT_EQ(8192, sizeof(DatabaseMetaPage));
 }
 
 }

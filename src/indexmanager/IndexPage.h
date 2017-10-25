@@ -12,6 +12,12 @@
 
 struct RID;
 
+/**
+ * 定义了索引页的存储结构
+ * size = 8192
+ * 只能将从Page处获得的data指针转换成该类型指针使用
+ * 每次使用前需 checkAndInit()
+ */
 class IndexPage {
 	friend class Index;
 	typedef std::function<bool(const void*, const void*)> TCompare;
@@ -44,6 +50,9 @@ class IndexPage {
 	void insert(int i, void* key, RID rid);
 	void insert(int i, void* key, int pageID);
 	void remove(int i);
+
+	IndexPage() = delete;
+	~IndexPage() = delete;
 };
 
 

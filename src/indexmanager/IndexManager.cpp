@@ -8,6 +8,4 @@ IndexManager::IndexManager(Database &database): database(database){
 
 }
 
-IndexManager::~IndexManager() {
-
-}
+IndexManager::~IndexManager() = default;
