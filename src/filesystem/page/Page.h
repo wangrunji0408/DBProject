@@ -21,6 +21,7 @@ class Page {
 public:
 	friend bool operator==(const Page &lhs, const Page &rhs);
 	friend bool operator!=(const Page &lhs, const Page &rhs);
+	Page& operator=(Page const& rhs);
 
 	const int fileId, pageId;
 	BufType getDataReadonly();

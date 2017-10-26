@@ -20,6 +20,7 @@ struct RID;
 class IndexPage {
 	friend class Index;
 	friend class IndexManager;
+	friend class IndexIterator;
 	typedef std::function<bool(const void*, const void*)> TCompare;
 	typedef unsigned short TPointer;
 

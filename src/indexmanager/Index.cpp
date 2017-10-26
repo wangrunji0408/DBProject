@@ -107,3 +107,14 @@ void Index::print(int pageID) {
 	if(pageID == rootPageID)
 		std::cerr << std::endl;
 }
+
+IndexIterator Index::getIterator() const {
+	auto page = database.getPage(rootPageID);
+	auto node = (IndexPage*)page.getDataReadonly();
+	while(!node->leaf)
+	{
+		page = database.getPage(node->refPageID(0));
+		node = (IndexPage*)page.getDataReadonly();
+	}
+	return IndexIterator(database, page, 0);
+}

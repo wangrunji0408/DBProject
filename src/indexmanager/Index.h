@@ -7,6 +7,7 @@
 
 #include <filesystem/page/Page.h>
 #include "IndexPage.h"
+#include "IndexIterator.h"
 
 class RID;
 class Database;
@@ -30,6 +31,7 @@ public:
 	void insertEntry(const void *pData, RID const& rid);
 	void deleteEntry(const void *pData, RID const& rid);
 	RID findEntry(const void *pData);
+	IndexIterator getIterator() const;
 	void print(int pageID = 0);
 };
 

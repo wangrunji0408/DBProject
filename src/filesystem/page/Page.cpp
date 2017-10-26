@@ -39,3 +39,8 @@ bool operator==(const Page &lhs, const Page &rhs) {
 bool operator!=(const Page &lhs, const Page &rhs) {
 	return !(rhs == lhs);
 }
+
+Page& Page::operator=(Page const& rhs) {
+	*(int*)&fileId = rhs.fileId;
+	*(int*)&pageId = rhs.pageId;
+}
