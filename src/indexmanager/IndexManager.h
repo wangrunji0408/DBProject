@@ -13,9 +13,11 @@ class Database;
 
 class IndexManager {
 	friend class Database;
+	friend class Index;
 	Database& database;
 	Page sysIndexPage;
 
+	void resetRootPageID(int indexID, int pageID);
 	IndexManager(Database& database);
 public:
 	~IndexManager() = default;

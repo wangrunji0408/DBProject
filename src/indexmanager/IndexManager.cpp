@@ -33,7 +33,7 @@ int IndexManager::createIndex(int tablePageID, DataType keyType, short keyLength
 	sysindex->indexCount ++;
 
 	auto root = (IndexPage*)rootPage.getDataMutable();
-	root->makeRootPage(tablePageID, keyType, keyLength);
+	root->makeRootPage(indexID, keyType, keyLength);
 	return indexID;
 }
 
@@ -49,4 +49,11 @@ Index* IndexManager::getIndex(int indexID) {
 	if(indexID < 0 || indexID >= SysIndexPage::MAX_INDEX_NUM || !sysindex->indexInfo[indexID].used)
 		throw std::runtime_error("Index ID not exist.");
 	return new Index(database, sysindex->indexInfo[indexID].rootPageID);
+}
+
+void IndexManager::resetRootPageID(int indexID, int pageID) {
+	auto sysindex = (SysIndexPage*)sysIndexPage.getDataMutable();
+	if(indexID < 0 || indexID >= SysIndexPage::MAX_INDEX_NUM || !sysindex->indexInfo[indexID].used)
+		throw std::runtime_error("Index ID not exist.");
+	sysindex->indexInfo[indexID].rootPageID = pageID;
 }

@@ -21,9 +21,11 @@ class IndexPage {
 	friend class Index;
 	friend class IndexManager;
 	typedef std::function<bool(const void*, const void*)> TCompare;
+	typedef unsigned short TPointer;
 
 	int tablePageID;	// 0-3
-	int superPageID;
+	int indexID;
+	int nextPageID;
 	short keyType;		// refer to DataType
 	short keyLength;
 	short slotLength;	// = keyLength + sizeof(int)  Not leaf
@@ -32,27 +34,32 @@ class IndexPage {
 	short capacity; 	// = 8096 / slotLength
 	bool cluster;
 	bool leaf;
-	unsigned char reserved[100-24];
+	unsigned char reserved[100-28];
 	unsigned char records[8096];
 
-	int& refPageID(int i);
+	TPointer& refPageID(int i);
 	RID& refRID(int i);
 	void* refKey(int i);
 	const void* refKey(int i) const;
 
 	void check();
-	void makeRootPage(int tablePageID, DataType keyType, short keyLength);
+	void makeRootPage(int indexID, short keyType, short keyLength, bool leaf = true);
 
-	int lowerBound(const void* key) const;
+	// MUST ensure compare is made from the same index's node
 	int lowerBound(const void* key, TCompare const& compare) const;
+	int upperBound(const void* key, TCompare const& compare) const;
 
 	TCompare makeCompare() const;
 	void insert(int i, const void* key, RID rid);
-	void insert(int i, const void* key, int pageID);
+	void insert(int i, const void* key, TPointer pageID);
 	void remove(int i);
+	void splitHalfTo(IndexPage* other, int otherPageID);
 
 	IndexPage() = delete;
 	~IndexPage() = delete;
+
+public:
+	static bool TEST_MODE;	// set capacity = 4, let split frequently
 };
 
 

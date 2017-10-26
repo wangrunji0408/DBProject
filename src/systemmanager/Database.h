@@ -19,6 +19,7 @@ class Database{
 	friend class IndexManager;
 	friend class RecordScanner;
 	friend class Table;
+	friend class Index;
 
 	static const int DBMETA_PAGEID = 0;
 	static const int SYSINDEX_PAGEID = 1;

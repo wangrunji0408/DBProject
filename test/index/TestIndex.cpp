@@ -34,15 +34,20 @@ TEST_F(TestIndex, SizeofIndexPage)
 
 TEST_F(TestIndex, CanInsertAndFindEntry)
 {
-	const int n = 1000;
+	IndexPage::TEST_MODE = true;
+	const int n = 100;
 	int data[n];
 	for(int i=0; i<n; ++i)
 		data[i] = i;
-	random_shuffle(data, data + n);
+	std::random_shuffle(data, data + n);
 	for(int i=0; i<n; ++i)
+	{
 		index->insertEntry(data + i, RID(data[i], data[i]));
+//		index->print();
+	}
 	for(int i=0; i<n; ++i)
 		ASSERT_EQ(RID(i, i), index->findEntry(new int(i)));
+	IndexPage::TEST_MODE = false;
 }
 
 }
