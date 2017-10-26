@@ -5,10 +5,14 @@
 #include "IndexIterator.h"
 #include "systemmanager/Database.h"
 
-IndexIterator::IndexIterator(Database &database, Page page, int slotID):
-	database(database), slotID(slotID), page(page)
+IndexIterator::IndexIterator(Index &index, Page page, int slotID):
+	index(index), slotID(slotID), page(page)
 {
+	index.iteratorCount++;
+}
 
+IndexIterator::~IndexIterator() {
+	index.iteratorCount--;
 }
 
 bool IndexIterator::hasNext() const {
@@ -27,7 +31,7 @@ void *IndexIterator::getNext() {
 			end = true;
 		else
 		{
-			page = database.getPage(node->nextPageID);
+			page = index.database.getPage(node->nextPageID);
 			slotID = 0;
 		}
 	}

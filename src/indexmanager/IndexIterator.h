@@ -8,8 +8,9 @@
 
 #include <memory>
 #include <filesystem/page/Page.h>
+#include <recordmanager/RID.h>
 
-class Database;
+class Index;
 
 class IndexIterator {
 	friend class Index;
@@ -17,11 +18,11 @@ class IndexIterator {
 	bool end = false;
 	int slotID;
 	Page page;
-	Database& database;
+	Index& index;
 
-	IndexIterator(Database& database, Page page, int slotID);
+	IndexIterator(Index& index, Page page, int slotID);
 public:
-	~IndexIterator() = default;
+	~IndexIterator();
 	bool hasNext() const;
 	void* getNext();
 };

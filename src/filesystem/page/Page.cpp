@@ -43,4 +43,5 @@ bool operator!=(const Page &lhs, const Page &rhs) {
 Page& Page::operator=(Page const& rhs) {
 	*(int*)&fileId = rhs.fileId;
 	*(int*)&pageId = rhs.pageId;
+	return *this;
 }

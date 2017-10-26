@@ -38,8 +38,10 @@ void Index::insertEntry(const void *pData, RID const &rid, int nodePageID) {
 	}
 }
 
-void Index::insertEntry(const void *pData, const RID &rid) {
-
+void Index::insertEntry(const void *pData, const RID &rid)
+{
+	if(iteratorCount > 0)
+		throw std::runtime_error("Can not modify when iterating");
 	insertEntry(pData, rid, rootPageID);
 	if(this->needSplit)
 	{
@@ -55,28 +57,47 @@ void Index::insertEntry(const void *pData, const RID &rid) {
 	}
 }
 
-void Index::deleteEntry(const void *pData, RID const &rid) {
-	throw std::runtime_error("Delete entry Not Implemented.");
+
+void Index::deleteEntry(const void *pData, const RID &rid, int nodePageID) {
+	auto node = (IndexPage*)database.getPage(nodePageID).getDataMutable();
+	if(node->leaf)
+		node->remove(node->lowerBound(pData, compare));
+	else
+	{
+		int pos = std::max(0, node->upperBound(pData, compare) - 1);
+		int sonPageID = node->refPageID(pos);
+		deleteEntry(pData, rid, sonPageID);
+		std::memcpy(node->refKey(pos), this->minKey, node->keyLength);
+	}
+	this->minKey = node->refKey(0);
 }
 
-RID Index::findEntry(const void *pData) {
+void Index::deleteEntry(const void *pData, RID const &rid) {
+	if(iteratorCount > 0)
+		throw std::runtime_error("Can not modify when iterating");
+	deleteEntry(pData, rid, rootPageID);
+}
+
+RID Index::findEntry(const void *pData) const {
 	auto node = (IndexPage*)database.getPage(rootPageID).getDataReadonly();
 	auto compare = node->makeCompare();
 	while(true)
 	{
 		if(node->leaf){
 			int slotID = node->lowerBound(pData, compare);
+			if(slotID == node->size)
+				throw std::runtime_error("Key not found");
 			auto key = node->refKey(slotID);
-			if(!compare(key, pData) && !compare(pData, key)) // ==
-				return node->refRID(slotID);
-			throw std::runtime_error("Key not found");
+			if(compare(key, pData) || compare(pData, key)) // !=
+				throw std::runtime_error("Key not found");
+			return node->refRID(slotID);
 		}
-		int pageID = node->refPageID(node->upperBound(pData, compare) - 1);
+		int pageID = node->refPageID(std::max(0, node->upperBound(pData, compare) - 1));
 		node = (IndexPage*)database.getPage(pageID).getDataReadonly();
 	}
 }
 
-RID Index::findEntryIndexPos(const void *pData) {
+RID Index::findEntryIndexPos(const void *pData) const {
 	auto node = (IndexPage*)database.getPage(rootPageID).getDataReadonly();
 	int pageID = rootPageID;
 	auto compare = node->makeCompare();
@@ -84,12 +105,12 @@ RID Index::findEntryIndexPos(const void *pData) {
 	{
 		if(node->leaf)
 			return RID(pageID, node->lowerBound(pData, compare));
-		pageID = node->refPageID(node->upperBound(pData, compare) - 1);
+		pageID = node->refPageID(std::max(0, node->upperBound(pData, compare) - 1));
 		node = (IndexPage*)database.getPage(pageID).getDataReadonly();
 	}
 }
 
-void Index::print(int pageID) {
+void Index::print(int pageID) const {
 	if(pageID == 0)
 		pageID = rootPageID;
 	auto node = (IndexPage*)database.getPage(pageID).getDataReadonly();
@@ -116,5 +137,5 @@ IndexIterator Index::getIterator() const {
 		page = database.getPage(node->refPageID(0));
 		node = (IndexPage*)page.getDataReadonly();
 	}
-	return IndexIterator(database, page, 0);
+	return IndexIterator((Index&)*this, page, 0);
 }
