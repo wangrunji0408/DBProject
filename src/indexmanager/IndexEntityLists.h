@@ -25,6 +25,7 @@ class IndexEntityLists {
 public:
 	RID createList() const;
 	void deleteList(RID const &headRID) const;
+	bool isEmpty(RID const &headRID) const;
 	bool containsEntity(RID const &dataRID, RID const &headRID) const;
 	void insertEntity(RID const &dataRID, RID const &headRID) const;
 	void removeEntity(RID const &dataRID, RID const &headRID) const;

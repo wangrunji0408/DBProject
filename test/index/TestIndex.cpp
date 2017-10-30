@@ -42,7 +42,7 @@ TEST_F(TestIndex, SizeofIndexPage)
 
 TEST_F(TestIndex, UniqueCanInsertAndFindEntry)
 {
-	const int n = 100;
+	const int n = 1000;
 	int data[n];
 	for(int i=0; i<n; ++i)
 		data[i] = i;
@@ -53,15 +53,83 @@ TEST_F(TestIndex, UniqueCanInsertAndFindEntry)
 //		index->print();
 	}
 	for(int i=0; i<n; ++i)
-		ASSERT_EQ(RID(i, i), index->findEntry(new int(i)));
+		ASSERT_TRUE(index->containsEntry(new int(i), RID(i, i)));
 	Reopen();
 	for(int i=0; i<n; ++i)
-		ASSERT_EQ(RID(i, i), index->findEntry(new int(i)));
+		ASSERT_TRUE(index->containsEntry(new int(i), RID(i, i)));
+}
+
+TEST_F(TestIndex, UniqueCanDelete)
+{
+	const int n = 1000;
+	int data[n];
+	for(int i=0; i<n; ++i)
+		data[i] = i;
+
+	std::shuffle(data, data + n, std::default_random_engine());
+	for(int i=0; i<n; ++i)
+		index->insertEntry(data + i, RID(data[i], data[i]));
+//	index->print();
+
+	std::shuffle(data, data + n, std::default_random_engine());
+	for(int i=0; i<n; ++i)
+	{
+		index->deleteEntry(data + i, RID(data[i], data[i]));
+//		std::cerr << "delete " << data[i] << ": ";
+//		index->print();
+		ASSERT_FALSE( index->containsEntry(data+i, RID(data[i], data[i])) );
+		if(i != n-1)
+			ASSERT_TRUE(index->containsEntry(data+i+1, RID(data[i+1], data[i+1])));
+	}
+}
+
+TEST_F(TestIndex, UniqueRandomInsertDeleteFind)
+{
+	throw std::runtime_error("Will crash");
+	const int n = 1000;
+	bool in[n] = {0};
+	int data[n];
+	for(int i=0; i<n; ++i)
+		data[i] = i;
+	for(int k=0; k<10000; ++k)
+	{
+		int i = rand() % n;
+		if(in[i])
+		{
+			ASSERT_TRUE( index->containsEntry(&data[i], RID(i, i)) );
+			index->deleteEntry(&data[i], RID(i,i));
+			in[i] = false;
+		}
+		else
+		{
+			ASSERT_FALSE( index->containsEntry(&data[i], RID(i,i)) );
+			index->insertEntry(&data[i], RID(i,i));
+			in[i] = true;
+		}
+	}
+}
+
+TEST_F(TestIndex, UniqueCanIterate)
+{
+	const int n = 1000;
+	int data[n];
+	for(int i=0; i<n; ++i)
+		data[i] = i;
+	std::shuffle(data, data + n, std::default_random_engine());
+	for(int i=0; i<n; ++i)
+		index->insertEntry(data + i, RID(data[i], data[i]));
+	auto iter = index->getIterator();
+	for(int i=0; i<n; ++i)
+	{
+		ASSERT_EQ(i, *(int*)iter.getKey());
+		ASSERT_EQ(RID(i, i), iter.getRID());
+		ASSERT_EQ(i != n-1, iter.moveNext());
+	}
 }
 
 TEST_F(TestIndex, CanInsertAndFindEntry)
 {
-	const int n = 100;
+	const int n = 1000;
 	int data[n];
 	for(int i=0; i<n; ++i)
 		data[i] = i % (n/3);
@@ -72,77 +140,48 @@ TEST_F(TestIndex, CanInsertAndFindEntry)
 //		index->print();
 	}
 	for(int i=0; i<n; ++i)
-		ASSERT_EQ(RID(i, i), index->findEntry(data + i));
+		ASSERT_TRUE(index->containsEntry(data+i, RID(i, i)));
 	Reopen();
 	for(int i=0; i<n; ++i)
-		ASSERT_EQ(RID(i, i), index->findEntry(data + i));
+		ASSERT_TRUE(index->containsEntry(data+i, RID(i, i)));
 }
 
-TEST_F(TestIndex, UniqueCanDelete)
+TEST_F(TestIndex, CanDelete)
 {
-	const int n = 10;
+	const int n = 1000;
 	int data[n];
 	for(int i=0; i<n; ++i)
-		data[i] = i;
+		data[i] = i % (n / 3);
 
 	std::shuffle(data, data + n, std::default_random_engine());
 	for(int i=0; i<n; ++i)
 		index->insertEntry(data + i, RID(data[i], data[i]));
-	index->print();
 
 	std::shuffle(data, data + n, std::default_random_engine());
 	for(int i=0; i<n; ++i)
 	{
 		index->deleteEntry(data + i, RID(data[i], data[i]));
-//		std::cerr << "delete " << data[i] << ": ";
-//		index->print();
-		ASSERT_ANY_THROW( index->findEntry(data + i) );
+		ASSERT_FALSE( index->containsEntry(data+i, RID(data[i], data[i])) );
 		if(i != n-1)
-			ASSERT_EQ(RID(data[i+1], data[i+1]), index->findEntry(data+i+1));
+			ASSERT_TRUE(index->containsEntry(data+i+1, RID(data[i+1], data[i+1])));
 	}
 }
 
-TEST_F(TestIndex, UniqueRandomInsertDeleteFind)
+TEST_F(TestIndex, CanIterate)
 {
-	const int n = 10;
-	bool in[n] = {0};
-	int data[n];
-	for(int i=0; i<n; ++i)
-		data[i] = i;
-	for(int k=0; k<10000; ++k)
-	{
-		int i = rand() % n;
-		if(in[i])
-		{
-			ASSERT_EQ(RID(i, i), index->findEntry(&data[i]));
-			index->deleteEntry(&data[i], RID(i,i));
-			in[i] = false;
-		}
-		else
-		{
-			ASSERT_ANY_THROW( index->findEntry(&data[i]) );
-			index->insertEntry(&data[i], RID(i,i));
-			in[i] = true;
-		}
-	}
-}
-
-TEST_F(TestIndex, UniqueCanIterate)
-{
-	const int n = 100;
+	const int n = 1002;
 	int data[n];
 	for(int i=0; i<n; ++i)
 		data[i] = i;
 	std::shuffle(data, data + n, std::default_random_engine());
 	for(int i=0; i<n; ++i)
-		index->insertEntry(data + i, RID(data[i], data[i]));
+		index->insertEntry(new int(data[i] % (n/3)), RID(data[i], data[i]));
 	auto iter = index->getIterator();
 	for(int i=0; i<n; ++i)
 	{
-		ASSERT_TRUE(iter.hasNext());
-		ASSERT_EQ(i, *(int*)iter.getNext());
+		ASSERT_EQ(i/3, *(int*)iter.getKey());
+		ASSERT_EQ(i != n-1, iter.moveNext());
 	}
-	ASSERT_FALSE(iter.hasNext());
 }
 
 TEST_F(TestIndex, ThrowWhenTryToModifyDuringIterating)

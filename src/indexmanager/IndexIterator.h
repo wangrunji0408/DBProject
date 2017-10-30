@@ -23,8 +23,9 @@ class IndexIterator {
 	IndexIterator(Index& index, Page page, int slotID);
 public:
 	~IndexIterator();
-	bool hasNext() const;
-	void* getNext();
+	bool moveNext();
+	void* getKey();
+	RID getRID();
 };
 
 

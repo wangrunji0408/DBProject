@@ -15,25 +15,30 @@ IndexIterator::~IndexIterator() {
 	index.iteratorCount--;
 }
 
-bool IndexIterator::hasNext() const {
-	return !end;
+void *IndexIterator::getKey() {
+	auto node = (IndexPage*)page.getDataReadonly();
+	return node->refKey(slotID);
 }
 
-void *IndexIterator::getNext() {
-	if(end)
-		throw ::std::runtime_error("There is no more entry");
+RID IndexIterator::getRID() {
 	auto node = (IndexPage*)page.getDataReadonly();
-	auto ret = node->refKey(slotID);
+	return node->refRID(slotID);
+}
+
+bool IndexIterator::moveNext() {
+	if(end)
+		return false;
+	auto node = (IndexPage*)page.getDataReadonly();
 	slotID++;
 	if(slotID == node->size)
 	{
 		if(node->nextPageID == 0)
-			end = true;
-		else
 		{
-			page = index.database.getPage(node->nextPageID);
-			slotID = 0;
+			end = true;
+			return false;
 		}
+		page = index.database.getPage(node->nextPageID);
+		slotID = 0;
 	}
-	return ret;
+	return true;
 }

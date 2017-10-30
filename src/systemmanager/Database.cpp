@@ -9,6 +9,13 @@
 #include "DatabaseManager.h"
 #include "DatabaseMetaPage.h"
 
+Database::Database(DatabaseManager& db,int fileID,::std::string name):
+	databaseManager(db),fileID(fileID),name(name)
+{
+	recordManager = std::unique_ptr<RecordManager>(new RecordManager(*this));
+	indexManager = std::unique_ptr<IndexManager>(new IndexManager(*this));
+}
+
 Page Database::acquireNewPage() {
 	auto firstPage = getPage(0);
 	auto dbMetaInfo = (DatabaseMetaPage*) firstPage.getDataMutable();

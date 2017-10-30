@@ -5,7 +5,6 @@
 #include "IndexManager.h"
 #include "systemmanager/Database.h"
 #include "SysIndexPage.h"
-#include "IndexPage.h"
 
 IndexManager::IndexManager(Database &database):
 		database(database), sysIndexPage(database.getPage(Database::SYSINDEX_PAGEID)),
@@ -49,7 +48,7 @@ Index* IndexManager::getIndex(int indexID) {
 	auto sysindex = (SysIndexPage*)sysIndexPage.getDataReadonly();
 	if(indexID < 0 || indexID >= SysIndexPage::MAX_INDEX_NUM || !sysindex->indexInfo[indexID].used)
 		throw std::runtime_error("Index ID not exist.");
-	return new Index(database, sysindex->indexInfo[indexID].rootPageID);
+	return new Index(*this, sysindex->indexInfo[indexID].rootPageID);
 }
 
 void IndexManager::resetRootPageID(int indexID, int pageID) {

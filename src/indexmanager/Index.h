@@ -11,12 +11,15 @@
 
 class RID;
 class Database;
+class IndexManager;
+class IndexEntityLists;
 
 class Index {
 	friend class IndexManager;
 	friend class IndexIterator;
 	int rootPageID;
 	Database& database;
+	IndexEntityLists& entityLists;
 	IndexPage::TCompare compare;
 	int iteratorCount = 0;
 
@@ -27,7 +30,8 @@ class Index {
 	// temp for delete
 	const void* minKey;
 
-	Index(Database& database, int rootPageID);
+	Index(IndexManager &manager, int rootPageID);
+	bool equals(const void* data1, const void* data2) const;
 	RID findEntryIndexPos(const void *pData) const;
 	void insertEntry(const void *pData, RID const& rid, int nodePageID);
 	void deleteEntry(const void *pData, RID const& rid, int nodePageID);
@@ -35,7 +39,7 @@ public:
 	~Index() = default;
 	void insertEntry(const void *pData, RID const& rid);
 	void deleteEntry(const void *pData, RID const& rid);
-	RID findEntry(const void *pData) const;
+	bool containsEntry(const void *pData, RID const& rid) const;
 	IndexIterator getIterator() const;
 	void print(int pageID = 0) const;
 };

@@ -3,19 +3,41 @@
 //
 
 #include <systemmanager/Database.h>
-#include "IndexPage.h"
 
-Index::Index(Database &database, int rootPageID):
-	database(database), rootPageID(rootPageID)
+Index::Index(IndexManager &manager, int rootPageID):
+	entityLists(manager.entityLists), database(manager.database), rootPageID(rootPageID)
 {
 	auto root = (IndexPage*)database.getPage(rootPageID).getDataReadonly();
 	compare = root->makeCompare();
 }
 
+bool Index::equals(const void *data1, const void *data2) const {
+	return !compare(data1, data2) && !compare(data2, data1);
+}
+
+
 void Index::insertEntry(const void *pData, RID const &rid, int nodePageID) {
 	auto node = (IndexPage*)database.getPage(nodePageID).getDataMutable();
 	if(node->leaf)
-		node->insert(node->lowerBound(pData, compare), pData, rid);
+	{
+		int pos = node->lowerBound(pData, compare);
+		if(equals(pData, node->refKey(pos)))	// if key exists
+		{
+			auto& tag = node->refTag(pos);
+			RID head = node->refRID(pos);
+			if(!tag.multiple)
+			{
+				tag.multiple = 1;
+				auto originRID = head;
+				head = entityLists.createList();
+				node->refRID(pos) = head;
+				entityLists.insertEntity(originRID, head);
+			}
+			entityLists.insertEntity(rid, head);
+		}
+		else
+			node->insert(pos, pData, rid);
+	}
 	else
 	{
 		int pos = std::max(0, node->upperBound(pData, compare) - 1);
@@ -61,7 +83,24 @@ void Index::insertEntry(const void *pData, const RID &rid)
 void Index::deleteEntry(const void *pData, const RID &rid, int nodePageID) {
 	auto node = (IndexPage*)database.getPage(nodePageID).getDataMutable();
 	if(node->leaf)
-		node->remove(node->lowerBound(pData, compare));
+	{
+		int pos = node->lowerBound(pData, compare);
+		if(!equals(pData, node->refKey(pos)))	// if key not exists
+			throw std::runtime_error("Entry not exist.");
+		auto& tag = node->refTag(pos);
+		if(tag.multiple)
+		{
+			RID head = node->refRID(pos);
+			entityLists.removeEntity(rid, head);
+			if(entityLists.isEmpty(head))
+			{
+				entityLists.deleteList(head);
+				tag.multiple = 0;
+			}
+		}
+		if(!tag.multiple)
+			node->remove(pos);
+	}
 	else
 	{
 		int pos = std::max(0, node->upperBound(pData, compare) - 1);
@@ -78,7 +117,7 @@ void Index::deleteEntry(const void *pData, RID const &rid) {
 	deleteEntry(pData, rid, rootPageID);
 }
 
-RID Index::findEntry(const void *pData) const {
+bool Index::containsEntry(const void *pData, RID const &rid) const {
 	auto node = (IndexPage*)database.getPage(rootPageID).getDataReadonly();
 	auto compare = node->makeCompare();
 	while(true)
@@ -86,11 +125,13 @@ RID Index::findEntry(const void *pData) const {
 		if(node->leaf){
 			int slotID = node->lowerBound(pData, compare);
 			if(slotID == node->size)
-				throw std::runtime_error("Key not found");
+				return false;
 			auto key = node->refKey(slotID);
-			if(compare(key, pData) || compare(pData, key)) // !=
-				throw std::runtime_error("Key not found");
-			return node->refRID(slotID);
+			if(!equals(key, pData))
+				return false;
+			if(!node->refTag(slotID).multiple)
+				return node->refRID(slotID) == rid;
+			return entityLists.containsEntity(rid, node->refRID(slotID));
 		}
 		int pageID = node->refPageID(std::max(0, node->upperBound(pData, compare) - 1));
 		node = (IndexPage*)database.getPage(pageID).getDataReadonly();

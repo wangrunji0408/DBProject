@@ -43,12 +43,7 @@ public: // TODO 这里为了测试暂时公开，寻找测试私有函数的解�
 
 private:
 
-	Database(DatabaseManager& db,int fileID,::std::string name):
-		databaseManager(db),fileID(fileID),name(name)
-	{
-		recordManager = std::unique_ptr<RecordManager>(new RecordManager(*this));
-		indexManager = std::unique_ptr<IndexManager>(new IndexManager(*this));
-	}
+	Database(DatabaseManager& db,int fileID,::std::string name);
 public:
 	~Database();
 	void createTable(::std::string name,size_t recordLength);

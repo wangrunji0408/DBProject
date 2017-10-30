@@ -89,6 +89,7 @@ void IndexPage::insert(int i, const void *key, RID rid) {
 	std::memcpy(refKey(i), key, (size_t)keyLength);
 	size++;
 	refRID(i) = rid;
+	refTag(i) = {0};
 }
 
 void IndexPage::insert(int i, const void *key, TPointer pageID) {
@@ -99,6 +100,7 @@ void IndexPage::insert(int i, const void *key, TPointer pageID) {
 	std::memcpy(refKey(i), key, (size_t)keyLength);
 	size++;
 	refPageID(i) = pageID;
+	refTag(i) = {0};
 }
 
 void IndexPage::remove(int i) {

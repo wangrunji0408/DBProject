@@ -26,7 +26,7 @@ class IndexPage {
 
 	struct Tag {
 		unsigned char multiple: 1;
-		unsigned int empty: 7;
+		unsigned char empty: 7;
 	};
 
 	int tablePageID;	// 0-3

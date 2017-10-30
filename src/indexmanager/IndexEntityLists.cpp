@@ -72,3 +72,8 @@ bool IndexEntityLists::containsEntity(RID const &dataRID, RID const &headRID) co
 	}
 	return false;
 }
+
+bool IndexEntityLists::isEmpty(RID const &headRID) const {
+	auto nextRID = elTable->getRecord(headRID).getDataRef<ELNode>().nextRID;
+	return nextRID == RID();
+}
