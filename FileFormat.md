@@ -48,9 +48,15 @@ Divide the file into pages by 8KB. The first page of the file is database metada
 ## Index page
 
 - 0-95: Not sure. See `IndexPage` class for details.
-- 96-8191: Index records
-    - Not Leaf: k0 p0 k1 p1 ... k\[n-1] p\[n-1]
-    - Leaf:     k0 r0 k1 r1 ... k\[n-1] r\[n-1]
+- 96-8191: Index records: s0 s1 ... s\[n-1]
+    - Max(n) = floor(8096 / slotSize)
+    - Slot
+        - Not Leaf: key? pageID2 tag1
+        - Leaf:     key? RID4 tag1
+        - Leaf (multiple records): RID points to the head of a linked list
+    - Linked list
+        - Node as record: dataRID4 nextRID4
+        - In table 'IndexLinkedList'
 
 
 ## Empty page

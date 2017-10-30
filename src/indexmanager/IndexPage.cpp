@@ -30,6 +30,10 @@ const void* IndexPage::refKey(int i) const {
 	return records + slotLength * i;
 }
 
+IndexPage::Tag &IndexPage::refTag(int i) {
+	return *(Tag*)(records + slotLength * (i+1) - 1);
+}
+
 void IndexPage::check() {
 #define ASSERT_THROW(condition) \
 	if(!(condition)) throw std::runtime_error("Index page check failed: #condition");
@@ -120,7 +124,7 @@ void IndexPage::makeRootPage(int _indexID, short _keyType, short _keyLength, boo
 	indexID = _indexID;
 	keyType = _keyType;
 	keyLength = _keyLength;
-	slotLength = keyLength + (_leaf? sizeof(RID): sizeof(TPointer));
+	slotLength = 1 + keyLength + (_leaf? sizeof(RID): sizeof(TPointer));
 	size = 0;
 	capacity = (short)8096 / slotLength;
 	if(TEST_MODE)

@@ -62,7 +62,8 @@ TEST_F(TestDatabase, ThrowWhenTableNameTooLong)
 
 TEST_F(TestDatabase, ThrowWhenTableCountExceed30)
 {
-	for(int i=0; i<30; ++i)
+	// 1 for IndexEntityListTable
+	for(int i=0; i<30-1; ++i)
 		db->createTable("table" + to_string(i), 10);
 	ASSERT_ANY_THROW( db->createTable("the_final_straw", 10); );
 }

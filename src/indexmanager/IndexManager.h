@@ -8,6 +8,7 @@
 #include <string>
 #include <ast/TableDef.h>
 #include "Index.h"
+#include "IndexEntityLists.h"
 
 class Database;
 
@@ -16,7 +17,12 @@ class IndexManager {
 	friend class Index;
 	Database& database;
 	Page sysIndexPage;
+	IndexEntityLists entityLists;
 
+public: // for test
+	IndexEntityLists* getEntityLists();
+
+private:
 	void resetRootPageID(int indexID, int pageID);
 	IndexManager(Database& database);
 public:

@@ -16,6 +16,7 @@ struct RID{
 
 	RID(unsigned short pageId, unsigned short slotId) :
 			pageId(pageId), slotId(slotId) {}
+	RID() : RID(0,0) {}
 };
 
 #endif //RID_H

@@ -58,7 +58,7 @@ Record Table::getRecord(RID const& rid) {
 	return {rid,data};
 }
 
-RID Table::insertRecord(unsigned char* data) {
+RID Table::insertRecord(const uchar* data) {
 	BufType currentPageBuffer;
 	int currentPageIndex;
 	int lastPageID=tablePageID;

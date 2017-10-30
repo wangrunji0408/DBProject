@@ -8,7 +8,8 @@
 #include "IndexPage.h"
 
 IndexManager::IndexManager(Database &database):
-		database(database), sysIndexPage(database.getPage(Database::SYSINDEX_PAGEID))
+		database(database), sysIndexPage(database.getPage(Database::SYSINDEX_PAGEID)),
+		entityLists(database)
 {
 
 }
@@ -56,4 +57,8 @@ void IndexManager::resetRootPageID(int indexID, int pageID) {
 	if(indexID < 0 || indexID >= SysIndexPage::MAX_INDEX_NUM || !sysindex->indexInfo[indexID].used)
 		throw std::runtime_error("Index ID not exist.");
 	sysindex->indexInfo[indexID].rootPageID = pageID;
+}
+
+IndexEntityLists* IndexManager::getEntityLists() {
+	return &entityLists;
 }

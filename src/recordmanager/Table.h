@@ -30,7 +30,7 @@ class Table{
 public:
 	size_t getRecordLength()const;
 	Record getRecord(RID const&);
-	RID insertRecord(unsigned char* data);
+	RID insertRecord(const uchar*  data);
 	void deleteRecord(RID const&);
 	void updateRecord(Record const&);
 	RecordScanner iterateRecords();

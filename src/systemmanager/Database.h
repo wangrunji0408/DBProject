@@ -17,6 +17,7 @@ class Database{
 	friend class DatabaseManager;
 	friend class RecordManager;
 	friend class IndexManager;
+	friend class IndexEntityLists;
 	friend class RecordScanner;
 	friend class Table;
 	friend class Index;

@@ -24,13 +24,18 @@ class IndexPage {
 	typedef std::function<bool(const void*, const void*)> TCompare;
 	typedef unsigned short TPointer;
 
+	struct Tag {
+		unsigned char multiple: 1;
+		unsigned int empty: 7;
+	};
+
 	int tablePageID;	// 0-3
 	int indexID;
 	int nextPageID;
 	short keyType;		// refer to DataType
 	short keyLength;
-	short slotLength;	// = keyLength + sizeof(int)  Not leaf
-						// = keyLength + sizeof(RID)  Leaf
+	short slotLength;	// = 1 + keyLength + sizeof(int)  Not leaf
+						// = 1 + keyLength + sizeof(RID)  Leaf
 	short size;
 	short capacity; 	// = 8096 / slotLength
 	bool cluster;
@@ -42,6 +47,7 @@ class IndexPage {
 	RID& refRID(int i);
 	void* refKey(int i);
 	const void* refKey(int i) const;
+	Tag& refTag(int i);
 
 	void check();
 	void makeRootPage(int indexID, short keyType, short keyLength, bool leaf = true);

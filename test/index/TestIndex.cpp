@@ -40,7 +40,7 @@ TEST_F(TestIndex, SizeofIndexPage)
 	ASSERT_EQ(8192, sizeof(IndexPage));
 }
 
-TEST_F(TestIndex, CanInsertAndFindEntry)
+TEST_F(TestIndex, UniqueCanInsertAndFindEntry)
 {
 	const int n = 100;
 	int data[n];
@@ -59,7 +59,26 @@ TEST_F(TestIndex, CanInsertAndFindEntry)
 		ASSERT_EQ(RID(i, i), index->findEntry(new int(i)));
 }
 
-TEST_F(TestIndex, CanDelete)
+TEST_F(TestIndex, CanInsertAndFindEntry)
+{
+	const int n = 100;
+	int data[n];
+	for(int i=0; i<n; ++i)
+		data[i] = i % (n/3);
+	std::shuffle(data, data + n, std::default_random_engine());
+	for(int i=0; i<n; ++i)
+	{
+		index->insertEntry(data + i, RID(i, i));
+//		index->print();
+	}
+	for(int i=0; i<n; ++i)
+		ASSERT_EQ(RID(i, i), index->findEntry(data + i));
+	Reopen();
+	for(int i=0; i<n; ++i)
+		ASSERT_EQ(RID(i, i), index->findEntry(data + i));
+}
+
+TEST_F(TestIndex, UniqueCanDelete)
 {
 	const int n = 10;
 	int data[n];
@@ -83,7 +102,7 @@ TEST_F(TestIndex, CanDelete)
 	}
 }
 
-TEST_F(TestIndex, RandomInsertDeleteFind)
+TEST_F(TestIndex, UniqueRandomInsertDeleteFind)
 {
 	const int n = 10;
 	bool in[n] = {0};
@@ -108,7 +127,7 @@ TEST_F(TestIndex, RandomInsertDeleteFind)
 	}
 }
 
-TEST_F(TestIndex, CanIterate)
+TEST_F(TestIndex, UniqueCanIterate)
 {
 	const int n = 100;
 	int data[n];
