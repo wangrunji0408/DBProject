@@ -12,7 +12,7 @@ bool IndexPage::TEST_MODE = false;
 
 IndexPage::TPointer &IndexPage::refPageID(int i) {
 	assert(i >= 0 && i < size);
-	return *(TPointer*)(records + slotLength * i + keyLength);
+	return *(TPointer*)(records + slotLength * i + keyLength + sizeof(RID));
 }
 
 RID &IndexPage::refRID(int i) {
@@ -30,10 +30,6 @@ const void* IndexPage::refKey(int i) const {
 	return records + slotLength * i;
 }
 
-IndexPage::Tag &IndexPage::refTag(int i) {
-	return *(Tag*)(records + slotLength * (i+1) - 1);
-}
-
 void IndexPage::check() {
 #define ASSERT_THROW(condition) \
 	if(!(condition)) throw std::runtime_error("Index page check failed: #condition");
@@ -42,7 +38,7 @@ void IndexPage::check() {
 	ASSERT_THROW(indexID >= 0);
 	ASSERT_THROW(nextPageID >= 0);
 	ASSERT_THROW(keyType >= 1 && keyType <= 5);
-	ASSERT_THROW(slotLength == keyLength + (leaf? sizeof(RID): sizeof(int)));
+	ASSERT_THROW(slotLength == keyLength + sizeof(RID) + (leaf? 0: sizeof(TPointer)));
 	ASSERT_THROW(capacity == 8096 / slotLength);
 	ASSERT_THROW(size >= 0 && size < capacity);
 
@@ -50,15 +46,21 @@ void IndexPage::check() {
 }
 
 IndexPage::TCompare IndexPage::makeCompare() const {
-#define COMPARE(expr) [](const void* pa, const void* pb){return (expr);}
+#define COMPARE(init,less,equal) \
+	[=](const void* pa, const void* pb)\
+	{init;\
+	 RID const& rida = *(const RID*)((const char*)pa + keyLength);\
+	 RID const& ridb = *(const RID*)((const char*)pb + keyLength);\
+	 return (less) || ((equal) && rida < ridb);}
+
 	switch(keyType)
 	{
 	case INT:
-		return COMPARE(*(int*)pa < *(int*)pb);
+		return COMPARE(int c = *(int*)pa - *(int*)pb, c<0, c==0);
 	case CHAR: case VARCHAR:
-		return COMPARE(strcmp((char*)pa, (char*)pb));
+		return COMPARE(int c = strcmp((char*)pa, (char*)pb), c<0, c==0);
 	case FLOAT:
-		return COMPARE(*(float*)pa < *(float*)pb);
+		return COMPARE(float c = *(float*)pa - *(float*)pb, c<0, c==0);
 	default:
 		throw std::runtime_error("Not supported data type.");
 	}
@@ -81,26 +83,18 @@ int IndexPage::upperBound(const void *key, TCompare const& compare) const {
 	return i;
 }
 
-void IndexPage::insert(int i, const void *key, RID rid) {
+void IndexPage::insert(int i, const void *key) {
 	assert(size < capacity);
 	assert(i >= 0 && i <= size);
 	if(i < size)
 		std::memmove(refKey(i+1), refKey(i), (size_t)(slotLength * (size - i)));
-	std::memcpy(refKey(i), key, (size_t)keyLength);
+	std::memcpy(refKey(i), key, (size_t)keyLength + sizeof(RID));
 	size++;
-	refRID(i) = rid;
-	refTag(i) = {0};
 }
 
 void IndexPage::insert(int i, const void *key, TPointer pageID) {
-	assert(size < capacity);
-	assert(i >= 0 && i <= size);
-	if(i < size)
-		std::memmove(refKey(i+1), refKey(i), (size_t)(slotLength * (size - i)));
-	std::memcpy(refKey(i), key, (size_t)keyLength);
-	size++;
+	insert(i, key);
 	refPageID(i) = pageID;
-	refTag(i) = {0};
 }
 
 void IndexPage::remove(int i) {
@@ -126,7 +120,7 @@ void IndexPage::makeRootPage(int _indexID, short _keyType, short _keyLength, boo
 	indexID = _indexID;
 	keyType = _keyType;
 	keyLength = _keyLength;
-	slotLength = 1 + keyLength + (_leaf? sizeof(RID): sizeof(TPointer));
+	slotLength = keyLength + sizeof(RID) + (_leaf? 0: sizeof(TPointer));
 	size = 0;
 	capacity = (short)8096 / slotLength;
 	if(TEST_MODE)

@@ -29,14 +29,17 @@ class Index {
 	const void* midKey;
 	// temp for delete
 	const void* minKey;
+	// temp
+	char* keyridBuf;
+	int keyLength;
 
 	Index(IndexManager &manager, int rootPageID);
+	void loadToBuf(const void *pData, RID const& rid) const;
 	bool equals(const void* data1, const void* data2) const;
-	RID findEntryIndexPos(const void *pData) const;
-	void insertEntry(const void *pData, RID const& rid, int nodePageID);
-	void deleteEntry(const void *pData, RID const& rid, int nodePageID);
+	void insertEntry(int nodePageID);
+	void deleteEntry(int nodePageID);
 public:
-	~Index() = default;
+	~Index();
 	void insertEntry(const void *pData, RID const& rid);
 	void deleteEntry(const void *pData, RID const& rid);
 	bool containsEntry(const void *pData, RID const& rid) const;
