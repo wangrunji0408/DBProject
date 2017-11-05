@@ -129,4 +129,27 @@ void IndexPage::makeRootPage(int _indexID, short _keyType, short _keyLength, boo
 	leaf = _leaf;
 }
 
+void IndexPage::mergeFromRight(IndexPage *other) {
+	assert(size + other->size < capacity);
+	nextPageID = other->nextPageID;
+	std::memcpy(refKey(size), other->refKey(0), slotLength * other->size);
+	size += other->size;
+}
+
+void IndexPage::averageFromRight(IndexPage *other) {
+	int totalSize = size + other->size;
+	int r2lSize = totalSize / 2 - size;
+	if(r2lSize > 0) {
+		std::memcpy(this->refKey(size), other->records, slotLength * r2lSize);
+		int newRightSize = other->size - r2lSize;
+		std::memmove(other->records, other->refKey(r2lSize), slotLength * newRightSize);
+	} else if(r2lSize < 0) {
+		int l2rSize = -r2lSize;
+		std::memmove(other->refKey(l2rSize), other->records, slotLength * other->size);
+		std::memcpy(other->records, this->refKey(size - l2rSize), slotLength * l2rSize);
+	}
+	size = totalSize / 2;
+	other->size = totalSize - size;
+}
+
 

@@ -55,6 +55,8 @@ class IndexPage {
 	void insert(int i, const void* key, TPointer pageID);
 	void remove(int i);
 	void splitHalfTo(IndexPage* other, int otherPageID);
+	void mergeFromRight(IndexPage* other);
+	void averageFromRight(IndexPage* other);
 
 	IndexPage() = delete;
 	~IndexPage() = delete;

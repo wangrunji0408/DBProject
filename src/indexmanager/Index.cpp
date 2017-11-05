@@ -9,6 +9,7 @@ Index::Index(IndexManager &manager, int rootPageID):
 {
 	auto root = (IndexPage*)database.getPage(rootPageID).getDataReadonly();
 	compare = root->makeCompare();
+	id = root->indexID;
 	keyLength = root->keyLength;
 	keyridBuf = new char[root->keyLength + sizeof(RID)];
 }
@@ -74,12 +75,30 @@ void Index::insertEntry(const void *pData, const RID &rid)
 		newRoot->makeRootPage(root->indexID, root->keyType, root->keyLength, false);
 		newRoot->insert(0, root->refKey(0), rootPageID);
 		newRoot->insert(1, this->midKey, this->otherPageID);
-		// update root ID
-		rootPageID = newRootPage.pageId;
-		database.indexManager->resetRootPageID(root->indexID, newRootPage.pageId);
+		updateRoot(newRootPage.pageId);
 	}
 }
 
+void Index::updateRoot(int rootPageID) {
+	this->rootPageID = rootPageID;
+	database.indexManager->resetRootPageID(id, rootPageID);
+}
+
+
+void Index::fixDelete(IndexPage *node, int leftPos) {
+	auto leftPageID = node->refPageID(leftPos);
+	auto rightPageID = node->refPageID(leftPos + 1);
+	auto left = (IndexPage*)database.getPage(leftPageID).getDataMutable();
+	auto right = (IndexPage*)database.getPage(rightPageID).getDataMutable();
+	if(left->size + right->size < node->capacity) { // need merge
+		left->mergeFromRight(right);
+		node->remove(leftPos + 1);
+	} else { // need average
+		left->averageFromRight(right);
+		// update right key in node
+		std::memcpy(node->refKey(leftPos + 1), right->refKey(0), node->keyLength + sizeof(RID));
+	}
+}
 
 void Index::deleteEntry(int nodePageID) {
 	auto node = (IndexPage*)database.getPage(nodePageID).getDataMutable();
@@ -96,8 +115,18 @@ void Index::deleteEntry(int nodePageID) {
 		int sonPageID = node->refPageID(pos);
 		deleteEntry(sonPageID);
 		std::memcpy(node->refKey(pos), this->minKey, node->keyLength + sizeof(RID));
+		if(this->needMerge) {
+			if(node->size == 1) { // no brother, this is root
+				updateRoot(sonPageID);
+				database.releasePage(nodePageID);
+				return;
+			}
+			int leftPos = pos + 1 < node->size? pos: pos - 1;
+			fixDelete(node, leftPos);
+		}
 	}
 	this->minKey = node->refKey(0);
+	this->needMerge = node->size < node->capacity / 2;
 }
 
 void Index::deleteEntry(const void *pData, RID const &rid) {

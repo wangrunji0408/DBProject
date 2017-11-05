@@ -17,6 +17,7 @@ class IndexEntityLists;
 class Index {
 	friend class IndexManager;
 	friend class IndexIterator;
+	int id;
 	int rootPageID;
 	Database& database;
 	IndexEntityLists& entityLists;
@@ -28,6 +29,7 @@ class Index {
 	int otherPageID;
 	const void* midKey;
 	// temp for delete
+	bool needMerge;
 	const void* minKey;
 	// temp
 	char* keyridBuf;
@@ -38,6 +40,8 @@ class Index {
 	bool equals(const void* data1, const void* data2) const;
 	void insertEntry(int nodePageID);
 	void deleteEntry(int nodePageID);
+	void fixDelete(IndexPage* node, int leftPos);
+	void updateRoot(int rootPageID);
 public:
 	~Index();
 	void insertEntry(const void *pData, RID const& rid);
