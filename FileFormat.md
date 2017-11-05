@@ -35,9 +35,29 @@ Divide the file into pages by 8KB. The first page of the file is database metada
 	- 96-?: Real Record data
 	- ?-8191: Bitset that indicates whether a record field is used (from right to left)
 
+## SysIndex page
+
+- 0-95: Not sure. See `SysIndexPage` class for details.
+- 96-8191: 506 x 16 byte index data, for every index:
+    - 0-3: Index root page ID
+    - 4-7: Table meta page ID
+    - 8-9: Key type
+    - 10-11: Key length
+    - 12-15: Reserved
+
 ## Index page
 
-- 0-8191: Reserved
+- 0-95: Not sure. See `IndexPage` class for details.
+- 96-8191: Index records: s0 s1 ... s\[n-1]
+    - Max(n) = floor(8096 / slotSize)
+    - Slot
+        - Not Leaf: key? pageID2 tag1
+        - Leaf:     key? RID4 tag1
+        - Leaf (multiple records): RID points to the head of a linked list
+    - Linked list
+        - Node as record: dataRID4 nextRID4
+        - In table 'IndexLinkedList'
+
 
 ## Empty page
 

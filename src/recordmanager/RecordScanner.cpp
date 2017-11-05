@@ -6,38 +6,33 @@
 #include "Record.h"
 #include "RecordScanner.h"
 #include "Table.h"
-#include "Database.h"
-#include "DatabaseManager.h"
-#include <iostream>
-#include <exception>
+#include "systemmanager/Database.h"
 
 void RecordScanner::update(){
 	needUpdate=false;
 	if(end){
 		return;
 	}
-	BufType currentPageBuffer;
-	int currentPageIndex;
 	while(true){
 		if(fieldId>=table->maxRecordPerPage){
-			currentPage=nextPage;
-			if(currentPage<0){
+			currentPageId=nextPageId;
+			if(currentPageId<0){
 				end=true;
 				return;
 			}
-			currentPageBuffer=this->table->database.databaseManager.bufPageManager->getPage(this->table->database.fileID,currentPage,currentPageIndex);
-			nextPage=currentPageBuffer[1];
-			this->table->database.databaseManager.bufPageManager->access(currentPageIndex);
+			Page currentPage = this->table->recordManager.database.getPage(currentPageId);
+			BufType currentPageBuffer = currentPage.getDataReadonly();
+			nextPageId=currentPageBuffer[1];
 			fieldId=0;
 		}else{
 			fieldId++;
 		}
-		currentPageBuffer=this->table->database.databaseManager.bufPageManager->getPage(this->table->database.fileID,currentPage,currentPageIndex);
+		Page currentPage = this->table->recordManager.database.getPage(currentPageId);
+		BufType currentPageBuffer = currentPage.getDataReadonly();
 		unsigned char* recordMap=(unsigned char*)(currentPageBuffer)+8191;
 		if(((recordMap[-(fieldId/8)]>>(fieldId%8))&0x1)!=0){
 			break;
 		}
-		this->table->database.databaseManager.bufPageManager->access(currentPageIndex);
 	}
 }
 
@@ -46,8 +41,8 @@ RecordScanner::~RecordScanner() {
 }
 
 RecordScanner::RecordScanner(Table* table):table(table){
-	currentPage=table->tablePageID;
-	nextPage=table->firstDataPageID;
+	currentPageId=table->tablePageID;
+	nextPageId=table->firstDataPageID;
 	fieldId=table->maxRecordPerPage;
 }
 
@@ -59,7 +54,7 @@ Record RecordScanner::getNext() {
 		update();
 	}
 	needUpdate=true;
-	return table->getRecord({(unsigned int)currentPage,(unsigned int)fieldId});
+	return table->getRecord(RID(currentPageId,fieldId));
 }
 
 bool RecordScanner::hasNext() {

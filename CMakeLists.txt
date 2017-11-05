@@ -12,6 +12,9 @@ file(GLOB SOURCES
         src/recordmanager/*.cpp
         src/indexmanager/*.h
         src/indexmanager/*.cpp
+        src/systemmanager/*.h
+        src/systemmanager/*.cpp
+        src/ast/*.h
         src/*.h
         src/*.cpp)
 
@@ -54,7 +57,7 @@ if (CMAKE_VERSION VERSION_LESS 2.8.11)
   include_directories("${gtest_SOURCE_DIR}/include")
 endif()
 
-file(GLOB TEST_SOURCES test/*.cpp test/*.h)
+file(GLOB TEST_SOURCES test/*.cpp test/*.h test/**/*.cpp)
 
 # Now simply link against gtest or gtest_main as needed. Eg
 add_executable(Test ${TEST_SOURCES})

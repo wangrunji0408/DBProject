@@ -3,8 +3,8 @@
 //
 
 #include <gtest/gtest.h>
-#include <DatabaseManager.h>
-#include "TestBase.h"
+#include <systemmanager/DatabaseManager.h>
+#include "../TestBase.h"
 
 namespace {
 
@@ -13,18 +13,11 @@ class TestDatabase : public TestBase
 protected:
 	void SetUp() override {
 		TestBase::SetUp();
-		dbm->createDatabase("db1");
-		dbm->useDatabase("db1");
-		db = dbm->getCurrentDatabase();
 	}
 
 	void Reopen () override {
 		TestBase::Reopen();
-		dbm->useDatabase("db1");
-		db = dbm->getCurrentDatabase();
 	}
-
-	Database* db;
 };
 
 TEST_F(TestDatabase, CanCreateAndGetTable)
@@ -69,7 +62,8 @@ TEST_F(TestDatabase, ThrowWhenTableNameTooLong)
 
 TEST_F(TestDatabase, ThrowWhenTableCountExceed30)
 {
-	for(int i=0; i<30; ++i)
+	// 1 for IndexEntityListTable
+	for(int i=0; i<30-1; ++i)
 		db->createTable("table" + to_string(i), 10);
 	ASSERT_ANY_THROW( db->createTable("the_final_straw", 10); );
 }
@@ -85,6 +79,39 @@ TEST_F(TestDatabase, CanDeleteTable)
 TEST_F(TestDatabase, NothingHappensWhenDeleteNullTable)
 {
 	db->deleteTable(nullptr);
+}
+
+TEST_F(TestDatabase, CanAcquireAndGetPage)
+{
+	auto page1 = db->acquireNewPage();
+	ASSERT_EQ(page1, db->getPage(page1.pageId));
+	ASSERT_TRUE(db->isPageUsed(page1.pageId));
+	ASSERT_FALSE(db->isPageUsed(100));
+}
+
+TEST_F(TestDatabase, CanKeepPageData)
+{
+	int pageId;
+	uchar data[8192];
+	{
+		auto page1 = db->acquireNewPage();
+		pageId = page1.pageId;
+		std::memcpy(page1.getDataMutable(), data, 8192);
+	}
+	Reopen();
+	{
+		auto page1 = db->getPage(pageId);
+		ASSERT_DATA_EQ(page1.getDataReadonly(), data, 8192);
+	}
+}
+
+TEST_F(TestDatabase, CanReleasePage)
+{
+	auto page1 = db->acquireNewPage();
+	ASSERT_TRUE(db->isPageUsed(page1.pageId));
+	db->releasePage(page1.pageId);
+	ASSERT_FALSE(db->isPageUsed(page1.pageId));
+	ASSERT_ANY_THROW( db->releasePage(100) );
 }
 
 }

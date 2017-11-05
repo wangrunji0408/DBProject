@@ -1,12 +1,8 @@
 #include <cstring>
 #include <string>
-#include <exception>
-#include <memory>
-#include <cstdio>
+#include <indexmanager/SysIndexPage.h>
 #include "DatabaseManager.h"
-#include "filesystem/utils/pagedef.h"
-
-#include<iostream>
+#include "DatabaseMetaPage.h"
 
 bool DatabaseManager::hasInstance = false;
 
@@ -24,18 +20,10 @@ void DatabaseManager::createDatabase(::std::string name){
 	if(opened!=0){
 		throw ::std::runtime_error("Cannot open database file");
 	}
-	unsigned int* firstPageBuffer=new unsigned int[2048];
-	this->fileManager->readPage(fileID,0,firstPageBuffer,0);
-	::std::memset(firstPageBuffer,0,8192);
-	unsigned char* firstPageCharBuffer=((unsigned char*)firstPageBuffer);
-	firstPageBuffer[63]=0;
-	firstPageCharBuffer[0]='D';
-	firstPageCharBuffer[1]='T';
-	firstPageCharBuffer[2]='B';
-	firstPageCharBuffer[3]='S';
-	firstPageCharBuffer[4096]=1<<7;
-	this->fileManager->writePage(fileID,0,firstPageBuffer,0);
-	delete[] firstPageBuffer;
+	auto firstPage = DatabaseMetaPage();
+	auto sysIndexPage = SysIndexPage();
+	this->fileManager->writePage(fileID,0,(BufType)&firstPage,0);
+	this->fileManager->writePage(fileID,1,(BufType)&sysIndexPage,0);
 	this->fileManager->closeFile(fileID);
 }
 
@@ -49,8 +37,9 @@ void DatabaseManager::useDatabase(::std::string name) {
 	}
 	int pageIndex;
 	BufType firstPageBuffer=this->bufPageManager->getPage(fileID,0,pageIndex);
-	unsigned char* firstPageCharBuffer=((unsigned char*)firstPageBuffer);
-	if(firstPageCharBuffer[0]!='D'||firstPageCharBuffer[1]!='T'||firstPageCharBuffer[2]!='B'||firstPageCharBuffer[3]!='S'){
+	try {((DatabaseMetaPage*)firstPageBuffer)->check();}
+	catch (std::exception const& e)
+	{
 		this->bufPageManager->close();
 		this->fileManager->closeFile(fileID);
 		throw ::std::runtime_error("The file required is not a database");

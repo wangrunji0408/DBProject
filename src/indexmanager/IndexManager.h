@@ -6,25 +6,30 @@
 #define TEST_INDEXMANAGER_H
 
 #include <string>
-#include "IndexHandle.h"
+#include <ast/TableDef.h>
+#include "Index.h"
+#include "IndexEntityLists.h"
 
 class Database;
 
-namespace Index {
-
 class IndexManager {
-	friend class ::Database;
+	friend class Database;
+	friend class Index;
 	Database& database;
+	Page sysIndexPage;
+	IndexEntityLists entityLists;
 
+public: // for test
+	IndexEntityLists* getEntityLists();
+
+private:
+	void resetRootPageID(int indexID, int pageID);
 	IndexManager(Database& database);
-	~IndexManager();
 public:
-	void CreateIndex(std::string tableName, int indexNo);
-	void DestroyIndex(std::string tableName, int indexNo);
-	IndexHandle OpenIndex(std::string tableName, int indexNo);
-	void CloseIndex(IndexHandle const& indexHandle);
+	~IndexManager() = default;
+	int createIndex(int tablePageID, DataType keyType, short keyLength);
+	void deleteIndex(int indexID);
+	Index* getIndex(int indexID); // TODO 内存管理
 };
-
-}
 
 #endif //TEST_INDEXMANAGER_H

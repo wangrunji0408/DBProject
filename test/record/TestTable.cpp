@@ -3,8 +3,8 @@
 //
 
 #include <gtest/gtest.h>
-#include <DatabaseManager.h>
-#include "TestBase.h"
+#include <systemmanager/DatabaseManager.h>
+#include "../TestBase.h"
 
 namespace {
 
@@ -13,36 +13,20 @@ struct Data
 	int a, b, c;
 };
 
-inline void ASSERT_DATA_EQ(void* a, void* b, size_t size)
-{
-	ASSERT_NE(nullptr, a);
-	ASSERT_NE(nullptr, b);
-	char *ca = (char*)a;
-	char *cb = (char*)b;
-	for(int i=0; i<size; ++i)
-		ASSERT_EQ(ca[i], cb[i]);
-}
-
 class TestTable : public TestBase
 {
 protected:
 	void SetUp() override {
 		TestBase::SetUp();
-		dbm->createDatabase("db1");
-		dbm->useDatabase("db1");
-		db = dbm->getCurrentDatabase();
 		db->createTable("table1", sizeof(Data));
 		table = db->getTable("table1");
 	}
 
 	void Reopen() override {
 		TestBase::Reopen();
-		dbm->useDatabase("db1");
-		db = dbm->getCurrentDatabase();
 		table = db->getTable("table1");
 	}
 
-	Database* db;
 	Table* table;
 };
 

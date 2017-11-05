@@ -6,7 +6,7 @@
 #define TEST_RECORDMANAGER_H
 
 #include <string>
-#include <Table.h>
+#include <recordmanager/Table.h>
 
 class Database;
 class DatabaseManager;
@@ -24,12 +24,6 @@ class RecordManager {
 
 	friend class ::Database;
 	Database& database;
-
-	// temp
-	int fileID;
-	DatabaseManager& databaseManager;
-	int acquireNewPage();
-	void releasePage(int pageID);
 
 	RecordManager(Database& database);
 public:
