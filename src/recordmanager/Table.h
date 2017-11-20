@@ -11,6 +11,7 @@
 class RecordManager;
 class Database;
 class BufPageManager;
+class TableDef;
 
 class Table{
 	friend class RecordManager;
@@ -30,6 +31,7 @@ class Table{
 	void recoverMetadata();
 	Table(RecordManager& recordManager,::std::string name,int tablePageID,int id);
 public:
+	TableDef getDef() const;
 	size_t getRecordLength()const;
 	Record getRecord(RID const&);
 	RID insertRecord(const uchar*  data);

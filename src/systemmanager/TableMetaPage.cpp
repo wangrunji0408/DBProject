@@ -7,13 +7,13 @@
 #include "../systemmanager/Database.h"
 
 void TableMetaPage::makeFromDef(TableDef const &def, RecordManager& recordManager) {
+	std::memset(this, 0, sizeof(TableMetaPage));
 	firstPageID = -1;
 	recordLength = 0;
 
 	if(def.name.length() > MAX_NAME_LENGTH)
-		throw std::runtime_error("Table name length too long");
-	def.name.copy(name, def.name.length());
-	name[def.name.length()] = '\0';
+		throw std::runtime_error("The length of table name is too large");
+	std::strncpy(name, def.name.c_str(), MAX_NAME_LENGTH);
 
 	columnSize = static_cast<short>(def.colomns.size());
 	for(int i=0; i<columnSize; ++i) {
@@ -22,6 +22,8 @@ void TableMetaPage::makeFromDef(TableDef const &def, RecordManager& recordManage
 		columns[i].offset = static_cast<short>(recordLength);
 		recordLength += col.size;
 	}
+	if(recordLength > MAX_RECORD_LENGTH)
+		throw std::runtime_error("The length of record is too large");
 
 	for(auto const& fk: def.foreignKeys) {
 		int colId = getColomnId(fk.keyName);
@@ -81,13 +83,11 @@ int TableMetaPage::getColomnId(std::string name) const {
 
 void TableMetaPage::Column::makeFromDef(ColomnDef const &def) {
 	if(def.name.size() >= MAX_COLUMN_NAME_LENGTH)
-		throw std::runtime_error("Column name length too long");
-	def.name.copy(name, def.name.size());
-	name[def.name.size()] = '\0';
+		throw std::runtime_error("The length of column name is too large");
+	std::strncpy(name, def.name.c_str(), MAX_COLUMN_NAME_LENGTH);
 
 	size = static_cast<short>(def.size);
 	dataType = def.dataType;
-	primaryKey = def.primaryKey;
 	nullable = def.nullable;
 	unique = def.unique;
 	indexID = -1;
@@ -100,7 +100,6 @@ ColomnDef TableMetaPage::Column::toDef() const {
 	def.name = name;
 	def.size = static_cast<size_t>(size);
 	def.dataType = dataType;
-	def.primaryKey = primaryKey;
 	def.unique = unique;
 	def.nullable = nullable;
 	return def;

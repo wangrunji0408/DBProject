@@ -13,8 +13,9 @@ class RecordManager;
 struct TableMetaPage {
 
 	static const int MAX_COLUMN_NAME_LENGTH = 43;
-	static const int MAX_COLUMN_SIZE = 100;
+	static const int MAX_COLUMN_SIZE = 124;
 	static const int MAX_NAME_LENGTH = 124;
+	static const int MAX_RECORD_LENGTH = 8096;
 
 	struct Column { // size = 64
 		short size;
@@ -27,12 +28,13 @@ struct TableMetaPage {
 		char primaryKey: 1;
 		char nullable: 1;
 		char unique: 1;
+		char reserved[4];
 
 		void makeFromDef(ColomnDef const& def);
 		ColomnDef toDef() const;
 	};
 
-	char reserved[248-MAX_NAME_LENGTH-1];
+	char reserved[116];
 	char name[MAX_NAME_LENGTH+1];
 	int firstPageID;	// -1 if not exist
 	int recordLength;

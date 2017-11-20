@@ -34,7 +34,7 @@ void RecordManager::createTable(::std::string name, size_t recordLength) {
 	if(recordLength>=8096){
 		throw ::std::runtime_error("The length of record is too large");
 	}
-	if(tableCount>=30){
+	if(tableCount>=MAX_TABLE_COUNT){
 		throw ::std::runtime_error("Table count exceeded");
 	}
 	if(name.length()>TableMetaPage::MAX_NAME_LENGTH){
@@ -60,7 +60,7 @@ void RecordManager::createTable(::std::string name, size_t recordLength) {
 	BufType tableRecordPos=firstPageBuffer+64+tableIndex*32;
 	*tableRecordPos=(uint)tablePage.pageId;
 	unsigned char* tableNamePos=(unsigned char*)(tableRecordPos+1);
-	::std::strncpy((char*)tableNamePos,name.c_str(),124);
+	::std::strncpy((char*)tableNamePos,name.c_str(),TableMetaPage::MAX_NAME_LENGTH);
 	tables[tableIndex].reset(new Table(*this,name,tablePage.pageId,tableIndex));
 }
 
@@ -100,5 +100,29 @@ Table *RecordManager::getTable(int id) const {
 }
 
 void RecordManager::createTable(const TableDef &def) {
-	// TODO
+	if(tableCount >= MAX_TABLE_COUNT)
+		throw ::std::runtime_error("Table count exceeded");
+	for(int i=0;i<tableCount;i++)
+		if(tables[i]->name==def.name)
+			throw ::std::runtime_error("A table with this name is already exist");
+
+	auto metaPage = database.acquireNewPage();
+	auto meta = (TableMetaPage*)metaPage.getDataMutable();
+	try {
+		meta->makeFromDef(def, *this);
+	} catch (std::exception const& e) {
+		database.releasePage(metaPage.pageId);
+		throw e;
+	}
+
+	auto firstPage = database.getPage(0);
+	auto firstPageBuffer = (BufType)firstPage.getDataMutable();
+	int tableIndex=firstPageBuffer[63];
+	firstPageBuffer[63]++;
+	tableCount++;
+	BufType tableRecordPos=firstPageBuffer+64+tableIndex*32;
+	*tableRecordPos=(uint)metaPage.pageId;
+	auto tableNamePos=(unsigned char*)(tableRecordPos+1);
+	::std::strncpy((char*)tableNamePos,def.name.c_str(),TableMetaPage::MAX_NAME_LENGTH);
+	tables[tableIndex].reset(new Table(*this,def.name,metaPage.pageId,tableIndex));
 }

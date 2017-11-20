@@ -6,7 +6,7 @@
 #include "Table.h"
 #include "systemmanager/Database.h"
 #include "systemmanager/DatabaseManager.h"
-#include "RecordScanner.h"
+#include "systemmanager/TableMetaPage.h"
 
 Table::Table(RecordManager& recordManager,::std::string name,int tablePageID,int id):
 	recordManager(recordManager), name(name), tablePageID(tablePageID), id(id),
@@ -176,4 +176,9 @@ void Table::updateRecord(Record const& record) {
 
 RecordScanner Table::iterateRecords() {
 	return RecordScanner(this);
+}
+
+TableDef Table::getDef() const {
+	auto meta = (TableMetaPage*)database.getPage(tablePageID).getDataReadonly();
+	return meta->toDef(recordManager);
 }

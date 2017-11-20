@@ -19,7 +19,9 @@ class RecordManager {
 	friend class RecordScanner;
 	friend class TableMetaPage;
 
-	::std::unique_ptr<Table> tables[30];
+	static const int MAX_TABLE_COUNT = 30;
+
+	::std::unique_ptr<Table> tables[MAX_TABLE_COUNT];
 	size_t tableCount;
 
 	void recoverTables();
