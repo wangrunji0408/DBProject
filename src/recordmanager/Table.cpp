@@ -8,8 +8,8 @@
 #include "systemmanager/DatabaseManager.h"
 #include "RecordScanner.h"
 
-Table::Table(RecordManager& recordManager,::std::string name,int tablePageID):
-	recordManager(recordManager), name(name), tablePageID(tablePageID),
+Table::Table(RecordManager& recordManager,::std::string name,int tablePageID,int id):
+	recordManager(recordManager), name(name), tablePageID(tablePageID), id(id),
 	database(recordManager.database), bufPageManager(recordManager.database.databaseManager.bufPageManager.get())
 {
 	recoverMetadata();

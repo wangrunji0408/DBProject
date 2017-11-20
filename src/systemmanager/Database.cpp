@@ -62,3 +62,8 @@ void Database::deleteTable(Table *table) {
 Table *Database::getTable(::std::string name) {
 	return recordManager->getTable(name);
 }
+
+void Database::createTable(TableDef const &def) {
+	recordManager->createTable(def);
+}
+

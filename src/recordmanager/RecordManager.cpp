@@ -3,6 +3,7 @@
 //
 
 #include <systemmanager/DatabaseMetaPage.h>
+#include <systemmanager/TableMetaPage.h>
 #include "RecordManager.h"
 #include "systemmanager/Database.h"
 
@@ -22,7 +23,7 @@ void RecordManager::recoverTables() {
 	tableCount = static_cast<size_t>(metaInfo->tableCount);
 	for(int i=0;i<tableCount;i++){
 		auto const& tableInfo = metaInfo->tableInfo[i];
-		tables[i].reset(new Table(*this,tableInfo.name,tableInfo.metaPageID));
+		tables[i].reset(new Table(*this,tableInfo.name,tableInfo.metaPageID,i));
 	}
 }
 
@@ -36,7 +37,7 @@ void RecordManager::createTable(::std::string name, size_t recordLength) {
 	if(tableCount>=30){
 		throw ::std::runtime_error("Table count exceeded");
 	}
-	if(name.length()>124){
+	if(name.length()>TableMetaPage::MAX_NAME_LENGTH){
 		throw ::std::runtime_error("Table name too long");
 	}
 	for(int i=0;i<tableCount;i++){
@@ -60,7 +61,7 @@ void RecordManager::createTable(::std::string name, size_t recordLength) {
 	*tableRecordPos=(uint)tablePage.pageId;
 	unsigned char* tableNamePos=(unsigned char*)(tableRecordPos+1);
 	::std::strncpy((char*)tableNamePos,name.c_str(),124);
-	tables[tableIndex].reset(new Table(*this,name,tablePage.pageId));
+	tables[tableIndex].reset(new Table(*this,name,tablePage.pageId,tableIndex));
 }
 
 void RecordManager::deleteTable(Table *table) {
@@ -94,3 +95,10 @@ Table *RecordManager::getTable(::std::string name) {
 	throw ::std::runtime_error("A table with this name do not exist");
 }
 
+Table *RecordManager::getTable(int id) const {
+	return tables[id].get();
+}
+
+void RecordManager::createTable(const TableDef &def) {
+	// TODO
+}

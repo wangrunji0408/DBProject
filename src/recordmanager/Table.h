@@ -15,10 +15,12 @@ class BufPageManager;
 class Table{
 	friend class RecordManager;
 	friend class RecordScanner;
+	friend class TableMetaPage;
 	RecordManager& recordManager;
 	Database& database;
 	[[deprecated("Use Page class from database")]]
 	BufPageManager* bufPageManager;
+	const int id;
 	::std::string name;
 	size_t recordLength;
 	size_t maxRecordPerPage;
@@ -26,7 +28,7 @@ class Table{
 	int firstDataPageID;
 	void deleteData();
 	void recoverMetadata();
-	Table(RecordManager& recordManager,::std::string name,int tablePageID);
+	Table(RecordManager& recordManager,::std::string name,int tablePageID,int id);
 public:
 	size_t getRecordLength()const;
 	Record getRecord(RID const&);

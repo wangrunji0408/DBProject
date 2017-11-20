@@ -19,6 +19,7 @@ class Database{
 	friend class IndexManager;
 	friend class IndexEntityLists;
 	friend class RecordScanner;
+	friend class TableMetaPage;
 	friend class Table;
 	friend class Index;
 
@@ -47,6 +48,7 @@ private:
 public:
 	~Database();
 	void createTable(::std::string name,size_t recordLength);
+	void createTable(TableDef const& def);
 	void deleteTable(Table* table);
 	Table* getTable(::std::string name);
 	void createIndex(std::string tableName, std::string attrName);

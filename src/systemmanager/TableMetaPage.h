@@ -8,10 +8,13 @@
 
 #include <ast/TableDef.h>
 
+class RecordManager;
+
 struct TableMetaPage {
 
 	static const int MAX_COLUMN_NAME_LENGTH = 43;
 	static const int MAX_COLUMN_SIZE = 100;
+	static const int MAX_NAME_LENGTH = 124;
 
 	struct Column { // size = 64
 		short size;
@@ -21,16 +24,24 @@ struct TableMetaPage {
 		short indexID;
 		short foreignTableID;
 		short foreignColumnID;
-		char primary: 1;
+		char primaryKey: 1;
 		char nullable: 1;
 		char unique: 1;
+
+		void makeFromDef(ColomnDef const& def);
+		ColomnDef toDef() const;
 	};
 
-	char reserved[248];
+	char reserved[248-MAX_NAME_LENGTH-1];
+	char name[MAX_NAME_LENGTH+1];
 	int firstPageID;	// -1 if not exist
 	int recordLength;
+	short columnSize;
 	Column columns[MAX_COLUMN_SIZE];
 
+	int getColomnId(std::string name) const;
+	void makeFromDef(TableDef const& def, RecordManager& recordManager);
+	TableDef toDef(RecordManager& recordManager) const;
 };
 
 

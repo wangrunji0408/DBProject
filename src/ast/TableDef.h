@@ -23,6 +23,7 @@ struct ColomnDef {
 	std::string name;
 	bool nullable;
 	bool unique;
+	bool primaryKey;
 };
 
 struct ForeignKeyDef {
@@ -34,8 +35,8 @@ struct ForeignKeyDef {
 struct TableDef {
 	std::string name;
 	std::vector<ColomnDef> colomns;
-	std::string primaryKeyName;
 	std::vector<ForeignKeyDef> foreignKeys;
+	std::vector<std::string> primaryKeys;
 };
 
 #endif //TEST_TABLEDEF_H
