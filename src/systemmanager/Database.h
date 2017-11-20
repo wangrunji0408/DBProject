@@ -41,19 +41,22 @@ public: // TODO 这里为了测试暂时公开，寻找测试私有函数的解�
 	bool isPageUsed(int pageId) const;
 	// for test
 	IndexManager* getIndexManager() const {return indexManager.get();}
+	// 记录无内部结构 时代的 函数
+	void createTable(std::string const& name,size_t recordLength);
 
 private:
 
 	Database(DatabaseManager& db,int fileID,::std::string name);
+	int getIndexID(std::string const& tableName, std::string const& attrName);
 public:
 	~Database();
-	void createTable(::std::string name,size_t recordLength);
+	TableDef getTableDef(std::string const& name) const;
 	void createTable(TableDef const& def);
 	void deleteTable(Table* table);
-	Table* getTable(::std::string name);
-	void createIndex(std::string tableName, std::string attrName);
-	void deleteIndex(std::string tableName, std::string attrName);
-	Index* getIndex(std::string tableName, std::string attrName);
+	Table* getTable(std::string const& name);
+	void createIndex(std::string const& tableName, std::string const& attrName);
+	void deleteIndex(std::string const& tableName, std::string const& attrName);
+	Index* getIndex(std::string const& tableName, std::string const& attrName);
 };
 
 #endif //DATABASE_H

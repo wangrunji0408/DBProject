@@ -29,10 +29,9 @@ void Table::deleteData(){
 
 
 void Table::recoverMetadata() {
-	auto currentPage = database.getPage(tablePageID);
-	BufType tablePageBuffer = currentPage.getDataReadonly();
-	recordLength=tablePageBuffer[63];
-	firstDataPageID=tablePageBuffer[62];
+	auto meta = (TableMetaPage*)database.getPage(tablePageID).getDataReadonly();
+	recordLength = static_cast<size_t>(meta->recordLength);
+	firstDataPageID = meta->firstPageID;
 	maxRecordPerPage=(8*8096)/(8*recordLength+1);
 }
 
@@ -176,9 +175,4 @@ void Table::updateRecord(Record const& record) {
 
 RecordScanner Table::iterateRecords() {
 	return RecordScanner(this);
-}
-
-TableDef Table::getDef() const {
-	auto meta = (TableMetaPage*)database.getPage(tablePageID).getDataReadonly();
-	return meta->toDef(recordManager);
 }

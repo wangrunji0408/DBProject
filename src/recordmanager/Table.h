@@ -17,6 +17,7 @@ class Table{
 	friend class RecordManager;
 	friend class RecordScanner;
 	friend class TableMetaPage;
+	friend class Database;
 	RecordManager& recordManager;
 	Database& database;
 	[[deprecated("Use Page class from database")]]
@@ -31,7 +32,6 @@ class Table{
 	void recoverMetadata();
 	Table(RecordManager& recordManager,::std::string name,int tablePageID,int id);
 public:
-	TableDef getDef() const;
 	size_t getRecordLength()const;
 	Record getRecord(RID const&);
 	RID insertRecord(const uchar*  data);

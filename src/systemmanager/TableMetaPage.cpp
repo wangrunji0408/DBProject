@@ -22,6 +22,8 @@ void TableMetaPage::makeFromDef(TableDef const &def, RecordManager& recordManage
 		columns[i].offset = static_cast<short>(recordLength);
 		recordLength += col.size;
 	}
+	int nullBitsetBytes = (columnSize + 7) / 8;
+	recordLength += nullBitsetBytes;
 	if(recordLength > MAX_RECORD_LENGTH)
 		throw std::runtime_error("The length of record is too large");
 

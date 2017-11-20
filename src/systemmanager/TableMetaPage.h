@@ -34,11 +34,11 @@ struct TableMetaPage {
 		ColomnDef toDef() const;
 	};
 
-	char reserved[116];
+	char reserved[120];
 	char name[MAX_NAME_LENGTH+1];
+	short columnSize;
 	int firstPageID;	// -1 if not exist
 	int recordLength;
-	short columnSize;
 	Column columns[MAX_COLUMN_SIZE];
 
 	int getColomnId(std::string name) const;
