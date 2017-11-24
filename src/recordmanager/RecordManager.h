@@ -6,6 +6,7 @@
 #define TEST_RECORDMANAGER_H
 
 #include <string>
+#include <memory>
 #include <recordmanager/Table.h>
 
 class Database;

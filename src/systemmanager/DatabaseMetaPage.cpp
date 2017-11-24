@@ -2,6 +2,8 @@
 // Created by 王润基 on 2017/10/25.
 //
 
+#include <cstring>
+#include <stdexcept>
 #include "DatabaseMetaPage.h"
 
 void DatabaseMetaPage::check() const {

@@ -15,6 +15,8 @@ file(GLOB SOURCES
         src/systemmanager/*.h
         src/systemmanager/*.cpp
         src/ast/*.h
+        src/parser/*.h
+        src/parser/*.cpp
         src/*.h
         src/*.cpp)
 

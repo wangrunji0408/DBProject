@@ -2,8 +2,8 @@
 // Created by 王润基 on 2017/10/23.
 //
 
-#ifndef TEST_TABLEDEF_H
-#define TEST_TABLEDEF_H
+#ifndef TABLEDEF_H
+#define TABLEDEF_H
 
 #include <string>
 #include <vector>
@@ -38,4 +38,4 @@ struct TableDef {
 	std::vector<ForeignKeyDef> foreignKeys;
 };
 
-#endif //TEST_TABLEDEF_H
+#endif //TABLEDEF_H
