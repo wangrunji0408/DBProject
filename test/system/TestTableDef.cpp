@@ -42,9 +42,9 @@ TEST_F(TestTableDef, CanCreateTableFromDefAndGetDef)
 	*/
 	auto customer = TableDef();
 	customer.name = "customer";
-	customer.colomns.push_back(ColomnDef{"id", INT, 4, false, false});
-	customer.colomns.push_back(ColomnDef{"name", VARCHAR, 25, false, false});
-	customer.colomns.push_back(ColomnDef{"gender", VARCHAR, 1, false, false});
+	customer.columns.push_back(ColumnDef{"id", INT, 4, false, false});
+	customer.columns.push_back(ColumnDef{"name", VARCHAR, 25, false, false});
+	customer.columns.push_back(ColumnDef{"gender", VARCHAR, 1, false, false});
 	customer.primaryKeys.emplace_back("id");
 	db->createTable(customer);
 
@@ -60,11 +60,11 @@ TEST_F(TestTableDef, CanCreateTableFromDefAndGetDef)
 	*/
 	auto book = TableDef();
 	book.name = "book";
-	book.colomns.push_back(ColomnDef{"id", INT, 4, false, false});
-	book.colomns.push_back(ColomnDef{"title", VARCHAR, 100, false, false});
-	book.colomns.push_back(ColomnDef{"authors", VARCHAR, 200, true, false});
-	book.colomns.push_back(ColomnDef{"publisher", VARCHAR, 100, true, false});
-	book.colomns.push_back(ColomnDef{"copies", INT, 4, true, false});
+	book.columns.push_back(ColumnDef{"id", INT, 4, false, false});
+	book.columns.push_back(ColumnDef{"title", VARCHAR, 100, false, false});
+	book.columns.push_back(ColumnDef{"authors", VARCHAR, 200, true, false});
+	book.columns.push_back(ColumnDef{"publisher", VARCHAR, 100, true, false});
+	book.columns.push_back(ColumnDef{"copies", INT, 4, true, false});
 	book.primaryKeys.emplace_back("id");
 	db->createTable(book);
 
@@ -78,9 +78,9 @@ TEST_F(TestTableDef, CanCreateTableFromDefAndGetDef)
 	*/
 	auto website = TableDef();
 	website.name = "website";
-	website.colomns.push_back(ColomnDef{"id", INT, 4, false, false});
-	website.colomns.push_back(ColomnDef{"name", VARCHAR, 25, false, false});
-	website.colomns.push_back(ColomnDef{"url", VARCHAR, 100, true, false});
+	website.columns.push_back(ColumnDef{"id", INT, 4, false, false});
+	website.columns.push_back(ColumnDef{"name", VARCHAR, 25, false, false});
+	website.columns.push_back(ColumnDef{"url", VARCHAR, 100, true, false});
 	website.primaryKeys.emplace_back("id");
 	db->createTable(website);
 
@@ -96,9 +96,9 @@ TEST_F(TestTableDef, CanCreateTableFromDefAndGetDef)
 	*/
 	auto price = TableDef();
 	price.name = "price";
-	price.colomns.push_back(ColomnDef{"website_id", INT, 4, false, false});
-	price.colomns.push_back(ColomnDef{"book_id", INT, 4, false, false});
-	price.colomns.push_back(ColomnDef{"price", FLOAT, 4, false, false});
+	price.columns.push_back(ColumnDef{"website_id", INT, 4, false, false});
+	price.columns.push_back(ColumnDef{"book_id", INT, 4, false, false});
+	price.columns.push_back(ColumnDef{"price", FLOAT, 4, false, false});
 	price.primaryKeys.emplace_back("website_id");
 	price.primaryKeys.emplace_back("book_id");
 	price.foreignKeys.push_back(ForeignKeyDef{"website_id", "website", "id"});
@@ -121,12 +121,12 @@ TEST_F(TestTableDef, CanCreateTableFromDefAndGetDef)
 	*/
 	auto orders = TableDef();
 	orders.name = "orders";
-	orders.colomns.push_back(ColomnDef{"id", INT, 4, false, false});
-	orders.colomns.push_back(ColomnDef{"website_id", INT, 4, false, false});
-	orders.colomns.push_back(ColomnDef{"customer_id", INT, 4, false, false});
-	orders.colomns.push_back(ColomnDef{"book_id", INT, 4, false, false});
-	orders.colomns.push_back(ColomnDef{"date", DATE, 4, false, false});
-	orders.colomns.push_back(ColomnDef{"quantity", INT, 4, false, false});
+	orders.columns.push_back(ColumnDef{"id", INT, 4, false, false});
+	orders.columns.push_back(ColumnDef{"website_id", INT, 4, false, false});
+	orders.columns.push_back(ColumnDef{"customer_id", INT, 4, false, false});
+	orders.columns.push_back(ColumnDef{"book_id", INT, 4, false, false});
+	orders.columns.push_back(ColumnDef{"date", DATE, 4, false, false});
+	orders.columns.push_back(ColumnDef{"quantity", INT, 4, false, false});
 	orders.primaryKeys.emplace_back("id");
 	orders.foreignKeys.push_back(ForeignKeyDef{"website_id", "website", "id"});
 	orders.foreignKeys.push_back(ForeignKeyDef{"customer_id", "customer", "id"});

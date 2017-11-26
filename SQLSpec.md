@@ -21,10 +21,7 @@ Note: in interactive enviroment, `\` followed by a line-feed is ignored
 ## Grammars
 
 - Program:
-	- Program ';'
-	- Program ';' Statement
-	- Statement
-	- //empty
+	- Statement? (';' Statement?)*
 - Statement:
 	- SHOW DATABASES
 	- CREATE DATABASE identifier
@@ -33,10 +30,20 @@ Note: in interactive enviroment, `\` followed by a line-feed is ignored
 	- SHOW TABLES
 	- SHOW TABLE identifier
 	- DESC identifier
-	- CREATE TABLE identifier TableDefine
+	- CREATE TABLE identifier '(' TableDefine ')'
 	- DROP TABLE identifier
 	- CREATE INDEX identifier '(' identifier ')'
 	- DROP INDEX identifier '(' identifier ')'
 	- TODO
 - TableDefine
-	- TODO
+	- Field (',' Field)*
+- Field
+	- identifier Type
+	- identifier Type NOT NULL
+	- PRIMARY KEY '(' identifier (',' identifier)*  ')'
+	-FOREIGN KEY '(' identifier ')' REFERENCES identifier '(' identifier ')'
+- Type
+	- INT '(' int ')'
+	- FLOAT
+	- DATE
+	- VARCHAR '(' int ')'

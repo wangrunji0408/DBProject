@@ -17,14 +17,14 @@ enum DataType {
 	DATE = 5
 };
 
-struct ColomnDef {
+struct ColumnDef {
 	std::string name;
 	DataType dataType;
 	size_t size;
 	bool nullable;
 	bool unique;
 
-	friend bool operator==(const ColomnDef &lhs, const ColomnDef &rhs) {
+	friend bool operator==(const ColumnDef &lhs, const ColumnDef &rhs) {
 		return lhs.name == rhs.name &&
 			   lhs.dataType == rhs.dataType &&
 			   lhs.size == rhs.size &&
@@ -32,7 +32,7 @@ struct ColomnDef {
 			   lhs.unique == rhs.unique;
 	}
 
-	friend bool operator!=(const ColomnDef &lhs, const ColomnDef &rhs) {
+	friend bool operator!=(const ColumnDef &lhs, const ColumnDef &rhs) {
 		return !(rhs == lhs);
 	}
 };
@@ -55,13 +55,13 @@ struct ForeignKeyDef {
 
 struct TableDef {
 	std::string name;
-	std::vector<ColomnDef> colomns;//<-typo,should be columns
+	std::vector<ColumnDef> columns;
 	std::vector<ForeignKeyDef> foreignKeys;
 	std::vector<std::string> primaryKeys;
 
 	friend bool operator==(const TableDef &lhs, const TableDef &rhs) {
 		return lhs.name == rhs.name &&
-			   lhs.colomns == rhs.colomns &&
+			   lhs.columns == rhs.columns &&
 			   lhs.foreignKeys == rhs.foreignKeys &&
 			   lhs.primaryKeys == rhs.primaryKeys;
 	}

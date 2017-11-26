@@ -30,8 +30,8 @@ struct TableMetaPage {
 		char unique: 1;
 		char reserved[4];
 
-		void makeFromDef(ColomnDef const& def);
-		ColomnDef toDef() const;
+		void makeFromDef(ColumnDef const& def);
+		ColumnDef toDef() const;
 	};
 
 	char reserved[120];

@@ -63,4 +63,15 @@ TEST_F(TestParser, HandleDropStatements)
 	ASSERT_EQ(dynamic_cast<DropIndexStmt&>(*statements[2]).column,"type");
 }
 
+TEST_F(TestParser, HandleSimpleCreateStatements)
+{
+	::std::vector<::std::unique_ptr<Statement>> statements=Parser::parseString("create database world;drop index page(homepage)");
+	ASSERT_EQ(statements.size(),2);
+	ASSERT_EQ(statements[0]->getType(),StatementType::CREATE_DATABASE);
+	ASSERT_EQ(statements[1]->getType(),StatementType::CREATE_INDEX);
+	ASSERT_EQ(dynamic_cast<CreateDatabaseStmt&>(*statements[0]).database,"world");
+	ASSERT_EQ(dynamic_cast<CreateIndexStmt&>(*statements[1]).table,"page");
+	ASSERT_EQ(dynamic_cast<CreateIndexStmt&>(*statements[1]).column,"homepage");
+}
+
 }
