@@ -16,6 +16,7 @@ class Parser{
 	::std::unique_ptr<Statement> parseStatement();
 	::std::unique_ptr<Statement> parseShowStmt();
 	::std::unique_ptr<Statement> parseCreateStmt();
+	::std::unique_ptr<Statement> parseDescStmt();
 	::std::unique_ptr<Statement> parseDropStmt();
 	::std::unique_ptr<Statement> parseUseStmt();
 	Parser(const ::std::string text);

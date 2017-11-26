@@ -21,11 +21,22 @@ Note: in interactive enviroment, `\` followed by a line-feed is ignored
 ## Grammars
 
 - Program:
-	- (Statement? ';')* Statement? ';'?
+	- Program ';'
+	- Program ';' Statement
+	- Statement
+	- //empty
 - Statement:
 	- SHOW DATABASES
 	- CREATE DATABASE identifier
 	- DROP DATABASE identifier
 	- USE identifier | USE DATABASE identifier
 	- SHOW TABLES
+	- SHOW TABLE identifier
+	- DESC identifier
+	- CREATE TABLE identifier TableDefine
+	- DROP TABLE identifier
+	- CREATE INDEX identifier '(' identifier ')'
+	- DROP INDEX identifier '(' identifier ')'
+	- TODO
+- TableDefine
 	- TODO

@@ -55,7 +55,7 @@ struct ForeignKeyDef {
 
 struct TableDef {
 	std::string name;
-	std::vector<ColomnDef> colomns;
+	std::vector<ColomnDef> colomns;//<-typo,should be columns
 	std::vector<ForeignKeyDef> foreignKeys;
 	std::vector<std::string> primaryKeys;
 
