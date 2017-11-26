@@ -20,4 +20,12 @@ Note: in interactive enviroment, `\` followed by a line-feed is ignored
 
 ## Grammars
 
-- TODO
+- Program:
+	- (Statement? ';')* Statement? ';'?
+- Statement:
+	- SHOW DATABASES
+	- CREATE DATABASE identifier
+	- DROP DATABASE identifier
+	- USE identifier | USE DATABASE identifier
+	- SHOW TABLES
+	- TODO

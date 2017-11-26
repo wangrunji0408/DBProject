@@ -1,5 +1,5 @@
 #include <string>
-#include <iostream>
+#include <stdexcept>
 #include "Tokenizer.h"
 Token Tokenizer::next(){
 	while(true){
