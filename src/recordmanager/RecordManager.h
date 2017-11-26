@@ -8,6 +8,7 @@
 #include <string>
 #include <memory>
 #include <recordmanager/Table.h>
+#include <ast/TableDef.h>
 
 class Database;
 class DatabaseManager;
@@ -17,8 +18,11 @@ class RecordManager {
 
 	friend class Table;
 	friend class RecordScanner;
+	friend class TableMetaPage;
 
-	::std::unique_ptr<Table> tables[30];
+	static const int MAX_TABLE_COUNT = 30;
+
+	::std::unique_ptr<Table> tables[MAX_TABLE_COUNT];
 	size_t tableCount;
 
 	void recoverTables();
@@ -27,9 +31,11 @@ class RecordManager {
 	Database& database;
 
 	RecordManager(Database& database);
+	Table* getTable(int id) const;
 public:
 	~RecordManager();
 	void createTable(::std::string name,size_t recordLength);
+	void createTable(TableDef const& def);
 	void deleteTable(Table* table);
 	Table* getTable(::std::string name);
 };

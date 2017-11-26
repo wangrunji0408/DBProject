@@ -26,7 +26,6 @@ list(REMOVE_ITEM SOURCES src/main.cpp)
 
 add_library(DBLib SHARED ${SOURCES})
 
-project(Test)
 
 # Download and unpack googletest at configure time
 configure_file(CMakeLists.txt.in googletest-download/CMakeLists.txt)

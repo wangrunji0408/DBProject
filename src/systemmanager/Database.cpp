@@ -8,6 +8,7 @@
 #include "Database.h"
 #include "DatabaseManager.h"
 #include "DatabaseMetaPage.h"
+#include "TableMetaPage.h"
 
 Database::Database(DatabaseManager& db,int fileID,::std::string name):
 	databaseManager(db),fileID(fileID),name(name)
@@ -51,7 +52,7 @@ Database::~Database() {
 	this->databaseManager.fileManager->closeFile(this->fileID);
 }
 
-void Database::createTable(::std::string name, size_t recordLength) {
+void Database::createTable(::std::string const& name, size_t recordLength) {
 	recordManager->createTable(name, recordLength);
 }
 
@@ -59,6 +60,48 @@ void Database::deleteTable(Table *table) {
 	recordManager->deleteTable(table);
 }
 
-Table *Database::getTable(::std::string name) {
+Table *Database::getTable(::std::string const& name) {
 	return recordManager->getTable(name);
+}
+
+void Database::createTable(TableDef const &def) {
+	recordManager->createTable(def);
+}
+
+void Database::createIndex(std::string const& tableName, std::string const& attrName) {
+	auto table = getTable(tableName);
+	auto meta = (TableMetaPage*)getPage(table->tablePageID).getDataReadonly();
+	int colID = meta->getColomnId(attrName);
+	if(colID == -1)
+		throw std::runtime_error("Attribute name not exist");
+	auto& col = meta->columns[colID];
+	if(col.indexID != -1)
+		throw std::runtime_error("Attribute already has an index");
+	col.indexID = (short)(indexManager->createIndex(table->tablePageID, col.dataType, col.size));
+}
+
+void Database::deleteIndex(std::string const& tableName, std::string const& attrName) {
+	indexManager->deleteIndex(getIndexID(tableName, attrName));
+}
+
+Index* Database::getIndex(std::string const& tableName, std::string const& attrName) {
+	return indexManager->getIndex(getIndexID(tableName, attrName));
+}
+
+int Database::getIndexID(std::string const& tableName, std::string const& attrName) {
+	auto table = getTable(tableName);
+	auto meta = (TableMetaPage*)getPage(table->tablePageID).getDataReadonly();
+	int colID = meta->getColomnId(attrName);
+	if(colID == -1)
+		throw std::runtime_error("Attribute name not exist");
+	int indexID = meta->columns[colID].indexID;
+	if(indexID == -1)
+		throw std::runtime_error("This attribute doesn't have index");
+	return indexID;
+}
+
+TableDef Database::getTableDef(const string &name) const {
+	int tablePageID = recordManager->getTable(name)->tablePageID;
+	auto meta = (TableMetaPage*)getPage(tablePageID).getDataReadonly();
+	return meta->toDef(*recordManager);
 }

@@ -6,10 +6,10 @@
 #include "Table.h"
 #include "systemmanager/Database.h"
 #include "systemmanager/DatabaseManager.h"
-#include "RecordScanner.h"
+#include "systemmanager/TableMetaPage.h"
 
-Table::Table(RecordManager& recordManager,::std::string name,int tablePageID):
-	recordManager(recordManager), name(name), tablePageID(tablePageID),
+Table::Table(RecordManager& recordManager,::std::string name,int tablePageID,int id):
+	recordManager(recordManager), name(name), tablePageID(tablePageID), id(id),
 	database(recordManager.database), bufPageManager(recordManager.database.databaseManager.bufPageManager.get())
 {
 	recoverMetadata();
@@ -29,10 +29,9 @@ void Table::deleteData(){
 
 
 void Table::recoverMetadata() {
-	auto currentPage = database.getPage(tablePageID);
-	BufType tablePageBuffer = currentPage.getDataReadonly();
-	recordLength=tablePageBuffer[63];
-	firstDataPageID=tablePageBuffer[62];
+	auto meta = (TableMetaPage*)database.getPage(tablePageID).getDataReadonly();
+	recordLength = static_cast<size_t>(meta->recordLength);
+	firstDataPageID = meta->firstPageID;
 	maxRecordPerPage=(8*8096)/(8*recordLength+1);
 }
 
