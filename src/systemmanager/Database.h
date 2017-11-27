@@ -45,11 +45,13 @@ public: // TODO 这里为了测试暂时公开，寻找测试私有函数的解�
 	void createTable(std::string const& name,size_t recordLength);
 
 private:
-
 	Database(DatabaseManager& db,int fileID,::std::string name);
 	int getIndexID(std::string const& tableName, std::string const& attrName);
 public:
 	~Database();
+	::std::string getName() const {
+		return name;
+	};
 	TableDef getTableDef(std::string const& name) const;
 	void createTable(TableDef const& def);
 	void deleteTable(Table* table);

@@ -10,23 +10,42 @@ void SQLExecutor::executeSQL(::std::vector<::std::unique_ptr<Statement>> program
 		case StatementType::SHOW_DATABASES:
 			throw ::std::runtime_error("Not implemented");
 		case StatementType::CREATE_DATABASE:
-			throw ::std::runtime_error("Not implemented");
+			dbManager->createDatabase(dynamic_cast<CreateDatabaseStmt&>(*stmt).database);
+			break;
 		case StatementType::DROP_DATABASE:
-			throw ::std::runtime_error("Not implemented");
+			{
+				bool needRestore=false;
+				::std::string previousName;
+				if(dbManager->getCurrentDatabase()!=nullptr){
+					previousName=dbManager->getCurrentDatabase()->getName();
+					needRestore=true;
+				}
+				dbManager->useDatabase(dynamic_cast<DropDatabaseStmt&>(*stmt).database);
+				dbManager->deleteCurrentDatabase();
+				if(needRestore){
+					dbManager->useDatabase(previousName);
+				}
+			}
+			break;
 		case StatementType::USE_DATABASE:
-			throw ::std::runtime_error("Not implemented");
+			dbManager->useDatabase(dynamic_cast<UseDatabaseStmt&>(*stmt).database);
+			break;
 		case StatementType::SHOW_TABLES:
 			throw ::std::runtime_error("Not implemented");
 		case StatementType::SHOW_TABLE_SCHEMA:
 			throw ::std::runtime_error("Not implemented");
 		case StatementType::CREATE_TABLE:
-			throw ::std::runtime_error("Not implemented");
+			dbManager->getCurrentDatabase()->createTable(dynamic_cast<CreateTableStmt&>(*stmt).define);
+			break;
 		case StatementType::DROP_TABLE:
-			throw ::std::runtime_error("Not implemented");
+			dbManager->getCurrentDatabase()->deleteTable(dbManager->getCurrentDatabase()->getTable(dynamic_cast<DropTableStmt&>(*stmt).table));
+			break;
 		case StatementType::CREATE_INDEX:
-			throw ::std::runtime_error("Not implemented");
+			dbManager->getCurrentDatabase()->createIndex(dynamic_cast<CreateIndexStmt&>(*stmt).table,dynamic_cast<CreateIndexStmt&>(*stmt).column);
+			break;
 		case StatementType::DROP_INDEX:
-			throw ::std::runtime_error("Not implemented");
+			dbManager->getCurrentDatabase()->deleteIndex(dynamic_cast<DropIndexStmt&>(*stmt).table,dynamic_cast<DropIndexStmt&>(*stmt).column);
+			break;
 		default:
 			throw ::std::runtime_error("Unknown statement type");
 		}
