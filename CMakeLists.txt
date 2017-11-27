@@ -17,6 +17,8 @@ file(GLOB SOURCES
         src/ast/*.h
         src/parser/*.h
         src/parser/*.cpp
+        src/driver/*.h
+        src/driver/*.cpp
         src/*.h
         src/*.cpp)
 
