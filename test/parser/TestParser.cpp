@@ -65,13 +65,31 @@ TEST_F(TestParser, HandleDropStatements)
 
 TEST_F(TestParser, HandleSimpleCreateStatements)
 {
-	::std::vector<::std::unique_ptr<Statement>> statements=Parser::parseString("create database world;drop index page(homepage)");
+	::std::vector<::std::unique_ptr<Statement>> statements=Parser::parseString("create database world;create index page(homepage)");
 	ASSERT_EQ(statements.size(),2);
 	ASSERT_EQ(statements[0]->getType(),StatementType::CREATE_DATABASE);
 	ASSERT_EQ(statements[1]->getType(),StatementType::CREATE_INDEX);
 	ASSERT_EQ(dynamic_cast<CreateDatabaseStmt&>(*statements[0]).database,"world");
 	ASSERT_EQ(dynamic_cast<CreateIndexStmt&>(*statements[1]).table,"page");
 	ASSERT_EQ(dynamic_cast<CreateIndexStmt&>(*statements[1]).column,"homepage");
+}
+
+TEST_F(TestParser, HandleCreateTableStatements)
+{
+	::std::vector<::std::unique_ptr<Statement>> statements=Parser::parseString("create table pika(chu int(10),nyan float not null,err date,pie varchar(1000) not null,primary key(chu,nyan),foreign key(err)references world(end),foreign key(pie)references eat(able))");
+	ASSERT_EQ(statements.size(),1);
+	ASSERT_EQ(statements[0]->getType(),StatementType::CREATE_TABLE);
+	auto define = TableDef();
+	define.name="pika";
+	define.columns.push_back(ColumnDef{"chu",INT,10,true,false});
+	define.columns.push_back(ColumnDef{"nyan",FLOAT,4,false,false});
+	define.columns.push_back(ColumnDef{"err",DATE,4,true,false});
+	define.columns.push_back(ColumnDef{"pie",VARCHAR,1000,false,false});
+	define.primaryKeys.emplace_back("chu");
+	define.primaryKeys.emplace_back("nyan");
+	define.foreignKeys.push_back(ForeignKeyDef{"err","world","end"});
+	define.foreignKeys.push_back(ForeignKeyDef{"pie","eat","able"});
+	ASSERT_EQ(define,dynamic_cast<CreateTableStmt&>(*statements[0]).define);
 }
 
 }

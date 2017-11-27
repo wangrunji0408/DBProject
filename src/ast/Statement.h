@@ -51,7 +51,6 @@ struct ShowTableSchemaStmt:Statement{
 };
 
 struct CreateTableStmt:Statement{
-	::std::string table;
 	TableDef define;
 	StatementType getType()override{return StatementType::CREATE_TABLE;}
 };

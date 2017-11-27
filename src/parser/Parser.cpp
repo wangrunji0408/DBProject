@@ -96,7 +96,7 @@ void Parser::eatToken(TokenType type,const char* errorMessage){
 }
 ::std::unique_ptr<Statement> Parser::parseCreateStmt(){
 	eatToken(TokenType::K_CREATE,"Expected keyword CREATE");
-	if(lookahead.type==TokenType::K_DATABASES){
+	if(lookahead.type==TokenType::K_DATABASE){
 		nextToken();
 		::std::unique_ptr<CreateDatabaseStmt> createStmt=::std::make_unique<CreateDatabaseStmt>();
 		createStmt->database=getIdentifier("Expected database name");
@@ -115,7 +115,7 @@ void Parser::eatToken(TokenType type,const char* errorMessage){
 		nextToken();
 		::std::unique_ptr<CreateTableStmt> createStmt=::std::make_unique<CreateTableStmt>();
 		bool primaryKeySetted=false;
-		createStmt->table=getIdentifier("Expected table name");
+		createStmt->define.name=getIdentifier("Expected table name");
 		eatToken(TokenType::P_LPARENT,"Expected '('");
 		parseTableDefineField(createStmt->define,primaryKeySetted);
 		while(lookahead.type==TokenType::P_COMMA){
@@ -171,8 +171,19 @@ void Parser::eatToken(TokenType type,const char* errorMessage){
 }
 void Parser::parseTableDefineField(TableDef& tableDefine,bool& primaryKeySetted){
 	if(lookahead.type==TokenType::IDENTIFIER){
-		nextToken();
-		throw std::runtime_error("Not implemented");
+		ColumnDef column;
+		column.name=getIdentifier("Expected column name");
+		parseTypeDefine(column.dataType,column.size);
+		column.unique=false;
+		if(lookahead.type==TokenType::K_NOT){
+			nextToken();
+			eatToken(TokenType::K_NULL,"Expected keyword NULL");
+			column.nullable=false;
+		}else{
+			column.nullable=true;
+		}
+		tableDefine.columns.push_back(column);
+		return;
 	}
 	if(lookahead.type==TokenType::K_PRIMARY){
 		if(primaryKeySetted){
@@ -180,11 +191,69 @@ void Parser::parseTableDefineField(TableDef& tableDefine,bool& primaryKeySetted)
 		}
 		primaryKeySetted=true;
 		nextToken();
-		throw std::runtime_error("Not implemented");
+		eatToken(TokenType::K_KEY,"Expected keyword KEY");
+		eatToken(TokenType::P_LPARENT,"Expected '('");
+		tableDefine.primaryKeys.push_back(getIdentifier("Expected primary key name"));
+		while(lookahead.type==TokenType::P_COMMA){
+			nextToken();
+			tableDefine.primaryKeys.push_back(getIdentifier("Expected primary key name"));
+		}
+		eatToken(TokenType::P_RPARENT,"Expected ')'");
+		return;
 	}
 	if(lookahead.type==TokenType::K_FOREIGN){
 		nextToken();
-		throw std::runtime_error("Not implemented");
+		eatToken(TokenType::K_KEY,"Expected keyword KEY");
+		ForeignKeyDef foreignKey;
+		eatToken(TokenType::P_LPARENT,"Expected '('");
+		foreignKey.keyName=getIdentifier("Expected key name");
+		eatToken(TokenType::P_RPARENT,"Expected ')'");
+		eatToken(TokenType::K_REFERENCES,"Expected keyword REFERENCES");
+		foreignKey.refTable=getIdentifier("Expected table name");
+		eatToken(TokenType::P_LPARENT,"Expected '('");
+		foreignKey.refName=getIdentifier("Expected ref key name");
+		eatToken(TokenType::P_RPARENT,"Expected ')'");
+		tableDefine.foreignKeys.push_back(foreignKey);
+		return;
 	}
 	throw std::runtime_error("Expected column name or keyword PRIMARY/FOREIGN");
+}
+void Parser::parseTypeDefine(DataType& type,size_t& size){
+	if(lookahead.type==TokenType::K_INT){
+		nextToken();
+		type=INT;
+		eatToken(TokenType::P_LPARENT,"Expected '('");
+		if(lookahead.type!=TokenType::INT){
+			throw std::runtime_error("Expected key length");
+		}
+		size=lookahead.intValue;
+		nextToken();
+		eatToken(TokenType::P_RPARENT,"Expected ')'");
+		return;
+	}
+	if(lookahead.type==TokenType::K_FLOAT){
+		nextToken();
+		type=FLOAT;
+		size=4;
+		return;
+	}
+	if(lookahead.type==TokenType::K_DATE){
+		nextToken();
+		type=DATE;
+		size=4;
+		return;
+	}
+	if(lookahead.type==TokenType::K_VARCHAR){
+		nextToken();
+		type=VARCHAR;
+		eatToken(TokenType::P_LPARENT,"Expected '('");
+		if(lookahead.type!=TokenType::INT){
+			throw std::runtime_error("Expected key length");
+		}
+		size=lookahead.intValue;
+		nextToken();
+		eatToken(TokenType::P_RPARENT,"Expected ')'");
+		return;
+	}
+	throw std::runtime_error("Expected keyword INT/FLOAT/DATE/VARCHAR");
 }
