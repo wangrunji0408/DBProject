@@ -10,7 +10,7 @@
 		- `AND` `CREATE` `DATABASE` `DATABASES` `DATE` `DELETE` `DESC` `DROP` `FLOAT` `FOREIGN` `FROM`
 		- `INDEX` `INSERT` `INT` `INTO` `IS` `KEY` `NOT` `NULL`
 		- `PRIMARY` `REFERENCES` `SELECT` `SET` `SHOW` `TABLE` `TABLES`
-		- `UPDATE` `USE` `VALUES` `VARCHAR` `WHERE`
+		- `UNIQUE` `UPDATE` `USE` `VALUES` `VARCHAR` `WHERE`
 	- In any other case it is a identifier token
 - Sequence matched by regex `[0-9]*([0-9]\.|\.[0-9])[0-9]*` is a float token
 - Sequence matched by regex `[0-9]*` is a int token
@@ -38,8 +38,7 @@ Note: in interactive enviroment, `\` followed by a line-feed is ignored
 - TableDefine
 	- Field (',' Field)*
 - Field
-	- identifier Type
-	- identifier Type NOT NULL
+	- identifier Type ColumnConstraint*
 	- PRIMARY KEY '(' identifier (',' identifier)*  ')'
 	-FOREIGN KEY '(' identifier ')' REFERENCES identifier '(' identifier ')'
 - Type
@@ -47,3 +46,6 @@ Note: in interactive enviroment, `\` followed by a line-feed is ignored
 	- FLOAT
 	- DATE
 	- VARCHAR '(' int ')'
+- ColumnConstraint
+	- NOT NULL
+	- UNIQUE

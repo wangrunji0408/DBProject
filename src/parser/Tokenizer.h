@@ -37,6 +37,7 @@ enum class TokenType{
 	K_SHOW,
 	K_TABLE,
 	K_TABLES,
+	K_UNIQUE,
 	K_UPDATE,
 	K_USE,
 	K_VALUES,

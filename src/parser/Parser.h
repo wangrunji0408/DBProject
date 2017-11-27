@@ -24,6 +24,7 @@ class Parser{
 	::std::unique_ptr<Statement> parseUseStmt();
 	void parseTableDefineField(TableDef& tableDefine,bool& primaryKeySetted);
 	void parseTypeDefine(DataType& type,size_t& size);
+	void parseColumnConstraint(bool& nullable,bool& unique);
 	Parser(const ::std::string text);
 	::std::vector<::std::unique_ptr<Statement>> parse();
 public:

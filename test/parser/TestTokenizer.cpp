@@ -72,7 +72,7 @@ TEST_F(TestTokenizer, RejectSingleDot)
 
 TEST_F(TestTokenizer, HandleKeywordAndIdentifier)
 {
-	Tokenizer tk("AnD CReaTE DATAbaSE dATABASES DATE delete DEsC DRoP fLOAT FOreIGN FRom INdeX InsERT INt iNTO IS KEy not NULL PRiMArY REfERENCES SELeCT seT sHOw TablE TABLEs UPDATe USE VAlUES VARchAR wHERE zEbr_a0 _3nyANko");
+	Tokenizer tk("AnD CReaTE DATAbaSE dATABASES DATE delete DEsC DRoP fLOAT FOreIGN FRom INdeX InsERT INt iNTO IS KEy not NULL PRiMArY REfERENCES SELeCT seT sHOw TablE TABLEs uNIque UPDATe USE VAlUES VARchAR wHERE zEbr_a0 _3nyANko");
 	ASSERT_EQ(tk.next().type,TokenType::K_AND);
 	ASSERT_EQ(tk.next().type,TokenType::K_CREATE);
 	ASSERT_EQ(tk.next().type,TokenType::K_DATABASE);
@@ -99,6 +99,7 @@ TEST_F(TestTokenizer, HandleKeywordAndIdentifier)
 	ASSERT_EQ(tk.next().type,TokenType::K_SHOW);
 	ASSERT_EQ(tk.next().type,TokenType::K_TABLE);
 	ASSERT_EQ(tk.next().type,TokenType::K_TABLES);
+	ASSERT_EQ(tk.next().type,TokenType::K_UNIQUE);
 	ASSERT_EQ(tk.next().type,TokenType::K_UPDATE);
 	ASSERT_EQ(tk.next().type,TokenType::K_USE);
 	ASSERT_EQ(tk.next().type,TokenType::K_VALUES);

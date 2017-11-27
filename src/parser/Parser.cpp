@@ -175,12 +175,9 @@ void Parser::parseTableDefineField(TableDef& tableDefine,bool& primaryKeySetted)
 		column.name=getIdentifier("Expected column name");
 		parseTypeDefine(column.dataType,column.size);
 		column.unique=false;
-		if(lookahead.type==TokenType::K_NOT){
-			nextToken();
-			eatToken(TokenType::K_NULL,"Expected keyword NULL");
-			column.nullable=false;
-		}else{
-			column.nullable=true;
+		column.nullable=true;
+		while(lookahead.type!=TokenType::P_COMMA&&lookahead.type!=TokenType::P_RPARENT){
+			parseColumnConstraint(column.nullable,column.unique);
 		}
 		tableDefine.columns.push_back(column);
 		return;
@@ -256,4 +253,24 @@ void Parser::parseTypeDefine(DataType& type,size_t& size){
 		return;
 	}
 	throw std::runtime_error("Expected keyword INT/FLOAT/DATE/VARCHAR");
+}
+void Parser::parseColumnConstraint(bool& nullable,bool& unique){
+	if(lookahead.type==TokenType::K_NOT){
+		nextToken();
+		eatToken(TokenType::K_NULL,"Expected keyword NULL");
+		if(!nullable){
+			throw std::runtime_error("Duplicated not null constraint");
+		}
+		nullable=false;
+		return;
+	}
+	if(lookahead.type==TokenType::K_UNIQUE){
+		nextToken();
+		if(unique){
+			throw std::runtime_error("Duplicated unique constraint");
+		}
+		unique=true;
+		return;
+	}
+	throw std::runtime_error("Expected ')' or ',' or keyword NOT/UNIQUE");
 }

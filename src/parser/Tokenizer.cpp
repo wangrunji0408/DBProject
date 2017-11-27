@@ -148,6 +148,8 @@ Token Tokenizer::next(){
 				return{TokenType::K_TABLE};
 			}else if(content=="tables"){
 				return{TokenType::K_TABLES};
+			}else if(content=="unique"){
+				return{TokenType::K_UNIQUE};
 			}else if(content=="update"){
 				return{TokenType::K_UPDATE};
 			}else if(content=="use"){
