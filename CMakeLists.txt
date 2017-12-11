@@ -19,6 +19,8 @@ file(GLOB SOURCES
         src/parser/*.cpp
         src/driver/*.h
         src/driver/*.cpp
+        src/query/*.h
+        src/query/*.cpp
         src/*.h
         src/*.cpp)
 
