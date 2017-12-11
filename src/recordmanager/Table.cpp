@@ -52,9 +52,7 @@ Record Table::getRecord(RID const& rid) {
 		throw ::std::runtime_error("There is not a record for this RID");
 	}
 	unsigned char* source=(unsigned char*)(currentPageBuffer+24)+recordID*recordLength;
-	unsigned char* data=new unsigned char[recordLength];
-	::std::memcpy(data,source,recordLength);
-	return {rid,data};
+	return {rid,source};
 }
 
 RID Table::insertRecord(const uchar* data) {

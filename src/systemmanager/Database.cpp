@@ -84,7 +84,7 @@ void Database::deleteIndex(std::string const& tableName, std::string const& attr
 	indexManager->deleteIndex(getIndexID(tableName, attrName));
 }
 
-Index* Database::getIndex(std::string const& tableName, std::string const& attrName) {
+std::unique_ptr<Index> Database::getIndex(std::string const& tableName, std::string const& attrName) {
 	return indexManager->getIndex(getIndexID(tableName, attrName));
 }
 

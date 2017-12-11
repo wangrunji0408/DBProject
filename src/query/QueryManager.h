@@ -8,9 +8,11 @@
 
 #include <systemmanager/Database.h>
 #include <ast/Command.h>
+#include <systemmanager/TableMetaPage.h>
 
 class QueryManager {
 	Database& database;
+	void makeRecordData(uchar* buf, TableMetaPage const& meta, CommandDef::RecordValue const& value) const;
 public:
 	QueryManager(Database &database);
 	void execute(CommandDef::Command const& cmd);

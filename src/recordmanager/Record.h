@@ -6,13 +6,13 @@
 #include <iostream>
 
 struct Record{
-	RID recordID;
-	unsigned char* data=nullptr;
-	~Record(){
-		//TODO: find a way to do something with the memory here
-	}
+	RID recordID{};
+	const unsigned char* data = nullptr;
 	template <class T>
-	T& getDataRef() const { return *(T*)data; }
+	const T& getDataRef() const { return *(const T*)data; }
+	Record copyWithNewData(const unsigned char *data) const {
+		return Record{recordID, data};
+	}
 };
 
 #endif //RECORD_H

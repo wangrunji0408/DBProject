@@ -7,15 +7,7 @@
 
 #include <string>
 #include <vector>
-
-enum DataType {
-	UNKNOWN = 0,
-	INT = 1,
-	CHAR = 2,
-	VARCHAR = 3,
-	FLOAT = 4,
-	DATE = 5
-};
+#include "DataType.h"
 
 struct ColumnDef {
 	std::string name;

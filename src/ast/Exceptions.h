@@ -10,14 +10,17 @@
 #include <utility>
 
 struct ParseError: std::exception {
+	std::string info;
 
+	explicit ParseError(std::string info) : info(std::move(info)) {}
+	const char *what() const _NOEXCEPT override { return info.c_str(); }
 };
 
 struct ExecuteError: std::exception {
 	std::string info;
 
 	explicit ExecuteError(std::string info) : info(std::move(info)) {}
-	const char *what() const override { return info.c_str(); }
+	const char *what() const _NOEXCEPT override { return info.c_str(); }
 };
 
 #endif //DBPROJECT_EXCEPTIONS_H

@@ -44,8 +44,10 @@ void IndexEntityLists::removeEntity(RID const &dataRID, RID const &headRID) cons
 		auto& node = nodeRecord.getDataRef<ELNode>();
 		if(node.dataRID == dataRID)
 		{
-			lastNode.nextRID = node.nextRID;
-			elTable->updateRecord(lastRecord);
+			auto lastNode1 = lastNode;
+			lastNode1.nextRID = node.nextRID;
+			auto newRecord = lastRecord.copyWithNewData((uchar *) &lastNode1);
+			elTable->updateRecord(newRecord);
 			elTable->deleteRecord(nodeRID);
 			return;
 		}
@@ -57,8 +59,9 @@ void IndexEntityLists::insertEntity(RID const &dataRID, RID const &headRID) cons
 	auto headRecord = elTable->getRecord(headRID);
 	auto& head = headRecord.getDataRef<ELNode>();
 	auto node = ELNode{dataRID, head.nextRID};
-	head.nextRID = elTable->insertRecord((const uchar*)&node);
-	elTable->updateRecord(headRecord);
+	auto newHead = head;
+	newHead.nextRID = elTable->insertRecord((const uchar*)&node);
+	elTable->updateRecord(headRecord.copyWithNewData((const uchar *) &newHead));
 }
 
 bool IndexEntityLists::containsEntity(RID const &dataRID, RID const &headRID) const {

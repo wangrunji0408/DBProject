@@ -29,7 +29,7 @@ public:
 	~IndexManager() = default;
 	int createIndex(int tablePageID, DataType keyType, short keyLength);
 	void deleteIndex(int indexID);
-	Index* getIndex(int indexID); // TODO 内存管理
+	std::unique_ptr<Index> getIndex(int indexID);
 };
 
 #endif //TEST_INDEXMANAGER_H

@@ -64,8 +64,9 @@ TEST_F(TestTable, CanUpdateRecord)
 	data.a = 0;
 	auto rid = table->insertRecord((uchar*)&data);
 	auto record = table->getRecord(rid);
-	record.getDataRef<Data>().a = 1;
-	table->updateRecord(record);
+	auto newData = data;
+	newData.a = 1;
+	table->updateRecord(record.copyWithNewData((uchar*)&newData));
 	Reopen();
 	record = table->getRecord(rid);
 	ASSERT_EQ(1, record.getDataRef<Data>().a);

@@ -44,11 +44,13 @@ void IndexManager::deleteIndex(int indexID) {
 	sysindex->indexInfo[indexID].used = false;
 }
 
-Index* IndexManager::getIndex(int indexID) {
+std::unique_ptr<Index> IndexManager::getIndex(int indexID) {
 	auto sysindex = (SysIndexPage*)sysIndexPage.getDataReadonly();
 	if(indexID < 0 || indexID >= SysIndexPage::MAX_INDEX_NUM || !sysindex->indexInfo[indexID].used)
 		throw std::runtime_error("Index ID not exist.");
-	return new Index(*this, sysindex->indexInfo[indexID].rootPageID);
+	std::unique_ptr<Index> index;
+	index.reset(new Index(*this, sysindex->indexInfo[indexID].rootPageID));
+	return index;
 }
 
 void IndexManager::resetRootPageID(int indexID, int pageID) {

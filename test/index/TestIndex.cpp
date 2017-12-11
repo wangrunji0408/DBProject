@@ -31,7 +31,7 @@ protected:
 	}
 
 	IndexManager* im = nullptr;
-	Index* index = nullptr;
+	std::unique_ptr<Index> index = nullptr;
 	int indexID;
 };
 

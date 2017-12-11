@@ -14,6 +14,7 @@ class BufPageManager;
 class TableDef;
 
 class Table{
+	friend class QueryManager;
 	friend class RecordManager;
 	friend class RecordScanner;
 	friend class TableMetaPage;

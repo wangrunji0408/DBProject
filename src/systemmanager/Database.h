@@ -58,7 +58,7 @@ public:
 	Table* getTable(std::string const& name);
 	void createIndex(std::string const& tableName, std::string const& attrName);
 	void deleteIndex(std::string const& tableName, std::string const& attrName);
-	Index* getIndex(std::string const& tableName, std::string const& attrName);
+	std::unique_ptr<Index> getIndex(std::string const& tableName, std::string const& attrName);
 };
 
 #endif //DATABASE_H
