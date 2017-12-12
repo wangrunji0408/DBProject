@@ -60,12 +60,21 @@ void Database::deleteTable(Table *table) {
 	recordManager->deleteTable(table);
 }
 
-Table *Database::getTable(::std::string const& name) {
+Table *Database::getTable(::std::string const& name) const {
 	return recordManager->getTable(name);
 }
 
 void Database::createTable(TableDef const &def) {
-	recordManager->createTable(def);
+	static TableMetaPage metaPage;
+	metaPage.makeFromDef(def, *this);
+	recordManager->createTable(def.name, static_cast<size_t>(metaPage.recordLength));
+	int metaPageID = recordManager->getTable(def.name)->tablePageID;
+	auto buf = getPage(metaPageID).getDataMutable();
+	std::memcpy(buf, &metaPage, sizeof(TableMetaPage));
+
+	// Create index for the first primary key
+	if(!def.primaryKeys.empty())
+		this->createIndex(def.name, def.primaryKeys[0]);
 }
 
 void Database::createIndex(std::string const& tableName, std::string const& attrName) {
@@ -103,5 +112,5 @@ int Database::getIndexID(std::string const& tableName, std::string const& attrNa
 TableDef Database::getTableDef(const string &name) const {
 	int tablePageID = recordManager->getTable(name)->tablePageID;
 	auto meta = (TableMetaPage*)getPage(tablePageID).getDataReadonly();
-	return meta->toDef(*recordManager);
+	return meta->toDef(*this);
 }

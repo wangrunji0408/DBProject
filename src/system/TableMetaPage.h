@@ -5,10 +5,9 @@
 #ifndef TEST_TABLEMETAPAGE_H
 #define TEST_TABLEMETAPAGE_H
 
-
 #include <ast/TableDef.h>
 
-class RecordManager;
+class Database;
 
 struct TableMetaPage {
 
@@ -42,8 +41,8 @@ struct TableMetaPage {
 	Column columns[MAX_COLUMN_SIZE];
 
 	int getColomnId(std::string name) const;
-	void makeFromDef(TableDef const& def, RecordManager& recordManager);
-	TableDef toDef(RecordManager& recordManager) const;
+	void makeFromDef(TableDef const& def, Database const& database);
+	TableDef toDef(Database const& database) const;
 };
 
 

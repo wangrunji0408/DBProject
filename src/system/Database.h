@@ -55,7 +55,7 @@ public:
 	TableDef getTableDef(std::string const& name) const;
 	void createTable(TableDef const& def);
 	void deleteTable(Table* table);
-	Table* getTable(std::string const& name);
+	Table* getTable(std::string const& name) const;
 	void createIndex(std::string const& tableName, std::string const& attrName);
 	void deleteIndex(std::string const& tableName, std::string const& attrName);
 	std::unique_ptr<Index> getIndex(std::string const& tableName, std::string const& attrName);

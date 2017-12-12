@@ -54,6 +54,7 @@ void QueryManager::insert(Insert const &cmd) {
 		}
 	}
 
+	checkInsertValues(meta, cmd);
 
 	for(auto const& value: cmd.records) {
 		try {
@@ -74,4 +75,32 @@ void QueryManager::makeRecordData(uchar *buf, TableMetaPage const &meta, Command
 		auto& col = meta.columns[i];
 		parse(value.values[i], buf + col.offset, col.dataType, col.size);
 	}
+}
+
+void QueryManager::checkInsertValues(TableMetaPage const &meta, Insert const &cmd) const {
+	auto errors = std::vector<ValueError>();
+
+	for(int i=0; i<meta.columnSize; ++i) {
+		auto const& col = meta.columns[i];
+		if(!col.nullable) {
+			// Check null value
+			int j = 0;
+			for(auto const& v: cmd.records) {
+				if(v.values[i].empty())
+					errors.push_back(NotNullableError(j, v, i, col.name));
+				++j;
+			}
+		}
+		if(col.unique) {
+			if(col.indexID != -1) {
+				auto index = database.getIndexManager()->getIndex(col.indexID);
+
+			} else {
+
+			}
+		}
+	}
+
+	if(!errors.empty())
+		throw errors;
 }

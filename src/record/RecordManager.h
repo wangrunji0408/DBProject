@@ -35,7 +35,6 @@ class RecordManager {
 public:
 	~RecordManager();
 	void createTable(::std::string name,size_t recordLength);
-	void createTable(TableDef const& def);
 	void deleteTable(Table* table);
 	Table* getTable(::std::string name);
 };

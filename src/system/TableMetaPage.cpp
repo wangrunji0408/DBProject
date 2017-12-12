@@ -3,10 +3,9 @@
 //
 
 #include "TableMetaPage.h"
-#include "../record/RecordManager.h"
 #include "../system/Database.h"
 
-void TableMetaPage::makeFromDef(TableDef const &def, RecordManager& recordManager) {
+void TableMetaPage::makeFromDef(TableDef const &def, Database const& database) {
 	std::memset(this, 0, sizeof(TableMetaPage));
 	firstPageID = -1;
 	recordLength = 0;
@@ -33,12 +32,11 @@ void TableMetaPage::makeFromDef(TableDef const &def, RecordManager& recordManage
 			throw std::runtime_error("Foreign key name not exist");
 		Table* table;
 		try {
-			table = recordManager.getTable(fk.refTable);
+			table = database.recordManager->getTable(fk.refTable);
 		} catch (std::exception const& e) {
 			throw std::runtime_error("Foreign key ref table name not exist");
 		}
-		auto metaPage = (TableMetaPage*)recordManager.database
-				.getPage(table->tablePageID).getDataReadonly();
+		auto metaPage = (TableMetaPage*)database.getPage(table->tablePageID).getDataReadonly();
 		auto fcolId = metaPage->getColomnId(fk.refName);
 		if(fcolId == -1)
 			throw std::runtime_error("Foreign key ref column name not exist");
@@ -54,7 +52,7 @@ void TableMetaPage::makeFromDef(TableDef const &def, RecordManager& recordManage
 	}
 }
 
-TableDef TableMetaPage::toDef(RecordManager& recordManager) const {
+TableDef TableMetaPage::toDef(Database const& database) const {
 	auto def = TableDef();
 	def.name = string(name);
 	for(int i=0; i<columnSize; ++i) {
@@ -63,8 +61,8 @@ TableDef TableMetaPage::toDef(RecordManager& recordManager) const {
 		if(col.primaryKey)
 			def.primaryKeys.emplace_back(col.name);
 		if(col.foreignTableID != -1) {
-			auto table = recordManager.getTable(col.foreignTableID);
-			auto meta = (TableMetaPage*)recordManager.database
+			auto table = database.recordManager->getTable(col.foreignTableID);
+			auto meta = (TableMetaPage*)database
 					.getPage(table->tablePageID).getDataReadonly();
 			auto fk = ForeignKeyDef();
 			fk.keyName = string(col.name);

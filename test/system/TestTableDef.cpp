@@ -139,6 +139,12 @@ TEST_F(TestTableDef, CanCreateTableFromDefAndGetDef)
 	ASSERT_EQ(website, db->getTableDef("website"));
 	ASSERT_EQ(price, db->getTableDef("price"));
 	ASSERT_EQ(orders, db->getTableDef("orders"));
+
+	ASSERT_NE(nullptr, db->getIndex("customer", "id"));
+	ASSERT_NE(nullptr, db->getIndex("book", "id"));
+	ASSERT_NE(nullptr, db->getIndex("website", "id"));
+	ASSERT_NE(nullptr, db->getIndex("price", "website_id"));
+	ASSERT_NE(nullptr, db->getIndex("orders", "id"));
 }
 
 }
