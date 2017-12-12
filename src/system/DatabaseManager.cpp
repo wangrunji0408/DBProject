@@ -1,6 +1,6 @@
 #include <cstring>
 #include <string>
-#include <indexmanager/SysIndexPage.h>
+#include <index/SysIndexPage.h>
 #include "DatabaseManager.h"
 #include "DatabaseMetaPage.h"
 

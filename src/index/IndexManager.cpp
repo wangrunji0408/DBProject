@@ -3,7 +3,7 @@
 //
 
 #include "IndexManager.h"
-#include "systemmanager/Database.h"
+#include "system/Database.h"
 #include "SysIndexPage.h"
 
 IndexManager::IndexManager(Database &database):

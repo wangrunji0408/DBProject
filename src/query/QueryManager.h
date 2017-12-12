@@ -6,9 +6,9 @@
 #define DBPROJECT_QUERYMANAGER_H
 
 
-#include <systemmanager/Database.h>
+#include <system/Database.h>
 #include <ast/Command.h>
-#include <systemmanager/TableMetaPage.h>
+#include <system/TableMetaPage.h>
 
 class QueryManager {
 	Database& database;

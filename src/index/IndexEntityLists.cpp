@@ -2,9 +2,9 @@
 // Created by 王润基 on 2017/10/30.
 //
 
-#include <recordmanager/RID.h>
+#include <record/RID.h>
 #include "IndexEntityLists.h"
-#include <systemmanager/Database.h>
+#include <system/Database.h>
 
 IndexEntityLists::IndexEntityLists(Database &database):
 	database(database)

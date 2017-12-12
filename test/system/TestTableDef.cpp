@@ -3,8 +3,8 @@
 //
 
 #include <gtest/gtest.h>
-#include <systemmanager/DatabaseManager.h>
-#include <systemmanager/TableMetaPage.h>
+#include <system/DatabaseManager.h>
+#include <system/TableMetaPage.h>
 #include "../TestBase.h"
 
 namespace {

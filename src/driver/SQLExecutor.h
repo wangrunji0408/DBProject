@@ -5,7 +5,7 @@
 #include <memory>
 #include <ostream>
 #include "ast/Statement.h"
-#include "systemmanager/databaseManager.h"
+#include "system/databaseManager.h"
 
 class SQLExecutor{
 	::std::unique_ptr<DatabaseManager> dbManager;

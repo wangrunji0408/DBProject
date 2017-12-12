@@ -3,7 +3,7 @@
 //
 
 #include "IndexIterator.h"
-#include "systemmanager/Database.h"
+#include "system/Database.h"
 
 IndexIterator::IndexIterator(Index &index, Page page, int slotID):
 	index(index), slotID(slotID), page(page)

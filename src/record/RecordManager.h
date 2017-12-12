@@ -7,7 +7,7 @@
 
 #include <string>
 #include <memory>
-#include <recordmanager/Table.h>
+#include <record/Table.h>
 #include <ast/TableDef.h>
 
 class Database;

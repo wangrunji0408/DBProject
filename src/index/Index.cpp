@@ -2,7 +2,7 @@
 // Created by 王润基 on 2017/10/24.
 //
 
-#include <systemmanager/Database.h>
+#include <system/Database.h>
 
 Index::Index(IndexManager &manager, int rootPageID):
 	entityLists(manager.entityLists), database(manager.database), rootPageID(rootPageID)

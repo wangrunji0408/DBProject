@@ -3,8 +3,8 @@
 //
 
 #include "TableMetaPage.h"
-#include "../recordmanager/RecordManager.h"
-#include "../systemmanager/Database.h"
+#include "../record/RecordManager.h"
+#include "../system/Database.h"
 
 void TableMetaPage::makeFromDef(TableDef const &def, RecordManager& recordManager) {
 	std::memset(this, 0, sizeof(TableMetaPage));

@@ -3,9 +3,9 @@
 //
 
 #include <gtest/gtest.h>
-#include <systemmanager/DatabaseManager.h>
+#include <system/DatabaseManager.h>
 #include "../TestBase.h"
-#include "systemmanager/DatabaseMetaPage.h"
+#include "system/DatabaseMetaPage.h"
 
 
 namespace {

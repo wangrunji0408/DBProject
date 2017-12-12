@@ -3,7 +3,7 @@
 //
 
 #include <gtest/gtest.h>
-#include <systemmanager/DatabaseManager.h>
+#include <system/DatabaseManager.h>
 #include "../TestBase.h"
 
 namespace {

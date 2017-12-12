@@ -1,7 +1,7 @@
 #ifndef RECORDSCANNER_H
 #define RECORDSCANNER_H
 
-#include "recordmanager/Record.h"
+#include "record/Record.h"
 
 class Table;
 class RecordScanner{

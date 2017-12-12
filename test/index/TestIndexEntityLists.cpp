@@ -4,7 +4,7 @@
 
 #include <random>
 #include "../TestBase.h"
-#include "indexmanager/IndexEntityLists.h"
+#include "index/IndexEntityLists.h"
 
 namespace {
 

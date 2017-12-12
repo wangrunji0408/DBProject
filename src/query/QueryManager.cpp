@@ -2,7 +2,7 @@
 // Created by 王润基 on 2017/12/11.
 //
 
-#include <systemmanager/TableMetaPage.h>
+#include <system/TableMetaPage.h>
 #include <ast/Exceptions.h>
 #include "QueryManager.h"
 using namespace CommandDef;

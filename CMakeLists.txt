@@ -8,19 +8,8 @@ include_directories(src)
 file(GLOB SOURCES
         src/filesystem/*/*.h
         src/filesystem/*/*.cpp
-        src/recordmanager/*.h
-        src/recordmanager/*.cpp
-        src/indexmanager/*.h
-        src/indexmanager/*.cpp
-        src/systemmanager/*.h
-        src/systemmanager/*.cpp
-        src/ast/*.h
-        src/parser/*.h
-        src/parser/*.cpp
-        src/driver/*.h
-        src/driver/*.cpp
-        src/query/*.h
-        src/query/*.cpp
+        src/**/*.h
+        src/**/*.cpp
         src/*.h
         src/*.cpp)
 

@@ -6,7 +6,7 @@
 #include "Record.h"
 #include "RecordScanner.h"
 #include "Table.h"
-#include "systemmanager/Database.h"
+#include "system/Database.h"
 
 void RecordScanner::update(){
 	needUpdate=false;

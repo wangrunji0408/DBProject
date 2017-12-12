@@ -4,7 +4,7 @@
 
 #include <string>
 #include <cassert>
-#include "recordmanager/Table.h"
+#include "record/Table.h"
 #include "Database.h"
 #include "DatabaseManager.h"
 #include "DatabaseMetaPage.h"

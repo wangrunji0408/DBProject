@@ -2,10 +2,10 @@
 // Created by 王润基 on 2017/10/24.
 //
 
-#include <systemmanager/DatabaseMetaPage.h>
-#include <systemmanager/TableMetaPage.h>
+#include <system/DatabaseMetaPage.h>
+#include <system/TableMetaPage.h>
 #include "RecordManager.h"
-#include "systemmanager/Database.h"
+#include "system/Database.h"
 
 RecordManager::RecordManager(Database &database):
 	database(database)

@@ -2,11 +2,11 @@
 // Created by 王润基 on 2017/10/22.
 //
 
-#include <recordmanager/Record.h>
+#include <record/Record.h>
 #include "Table.h"
-#include "systemmanager/Database.h"
-#include "systemmanager/DatabaseManager.h"
-#include "systemmanager/TableMetaPage.h"
+#include "system/Database.h"
+#include "system/DatabaseManager.h"
+#include "system/TableMetaPage.h"
 
 Table::Table(RecordManager& recordManager,::std::string name,int tablePageID,int id):
 	recordManager(recordManager), name(name), tablePageID(tablePageID), id(id),

@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <ast/TableDef.h>
 #include "IndexPage.h"
-#include "../recordmanager/RID.h"
+#include "../record/RID.h"
 #include <cassert>
 
 bool IndexPage::TEST_MODE = false;

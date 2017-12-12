@@ -8,7 +8,7 @@
 
 #include <memory>
 #include <filesystem/page/Page.h>
-#include <recordmanager/RID.h>
+#include <record/RID.h>
 
 class Index;
 

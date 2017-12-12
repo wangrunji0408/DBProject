@@ -4,9 +4,9 @@
 #include <string>
 #include <cstddef>
 #include <memory>
-#include <recordmanager/RecordManager.h>
-#include "indexmanager/IndexManager.h"
-#include "recordmanager/Table.h"
+#include <record/RecordManager.h>
+#include "index/IndexManager.h"
+#include "record/Table.h"
 #include "filesystem/page/Page.h"
 
 class DatabaseManager;
