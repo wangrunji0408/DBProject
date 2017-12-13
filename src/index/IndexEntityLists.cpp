@@ -11,10 +11,10 @@ IndexEntityLists::IndexEntityLists(Database &database):
 {
 	// Get or Create linked-list table
 	try {
-		elTable = database.recordManager->getTable(ENTITYLIST_TABLE_NAME);
+		elTable = database.recordManager->getSet(ENTITYLIST_TABLE_NAME);
 	} catch (std::exception const& e) {
-		database.recordManager->createTable(ENTITYLIST_TABLE_NAME, sizeof(ELNode));
-		elTable = database.recordManager->getTable(ENTITYLIST_TABLE_NAME);
+		database.recordManager->createSet(ENTITYLIST_TABLE_NAME, sizeof(ELNode));
+		elTable = database.recordManager->getSet(ENTITYLIST_TABLE_NAME);
 	}
 }
 

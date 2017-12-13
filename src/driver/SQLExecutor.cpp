@@ -38,7 +38,7 @@ void SQLExecutor::executeSQL(::std::vector<::std::unique_ptr<Statement>> program
 			dbManager->getCurrentDatabase()->createTable(dynamic_cast<CreateTableStmt&>(*stmt).define);
 			break;
 		case StatementType::DROP_TABLE:
-			dbManager->getCurrentDatabase()->deleteTable(dbManager->getCurrentDatabase()->getTable(dynamic_cast<DropTableStmt&>(*stmt).table));
+			dbManager->getCurrentDatabase()->deleteTable(dynamic_cast<DropTableStmt &>(*stmt).table);
 			break;
 		case StatementType::CREATE_INDEX:
 			dbManager->getCurrentDatabase()->createIndex(dynamic_cast<CreateIndexStmt&>(*stmt).table,dynamic_cast<CreateIndexStmt&>(*stmt).column);

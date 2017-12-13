@@ -30,9 +30,9 @@ void TableMetaPage::makeFromDef(TableDef const &def, Database const& database) {
 		int colId = getColomnId(fk.keyName);
 		if(colId == -1)
 			throw std::runtime_error("Foreign key name not exist");
-		Table* table;
+		RecordSet* table;
 		try {
-			table = database.recordManager->getTable(fk.refTable);
+			table = database.recordManager->getSet(fk.refTable);
 		} catch (std::exception const& e) {
 			throw std::runtime_error("Foreign key ref table name not exist");
 		}
@@ -62,7 +62,7 @@ TableDef TableMetaPage::toDef(Database const& database) const {
 		if(col.primaryKey)
 			def.primaryKeys.emplace_back(col.name);
 		if(col.foreignTableID != -1) {
-			auto table = database.recordManager->getTable(col.foreignTableID);
+			auto table = database.recordManager->getSet(col.foreignTableID);
 			auto meta = (TableMetaPage*)database
 					.getPage(table->tablePageID).getDataReadonly();
 			auto fk = ForeignKeyDef();

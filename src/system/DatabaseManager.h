@@ -6,13 +6,13 @@
 #include "filesystem/bufmanager/BufPageManager.h"
 #include "filesystem/fileio/FileManager.h"
 #include "Database.h"
-#include "record/Table.h"
+#include "record/RecordSet.h"
 
 class RecordScanner;
 
 class DatabaseManager{
 	friend class Database;
-	friend class Table; // for codes not using class Page
+	friend class RecordSet; // for codes not using class Page
 
 	::std::unique_ptr<FileManager> fileManager;
 	::std::unique_ptr<BufPageManager> bufPageManager;

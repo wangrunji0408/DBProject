@@ -13,7 +13,7 @@ class Database;
 class BufPageManager;
 class TableDef;
 
-class Table{
+class RecordSet{
 	friend class QueryManager;
 	friend class RecordManager;
 	friend class RecordScanner;
@@ -31,7 +31,7 @@ class Table{
 	int firstDataPageID;
 	void deleteData();
 	void recoverMetadata();
-	Table(RecordManager& recordManager,::std::string name,int tablePageID,int id);
+	RecordSet(RecordManager& recordManager,::std::string name,int tablePageID,int id);
 public:
 	size_t getRecordLength()const;
 	Record getRecord(RID const&);

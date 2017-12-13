@@ -4,7 +4,7 @@
 
 #include <string>
 #include <cassert>
-#include "record/Table.h"
+#include "record/RecordSet.h"
 #include "Database.h"
 #include "DatabaseManager.h"
 #include "DatabaseMetaPage.h"
@@ -52,23 +52,11 @@ Database::~Database() {
 	this->databaseManager.fileManager->closeFile(this->fileID);
 }
 
-void Database::createTable(::std::string const& name, size_t recordLength) {
-	recordManager->createTable(name, recordLength);
-}
-
-void Database::deleteTable(Table *table) {
-	recordManager->deleteTable(table);
-}
-
-Table *Database::getTable(::std::string const& name) const {
-	return recordManager->getTable(name);
-}
-
 void Database::createTable(TableDef const &def) {
 	static TableMetaPage metaPage;
 	metaPage.makeFromDef(def, *this);
-	recordManager->createTable(def.name, static_cast<size_t>(metaPage.recordLength));
-	int metaPageID = recordManager->getTable(def.name)->tablePageID;
+	recordManager->createSet(def.name, static_cast<size_t>(metaPage.recordLength));
+	int metaPageID = recordManager->getSet(def.name)->tablePageID;
 	auto buf = getPage(metaPageID).getDataMutable();
 	std::memcpy(buf, &metaPage, sizeof(TableMetaPage));
 
@@ -78,7 +66,7 @@ void Database::createTable(TableDef const &def) {
 }
 
 void Database::createIndex(std::string const& tableName, std::string const& attrName) {
-	auto table = getTable(tableName);
+	auto table = recordManager->getSet(tableName);
 	auto meta = (TableMetaPage*)getPage(table->tablePageID).getDataReadonly();
 	int colID = meta->getColomnId(attrName);
 	if(colID == -1)
@@ -98,7 +86,7 @@ std::unique_ptr<Index> Database::getIndex(std::string const& tableName, std::str
 }
 
 int Database::getIndexID(std::string const& tableName, std::string const& attrName) const {
-	auto table = getTable(tableName);
+	auto table = recordManager->getSet(tableName);
 	auto meta = (TableMetaPage*)getPage(table->tablePageID).getDataReadonly();
 	int colID = meta->getColomnId(attrName);
 	if(colID == -1)
@@ -109,8 +97,11 @@ int Database::getIndexID(std::string const& tableName, std::string const& attrNa
 	return indexID;
 }
 
-TableDef Database::getTableDef(const string &name) const {
-	int tablePageID = recordManager->getTable(name)->tablePageID;
-	auto meta = (TableMetaPage*)getPage(tablePageID).getDataReadonly();
-	return meta->toDef(*this);
+Table *Database::getTable(std::string const &name) const {
+	auto rs = recordManager->getSet(name);
+	return new Table(rs->id, rs->tablePageID, *this);
+}
+
+void Database::deleteTable(std::string const &name) {
+	recordManager->deleteSet(name);
 }

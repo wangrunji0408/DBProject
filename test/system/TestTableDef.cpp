@@ -134,11 +134,11 @@ TEST_F(TestTableDef, CanCreateTableFromDefAndGetDef)
 	db->createTable(orders);
 
 	Reopen();
-	ASSERT_EQ(customer, db->getTableDef("customer"));
-	ASSERT_EQ(book, db->getTableDef("book"));
-	ASSERT_EQ(website, db->getTableDef("website"));
-	ASSERT_EQ(price, db->getTableDef("price"));
-	ASSERT_EQ(orders, db->getTableDef("orders"));
+	ASSERT_EQ(customer, db->getTable("customer")->getDef());
+	ASSERT_EQ(book, db->getTable("book")->getDef());
+	ASSERT_EQ(website, db->getTable("website")->getDef());
+	ASSERT_EQ(price, db->getTable("price")->getDef());
+	ASSERT_EQ(orders, db->getTable("orders")->getDef());
 
 	ASSERT_NE(nullptr, db->getIndex("customer", "id"));
 	ASSERT_NE(nullptr, db->getIndex("book", "id"));

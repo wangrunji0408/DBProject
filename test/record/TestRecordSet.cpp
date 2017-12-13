@@ -13,29 +13,31 @@ struct Data
 	int a, b, c;
 };
 
-class TestTable : public TestBase
+class TestRecordSet : public TestBase
 {
 protected:
 	void SetUp() override {
 		TestBase::SetUp();
-		db->createTable("table1", sizeof(Data));
-		table = db->getTable("table1");
+		auto rm = db->getRecordManager();
+		rm->createSet("table1", sizeof(Data));
+		table = rm->getSet("table1");
 	}
 
 	void Reopen() override {
 		TestBase::Reopen();
-		table = db->getTable("table1");
+		auto rm = db->getRecordManager();
+		table = rm->getSet("table1");
 	}
 
-	Table* table;
+	RecordSet* table;
 };
 
-TEST_F(TestTable, GetRecordLength)
+TEST_F(TestRecordSet, GetRecordLength)
 {
 	ASSERT_EQ(sizeof(Data), table->getRecordLength());
 }
 
-TEST_F(TestTable, CanInsertAndGetRecord)
+TEST_F(TestRecordSet, CanInsertAndGetRecord)
 {
 	auto data = Data();
 	auto rid = table->insertRecord((uchar*)&data);
@@ -48,7 +50,7 @@ TEST_F(TestTable, CanInsertAndGetRecord)
 	ASSERT_DATA_EQ(&data, record.data, sizeof(Data));
 }
 
-TEST_F(TestTable, CanDeleteRecord)
+TEST_F(TestRecordSet, CanDeleteRecord)
 {
 	auto data = Data();
 	auto rid = table->insertRecord((uchar*)&data);
@@ -58,7 +60,7 @@ TEST_F(TestTable, CanDeleteRecord)
 	ASSERT_ANY_THROW( table->getRecord(rid) );
 }
 
-TEST_F(TestTable, CanUpdateRecord)
+TEST_F(TestRecordSet, CanUpdateRecord)
 {
 	auto data = Data();
 	data.a = 0;
@@ -72,7 +74,7 @@ TEST_F(TestTable, CanUpdateRecord)
 	ASSERT_EQ(1, record.getDataRef<Data>().a);
 }
 
-TEST_F(TestTable, CanIterateAll)
+TEST_F(TestRecordSet, CanIterateAll)
 {
 	for(int i=0; i<10; ++i)
 	{

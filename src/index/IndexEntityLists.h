@@ -6,7 +6,7 @@
 #define TEST_INDEXENTITYLISTS_H
 
 class Database;
-class Table;
+class RecordSet;
 
 /**
  * 管理相同键值链表群
@@ -19,7 +19,7 @@ class IndexEntityLists {
 	struct ELNode {
 		RID dataRID, nextRID;
 	};
-	Table* elTable;
+	RecordSet* elTable;
 	Database& database;
 	IndexEntityLists(Database& database);
 public:

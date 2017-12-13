@@ -3,9 +3,9 @@
 
 #include "record/Record.h"
 
-class Table;
+class RecordSet;
 class RecordScanner{
-	Table* table;
+	RecordSet* table;
 	int currentPageId;
 	int nextPageId;
 	int fieldId;
@@ -13,7 +13,7 @@ class RecordScanner{
 	bool end=false;
 	void update();
 public:
-	RecordScanner(Table* table);
+	RecordScanner(RecordSet* table);
 	~RecordScanner();
 	Record getNext();
 	bool hasNext();

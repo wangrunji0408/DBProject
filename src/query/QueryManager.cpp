@@ -39,7 +39,7 @@ void QueryManager::insert(Insert const &cmd) {
 	static std::unique_ptr<Index> indexs[TableMetaPage::MAX_COLUMN_SIZE];
 	static short offsets[TableMetaPage::MAX_COLUMN_SIZE];
 
-	auto table = database.getTable(cmd.tableName);
+	auto table = database.getRecordManager()->getSet(cmd.tableName);
 	auto page = database.getPage(table->tablePageID);
 	auto meta = *(TableMetaPage*)page.getDataReadonly();
 

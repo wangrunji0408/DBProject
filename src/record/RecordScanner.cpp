@@ -5,7 +5,7 @@
 #include "RID.h"
 #include "Record.h"
 #include "RecordScanner.h"
-#include "Table.h"
+#include "RecordSet.h"
 #include "system/Database.h"
 
 void RecordScanner::update(){
@@ -40,7 +40,7 @@ RecordScanner::~RecordScanner() {
 
 }
 
-RecordScanner::RecordScanner(Table* table):table(table){
+RecordScanner::RecordScanner(RecordSet* table):table(table){
 	currentPageId=table->tablePageID;
 	nextPageId=table->firstDataPageID;
 	fieldId=table->maxRecordPerPage;

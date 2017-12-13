@@ -6,8 +6,9 @@
 #include <memory>
 #include <record/RecordManager.h>
 #include "index/IndexManager.h"
-#include "record/Table.h"
+#include "record/RecordSet.h"
 #include "filesystem/page/Page.h"
+#include "Table.h"
 
 class DatabaseManager;
 class RecordScanner;
@@ -20,7 +21,7 @@ class Database{
 	friend class IndexEntityLists;
 	friend class RecordScanner;
 	friend class TableMetaPage;
-	friend class Table;
+	friend class RecordSet;
 	friend class Index;
 
 	static const int DBMETA_PAGEID = 0;
@@ -40,9 +41,8 @@ public: // TODO 这里为了测试暂时公开，寻找测试私有函数的解�
 	void releasePage(int pageID);
 	bool isPageUsed(int pageId) const;
 	// for test
+	RecordManager* getRecordManager() const { return recordManager.get(); }
 	IndexManager* getIndexManager() const {return indexManager.get();}
-	// 记录无内部结构 时代的 函数
-	void createTable(std::string const& name,size_t recordLength);
 
 private:
 	Database(DatabaseManager& db,int fileID,::std::string name);
@@ -52,10 +52,9 @@ public:
 	::std::string getName() const {
 		return name;
 	};
-	TableDef getTableDef(std::string const& name) const;
 	void createTable(TableDef const& def);
-	void deleteTable(Table* table);
-	Table* getTable(std::string const& name) const;
+	Table* getTable(std::string const &name) const;
+	void deleteTable(std::string const &name);
 	void createIndex(std::string const& tableName, std::string const& attrName);
 	void deleteIndex(std::string const& tableName, std::string const& attrName);
 	std::unique_ptr<Index> getIndex(std::string const& tableName, std::string const& attrName) const;

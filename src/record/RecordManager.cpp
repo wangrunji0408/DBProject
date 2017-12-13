@@ -23,11 +23,11 @@ void RecordManager::recoverTables() {
 	tableCount = static_cast<size_t>(metaInfo->tableCount);
 	for(int i=0;i<tableCount;i++){
 		auto const& tableInfo = metaInfo->tableInfo[i];
-		tables[i].reset(new Table(*this,tableInfo.name,tableInfo.metaPageID,i));
+		tables[i].reset(new RecordSet(*this,tableInfo.name,tableInfo.metaPageID,i));
 	}
 }
 
-void RecordManager::createTable(::std::string name, size_t recordLength) {
+void RecordManager::createSet(::std::string name, size_t recordLength) {
 	if(recordLength<=0){
 		throw ::std::runtime_error("The length of record is not positive");
 	}
@@ -61,12 +61,12 @@ void RecordManager::createTable(::std::string name, size_t recordLength) {
 	*tableRecordPos=(uint)tablePage.pageId;
 	unsigned char* tableNamePos=(unsigned char*)(tableRecordPos+1);
 	::std::strncpy((char*)tableNamePos,name.c_str(),TableMetaPage::MAX_NAME_LENGTH);
-	tables[tableIndex].reset(new Table(*this,name,tablePage.pageId,tableIndex));
+	tables[tableIndex].reset(new RecordSet(*this,name,tablePage.pageId,tableIndex));
 }
 
-void RecordManager::deleteTable(Table *table) {
+void RecordManager::deleteSet(::std::string name) {
 	for(int i=0;i<tableCount;i++){
-		if(tables[i].get()==table){
+		if(tables[i]->name == name){
 			database.releasePage(tables[i]->tablePageID);
 			tables[i]->deleteData();
 			auto firstPage = database.getPage(0);
@@ -86,7 +86,7 @@ void RecordManager::deleteTable(Table *table) {
 	// throw ::std::runtime_error("This table pointer do not appear in the database");
 }
 
-Table *RecordManager::getTable(::std::string name) {
+RecordSet *RecordManager::getSet(::std::string name) {
 	for(int i=0;i<tableCount;i++){
 		if(tables[i]->name==name){
 			return tables[i].get();
@@ -95,6 +95,6 @@ Table *RecordManager::getTable(::std::string name) {
 	throw ::std::runtime_error("A table with this name do not exist");
 }
 
-Table *RecordManager::getTable(int id) const {
+RecordSet *RecordManager::getSet(int id) const {
 	return tables[id].get();
 }

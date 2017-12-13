@@ -3,19 +3,19 @@
 //
 
 #include <record/Record.h>
-#include "Table.h"
+#include "RecordSet.h"
 #include "system/Database.h"
 #include "system/DatabaseManager.h"
 #include "system/TableMetaPage.h"
 
-Table::Table(RecordManager& recordManager,::std::string name,int tablePageID,int id):
+RecordSet::RecordSet(RecordManager& recordManager,::std::string name,int tablePageID,int id):
 	recordManager(recordManager), name(name), tablePageID(tablePageID), id(id),
 	database(recordManager.database), bufPageManager(recordManager.database.databaseManager.bufPageManager.get())
 {
 	recoverMetadata();
 }
 
-void Table::deleteData(){
+void RecordSet::deleteData(){
 	int lastPageID=tablePageID;
 	int currentPageID=firstDataPageID;
 	while(currentPageID>=0){
@@ -28,7 +28,7 @@ void Table::deleteData(){
 }
 
 
-void Table::recoverMetadata() {
+void RecordSet::recoverMetadata() {
 	auto metaPage = database.getPage(tablePageID);
 	auto meta = (TableMetaPage*)metaPage.getDataReadonly();
 	recordLength = static_cast<size_t>(meta->recordLength);
@@ -36,11 +36,11 @@ void Table::recoverMetadata() {
 	maxRecordPerPage=(8*8096)/(8*recordLength+1);
 }
 
-size_t Table::getRecordLength() const {
+size_t RecordSet::getRecordLength() const {
 	return recordLength;
 }
 
-Record Table::getRecord(RID const& rid) {
+Record RecordSet::getRecord(RID const& rid) {
 	int pageID=rid.pageId;
 	int recordID=rid.slotId;
 	auto currentPage = database.getPage(pageID);
@@ -56,7 +56,7 @@ Record Table::getRecord(RID const& rid) {
 	return {rid,source};
 }
 
-RID Table::insertRecord(const uchar* data) {
+RID RecordSet::insertRecord(const uchar* data) {
 	BufType currentPageBuffer;
 	int currentPageIndex;
 	int lastPageID=tablePageID;
@@ -112,7 +112,7 @@ RID Table::insertRecord(const uchar* data) {
 	return RID(currentPageID,recordID);
 }
 
-void Table::deleteRecord(RID const& rid) {
+void RecordSet::deleteRecord(RID const& rid) {
 	int pageID=rid.pageId;
 	int recordID=rid.slotId;
 	BufType currentPageBuffer;
@@ -151,7 +151,7 @@ void Table::deleteRecord(RID const& rid) {
 	}
 }
 
-void Table::updateRecord(Record const& record) {
+void RecordSet::updateRecord(Record const& record) {
 	RID rid=record.recordID;
 	int pageID=rid.pageId;
 	int recordID=rid.slotId;
@@ -172,6 +172,6 @@ void Table::updateRecord(Record const& record) {
 	bufPageManager->markDirty(currentPageIndex);
 }
 
-RecordScanner Table::iterateRecords() {
+RecordScanner RecordSet::iterateRecords() {
 	return RecordScanner(this);
 }
