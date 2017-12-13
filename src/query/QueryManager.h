@@ -12,8 +12,6 @@
 
 class QueryManager {
 	Database& database;
-	void checkInsertValues(TableMetaPage const &meta, CommandDef::Insert const &cmd) const;
-	void makeRecordData(uchar* buf, TableMetaPage const& meta, CommandDef::RecordValue const& value) const;
 public:
 	QueryManager(Database &database);
 	void execute(CommandDef::Command const& cmd);

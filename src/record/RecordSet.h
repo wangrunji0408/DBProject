@@ -19,6 +19,7 @@ class RecordSet{
 	friend class RecordScanner;
 	friend class TableMetaPage;
 	friend class Database;
+	friend class Table;
 	RecordManager& recordManager;
 	Database& database;
 	[[deprecated("Use Page class from database")]]

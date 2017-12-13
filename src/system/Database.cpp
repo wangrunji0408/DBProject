@@ -98,8 +98,7 @@ int Database::getIndexID(std::string const& tableName, std::string const& attrNa
 }
 
 Table *Database::getTable(std::string const &name) const {
-	auto rs = recordManager->getSet(name);
-	return new Table(rs->id, rs->tablePageID, *this);
+	return new Table(recordManager->getSet(name), *this);
 }
 
 void Database::deleteTable(std::string const &name) {
