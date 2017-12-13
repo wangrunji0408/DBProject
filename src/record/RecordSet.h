@@ -14,7 +14,6 @@ class BufPageManager;
 class TableDef;
 
 class RecordSet{
-	friend class QueryManager;
 	friend class RecordManager;
 	friend class RecordScanner;
 	friend class TableMetaPage;
@@ -34,11 +33,11 @@ class RecordSet{
 	void recoverMetadata();
 	RecordSet(RecordManager& recordManager,::std::string name,int tablePageID,int id);
 public:
-	size_t getRecordLength()const;
+	size_t getRecordLength() const;
 	Record getRecord(RID const&);
-	RID insertRecord(const uchar*  data);
-	void deleteRecord(RID const&);
-	void updateRecord(Record const&);
+	RID insert(const uchar *data);
+	void remove(RID const &rid);
+	void update(Record const &rid);
 	RecordScanner iterateRecords();
 };
 

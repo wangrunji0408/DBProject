@@ -4,8 +4,6 @@
 
 namespace {
 
-using namespace CommandDef;
-
 class TestInsert : public TestBase
 {
 protected:
@@ -21,20 +19,18 @@ protected:
 		*/
 		auto customer = TableDef();
 		customer.name = "customer";
-		customer.columns.push_back(ColumnDef{"id", INT, 4, false, false});
-		customer.columns.push_back(ColumnDef{"name", VARCHAR, 25, false, false});
-		customer.columns.push_back(ColumnDef{"gender", VARCHAR, 1, false, false});
-		customer.primaryKeys.emplace_back("id");
+		customer.columns = {
+			{"id", INT, 4, false, false},
+			{"name", VARCHAR, 25, false, false},
+			{"gender", VARCHAR, 1, false, false},
+		};
+		customer.primaryKeys = {"id"};
 		db->createTable(customer);
-
-		qm = new QueryManager(*db);
 	}
 
 	void Reopen() override {
 		TestBase::Reopen();
 	}
-
-	QueryManager* qm = nullptr;
 };
 
 TEST_F(TestInsert, Normal)
@@ -44,7 +40,7 @@ TEST_F(TestInsert, Normal)
 	cmd.records.push_back(RecordValue{{"300001","CHAD CABELLO","F"}});
 	cmd.records.push_back(RecordValue{{"300002","FAUSTO VANNORMAN","F"}});
 
-	qm->execute(cmd);
+	db->execute(cmd);
 }
 
 TEST_F(TestInsert, ThrowWhenDuplicatePrimaryKey)
@@ -54,7 +50,7 @@ TEST_F(TestInsert, ThrowWhenDuplicatePrimaryKey)
 	cmd.records.push_back(RecordValue{{"300001","CHAD CABELLO","F"}});
 	cmd.records.push_back(RecordValue{{"300001","FAUSTO VANNORMAN","F"}});
 
-	ASSERT_ANY_THROW( qm->execute(cmd) );
+	ASSERT_ANY_THROW( db->execute(cmd) );
 }
 
 TEST_F(TestInsert, ThrowWhenStringTooLong)
@@ -62,7 +58,7 @@ TEST_F(TestInsert, ThrowWhenStringTooLong)
 	auto cmd = Insert();
 	cmd.tableName = "customer";
 	cmd.records.push_back(RecordValue{{"300001","01234567890123456789012345","F"}});
-	ASSERT_ANY_THROW( qm->execute(cmd) );
+	ASSERT_ANY_THROW( db->execute(cmd) );
 }
 
 TEST_F(TestInsert, ThrowWhenFormatError)
@@ -77,7 +73,7 @@ TEST_F(TestInsert, ThrowWhenFormatError)
 	cmd.records.resize(1);
 	for(auto const& record: cases) {
 		cmd.records[0] = record;
-		ASSERT_ANY_THROW( qm->execute(cmd) );
+		ASSERT_ANY_THROW( db->execute(cmd) );
 	}
 }
 

@@ -20,14 +20,14 @@ IndexEntityLists::IndexEntityLists(Database &database):
 
 RID IndexEntityLists::createList() const {
 	ELNode node = {RID(), RID()};	// just a empty head node
-	return elTable->insertRecord((const uchar*)&node);
+	return elTable->insert((const uchar *) &node);
 }
 
 void IndexEntityLists::deleteList(RID const &headRID) const {
 	for(RID nodeRID = headRID; nodeRID != RID(); )
 	{
 		auto nextRID = elTable->getRecord(nodeRID).getDataRef<ELNode>().nextRID;
-		elTable->deleteRecord(nodeRID);
+		elTable->remove(nodeRID);
 		nodeRID = nextRID;
 	}
 }
@@ -47,8 +47,8 @@ void IndexEntityLists::removeEntity(RID const &dataRID, RID const &headRID) cons
 			auto lastNode1 = lastNode;
 			lastNode1.nextRID = node.nextRID;
 			auto newRecord = lastRecord.copyWithNewData((uchar *) &lastNode1);
-			elTable->updateRecord(newRecord);
-			elTable->deleteRecord(nodeRID);
+			elTable->update(newRecord);
+			elTable->remove(nodeRID);
 			return;
 		}
 		lastRecord = nodeRecord;
@@ -60,8 +60,8 @@ void IndexEntityLists::insertEntity(RID const &dataRID, RID const &headRID) cons
 	auto& head = headRecord.getDataRef<ELNode>();
 	auto node = ELNode{dataRID, head.nextRID};
 	auto newHead = head;
-	newHead.nextRID = elTable->insertRecord((const uchar*)&node);
-	elTable->updateRecord(headRecord.copyWithNewData((const uchar *) &newHead));
+	newHead.nextRID = elTable->insert((const uchar *) &node);
+	elTable->update(headRecord.copyWithNewData((const uchar *) &newHead));
 }
 
 bool IndexEntityLists::containsEntity(RID const &dataRID, RID const &headRID) const {

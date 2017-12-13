@@ -10,6 +10,7 @@
 #include "filesystem/page/Page.h"
 #include "Table.h"
 
+class QueryManager;
 class DatabaseManager;
 class RecordScanner;
 
@@ -30,6 +31,7 @@ class Database{
 	DatabaseManager& databaseManager;
 	std::unique_ptr<IndexManager> indexManager;
 	std::unique_ptr<RecordManager> recordManager;
+	std::unique_ptr<QueryManager> queryManager;
 
 	const int fileID;
 	::std::string name;
@@ -49,15 +51,14 @@ private:
 	int getIndexID(std::string const& tableName, std::string const& attrName) const;
 public:
 	~Database();
-	::std::string getName() const {
-		return name;
-	};
+	::std::string getName() const { return name; };
 	void createTable(TableDef const& def);
 	Table* getTable(std::string const &name) const;
 	void deleteTable(std::string const &name);
 	void createIndex(std::string const& tableName, std::string const& attrName);
 	void deleteIndex(std::string const& tableName, std::string const& attrName);
 	std::unique_ptr<Index> getIndex(std::string const& tableName, std::string const& attrName) const;
+	void execute(Command const& cmd);
 };
 
 #endif //DATABASE_H

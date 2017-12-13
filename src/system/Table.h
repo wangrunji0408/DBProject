@@ -8,6 +8,7 @@
 #include <ast/Command.h>
 #include "ast/TableDef.h"
 #include "TableMetaPage.h"
+#include "filesystem/page/Page.h"
 
 class Database;
 class RecordSet;
@@ -17,15 +18,23 @@ class Table {
 	const int id;
 	const int metaPageID;
 	const std::string name;
+	Page metaPage;
 	TableMetaPage* meta;
 	RecordSet* const recordSet;
 	Database const& database;
 	Table(RecordSet* rs, Database const& database);
-	void checkInsertValues(std::vector<CommandDef::RecordValue> const &values) const;
-	void makeRecordData(unsigned char* buf, CommandDef::RecordValue const& value) const;
+	void checkInsertValues(std::vector<RecordValue> const &values) const;
+	void makeRecordData(unsigned char* buf, RecordValue const& value) const;
+	std::function<bool(const void*)> makePredict(BoolExpr const& expr) const;
+	std::function<bool(const void*)> makePredict(Condition const& condition) const;
+	std::function<void(const void*)> makeUpdate(SetStmt const& set) const;
+	std::function<void(const void*)> makeUpdate(std::vector<SetStmt> const& sets) const;
 public:
 	TableDef getDef() const;
-	void insert(std::vector<CommandDef::RecordValue> const &values);
+	int size() const;
+	void insert(std::vector<RecordValue> const &values);
+	void delete_(Condition const& condition);
+	void update(std::vector<SetStmt> const& sets, Condition const& condition);
 };
 
 

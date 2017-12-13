@@ -9,7 +9,7 @@
 #include <vector>
 #include <ostream>
 
-namespace CommandDef {
+//namespace CommandDef {
 
 	struct RecordValue {
 		std::vector<std::string> values;
@@ -129,6 +129,6 @@ namespace CommandDef {
 	struct SelectResult: Result {
 		std::vector<RecordValue> records;
 	};
-}
+//}
 
 #endif //DBPROJECT_COMMANDDEF_H

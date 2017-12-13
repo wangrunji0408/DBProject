@@ -10,8 +10,8 @@ struct Record{
 	const unsigned char* data = nullptr;
 	template <class T>
 	const T& getDataRef() const { return *(const T*)data; }
-	Record copyWithNewData(const unsigned char *data) const {
-		return Record{recordID, data};
+	Record copyWithNewData(const void *data) const {
+		return Record{recordID, (unsigned char*)data};
 	}
 };
 

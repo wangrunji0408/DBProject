@@ -14,11 +14,11 @@ class QueryManager {
 	Database& database;
 public:
 	QueryManager(Database &database);
-	void execute(CommandDef::Command const& cmd);
-	CommandDef::SelectResult select(CommandDef::Select const& cmd);
-	void update(CommandDef::Update const& cmd);
-	void delete_(CommandDef::Delete const& cmd);
-	void insert(CommandDef::Insert const& cmd);
+	void execute(Command const& cmd);
+	SelectResult select(Select const& cmd);
+	void update(Update const& cmd);
+	void delete_(Delete const& cmd);
+	void insert(Insert const& cmd);
 };
 
 

@@ -5,7 +5,6 @@
 #include <system/TableMetaPage.h>
 #include <ast/Exceptions.h>
 #include "QueryManager.h"
-using namespace CommandDef;
 
 QueryManager::QueryManager(Database &database) : database(database) {}
 
@@ -22,19 +21,21 @@ void QueryManager::execute(Command const &cmd) {
 	}
 }
 
-CommandDef::SelectResult QueryManager::select(Select const &cmd) {
+SelectResult QueryManager::select(Select const &cmd) {
 	throw std::runtime_error("Not implemented!");
 }
 
 void QueryManager::update(Update const &cmd) {
-	throw std::runtime_error("Not implemented!");
+	auto table = database.getTable(cmd.tableName);
+	table->update(cmd.sets, cmd.where);
 }
 
 void QueryManager::delete_(Delete const &cmd) {
-	throw std::runtime_error("Not implemented!");
+	auto table = database.getTable(cmd.tableName);
+	table->delete_(cmd.where);
 }
 
-void QueryManager::insert(CommandDef::Insert const &cmd) {
+void QueryManager::insert(Insert const &cmd) {
 	auto table = database.getTable(cmd.tableName);
 	table->insert(cmd.records);
 }

@@ -56,7 +56,7 @@ Record RecordSet::getRecord(RID const& rid) {
 	return {rid,source};
 }
 
-RID RecordSet::insertRecord(const uchar* data) {
+RID RecordSet::insert(const uchar *data) {
 	BufType currentPageBuffer;
 	int currentPageIndex;
 	int lastPageID=tablePageID;
@@ -112,7 +112,7 @@ RID RecordSet::insertRecord(const uchar* data) {
 	return RID(currentPageID,recordID);
 }
 
-void RecordSet::deleteRecord(RID const& rid) {
+void RecordSet::remove(RID const &rid) {
 	int pageID=rid.pageId;
 	int recordID=rid.slotId;
 	BufType currentPageBuffer;
@@ -151,7 +151,7 @@ void RecordSet::deleteRecord(RID const& rid) {
 	}
 }
 
-void RecordSet::updateRecord(Record const& record) {
+void RecordSet::update(Record const &record) {
 	RID rid=record.recordID;
 	int pageID=rid.pageId;
 	int recordID=rid.slotId;

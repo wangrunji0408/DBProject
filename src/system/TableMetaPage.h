@@ -33,7 +33,8 @@ struct TableMetaPage {
 		ColumnDef toDef() const;
 	};
 
-	char reserved[120];
+	char reserved[116];
+	int recordCount;
 	char name[MAX_NAME_LENGTH+1];
 	short columnSize;
 	int firstPageID;	// -1 if not exist

@@ -8,13 +8,14 @@
 #include "Database.h"
 #include "DatabaseManager.h"
 #include "DatabaseMetaPage.h"
-#include "TableMetaPage.h"
+#include "query/QueryManager.h"
 
 Database::Database(DatabaseManager& db,int fileID,::std::string name):
 	databaseManager(db),fileID(fileID),name(name)
 {
 	recordManager = std::unique_ptr<RecordManager>(new RecordManager(*this));
 	indexManager = std::unique_ptr<IndexManager>(new IndexManager(*this));
+	queryManager = std::unique_ptr<QueryManager>(new QueryManager(*this));
 }
 
 Page Database::acquireNewPage() {
@@ -103,4 +104,8 @@ Table *Database::getTable(std::string const &name) const {
 
 void Database::deleteTable(std::string const &name) {
 	recordManager->deleteSet(name);
+}
+
+void Database::execute(Command const &cmd) {
+	queryManager->execute(cmd);
 }

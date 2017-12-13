@@ -28,21 +28,21 @@ struct ExecuteError: std::exception {
 
 struct ValueError {
 	int valueNum;
-	CommandDef::RecordValue value;
+	RecordValue value;
 	int attrNum;
 	std::string attrName;
 
-	ValueError(int valueNum, const CommandDef::RecordValue &value, int attrNum, const std::string &attrName) : valueNum(
+	ValueError(int valueNum, const RecordValue &value, int attrNum, const std::string &attrName) : valueNum(
 			valueNum), value(value), attrNum(attrNum), attrName(attrName) {}
 };
 
 struct NotNullableError: ValueError {
-	NotNullableError(int valueNum, const CommandDef::RecordValue &value, int attrNum, const std::string &attrName)
+	NotNullableError(int valueNum, const RecordValue &value, int attrNum, const std::string &attrName)
 			: ValueError(valueNum, value, attrNum, attrName) {}
 };
 
 struct NotUniqueError: ValueError {
-	NotUniqueError(int valueNum, const CommandDef::RecordValue &value, int attrNum, const std::string &attrName)
+	NotUniqueError(int valueNum, const RecordValue &value, int attrNum, const std::string &attrName)
 			: ValueError(valueNum, value, attrNum, attrName) {}
 };
 

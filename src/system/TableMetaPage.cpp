@@ -9,6 +9,7 @@ void TableMetaPage::makeFromDef(TableDef const &def, Database const& database) {
 	std::memset(this, 0, sizeof(TableMetaPage));
 	firstPageID = -1;
 	recordLength = 0;
+	recordCount = 0;
 
 	if(def.name.length() > MAX_NAME_LENGTH)
 		throw std::runtime_error("The length of table name is too large");
