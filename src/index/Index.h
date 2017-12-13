@@ -37,6 +37,7 @@ class Index {
 
 	Index(IndexManager &manager, int rootPageID);
 	void loadToBuf(const void *pData, RID const& rid) const;
+	RID lowerBound(const void *pData, RID const& rid) const;
 	bool equals(const void* data1, const void* data2) const;
 	void insertEntry(int nodePageID);
 	void deleteEntry(int nodePageID);
@@ -47,7 +48,10 @@ public:
 	void insertEntry(const void *pData, RID const& rid);
 	void deleteEntry(const void *pData, RID const& rid);
 	bool containsEntry(const void *pData, RID const& rid) const;
-	IndexIterator getIterator() const;
+	bool containsEntry(const void *pData) const;
+	IndexIterator begin() const;
+	IndexIterator lowerBound(const void *pData) const;
+	IndexIterator upperBound(const void *pData) const;
 	void print(int pageID = 0) const;
 };
 

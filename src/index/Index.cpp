@@ -142,6 +142,30 @@ void Index::deleteEntry(const void *pData, RID const &rid) {
 	deleteEntry(rootPageID);
 }
 
+RID Index::lowerBound(const void *pData, RID const &rid) const {
+	auto page = database.getPage(rootPageID);
+	auto node = (IndexPage*)page.getDataReadonly();
+	auto compare = node->makeCompare();
+	loadToBuf(pData, rid);
+	while(true)
+	{
+		if(node->leaf){
+			int slotID = node->lowerBound(keyridBuf, compare);
+			if(slotID == node->size) {
+				int pageID = node->nextPageID;
+				if(pageID == 0)
+					return RID(-1, -1);	// is end
+				else
+					return RID(node->nextPageID, 0);	// first in next page
+			}
+			return RID(page.pageId, slotID);
+		}
+		int pageID = node->refPageID(std::max(0, node->upperBound(keyridBuf, compare) - 1));
+		page = database.getPage(pageID);
+		node = (IndexPage*)page.getDataReadonly();
+	}
+}
+
 bool Index::containsEntry(const void *pData, RID const &rid) const {
 	auto page = database.getPage(rootPageID);
 	auto node = (IndexPage*)page.getDataReadonly();
@@ -162,6 +186,10 @@ bool Index::containsEntry(const void *pData, RID const &rid) const {
 	}
 }
 
+bool Index::containsEntry(const void *pData) const {
+	return lowerBound(pData, RID(0,0)) != lowerBound(pData, RID(-1,-1));
+}
+
 void Index::print(int pageID) const {
 	static int indent;
 	if(pageID == 0)
@@ -180,7 +208,7 @@ void Index::print(int pageID) const {
 		std::cerr << std::endl;
 }
 
-IndexIterator Index::getIterator() const {
+IndexIterator Index::begin() const {
 	auto page = database.getPage(rootPageID);
 	auto node = (IndexPage*)page.getDataReadonly();
 	while(!node->leaf)
@@ -189,4 +217,16 @@ IndexIterator Index::getIterator() const {
 		node = (IndexPage*)page.getDataReadonly();
 	}
 	return IndexIterator((Index&)*this, page, 0);
+}
+
+IndexIterator Index::lowerBound(const void *pData) const {
+	auto pos = lowerBound(pData, RID(0,0));
+	auto page = database.getPage(pos.pageId);
+	return IndexIterator((Index&)*this, page, pos.slotId);
+}
+
+IndexIterator Index::upperBound(const void *pData) const {
+	auto pos = lowerBound(pData, RID(-1,-1));
+	auto page = database.getPage(pos.pageId);
+	return IndexIterator((Index&)*this, page, pos.slotId);
 }
