@@ -46,7 +46,7 @@ public: // TODO 这里为了测试暂时公开，寻找测试私有函数的解�
 
 private:
 	Database(DatabaseManager& db,int fileID,::std::string name);
-	int getIndexID(std::string const& tableName, std::string const& attrName);
+	int getIndexID(std::string const& tableName, std::string const& attrName) const;
 public:
 	~Database();
 	::std::string getName() const {
@@ -58,7 +58,7 @@ public:
 	Table* getTable(std::string const& name) const;
 	void createIndex(std::string const& tableName, std::string const& attrName);
 	void deleteIndex(std::string const& tableName, std::string const& attrName);
-	std::unique_ptr<Index> getIndex(std::string const& tableName, std::string const& attrName);
+	std::unique_ptr<Index> getIndex(std::string const& tableName, std::string const& attrName) const;
 };
 
 #endif //DATABASE_H

@@ -93,11 +93,11 @@ void Database::deleteIndex(std::string const& tableName, std::string const& attr
 	indexManager->deleteIndex(getIndexID(tableName, attrName));
 }
 
-std::unique_ptr<Index> Database::getIndex(std::string const& tableName, std::string const& attrName) {
+std::unique_ptr<Index> Database::getIndex(std::string const& tableName, std::string const& attrName) const {
 	return indexManager->getIndex(getIndexID(tableName, attrName));
 }
 
-int Database::getIndexID(std::string const& tableName, std::string const& attrName) {
+int Database::getIndexID(std::string const& tableName, std::string const& attrName) const {
 	auto table = getTable(tableName);
 	auto meta = (TableMetaPage*)getPage(table->tablePageID).getDataReadonly();
 	int colID = meta->getColomnId(attrName);

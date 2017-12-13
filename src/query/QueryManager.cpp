@@ -71,8 +71,11 @@ void QueryManager::insert(Insert const &cmd) {
 void QueryManager::makeRecordData(uchar *buf, TableMetaPage const &meta, CommandDef::RecordValue const &value) const {
 	if(value.values.size() != meta.columnSize)
 		throw ExecuteError("Value attr size not equal to column size");
+	auto nullBitsetPtr = static_cast<bitset<128>*>(static_cast<void*>(
+			buf + meta.recordLength - (meta.columnSize + 7) / 8));
 	for(int i=0; i<meta.columnSize; ++i) {
 		auto& col = meta.columns[i];
+		nullBitsetPtr->set(static_cast<size_t>(i), value.values[i].empty());
 		parse(value.values[i], buf + col.offset, col.dataType, col.size);
 	}
 }
@@ -91,14 +94,15 @@ void QueryManager::checkInsertValues(TableMetaPage const &meta, Insert const &cm
 				++j;
 			}
 		}
-		if(col.unique) {
-			if(col.indexID != -1) {
-				auto index = database.getIndexManager()->getIndex(col.indexID);
-
-			} else {
-
-			}
-		}
+		// TODO check unique
+//		if(col.unique) {
+//			if(col.indexID != -1) {
+//				auto index = database.getIndexManager()->getIndex(col.indexID);
+//
+//			} else {
+//
+//			}
+//		}
 	}
 
 	if(!errors.empty())

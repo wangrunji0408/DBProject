@@ -7,7 +7,8 @@
 Index::Index(IndexManager &manager, int rootPageID):
 	entityLists(manager.entityLists), database(manager.database), rootPageID(rootPageID)
 {
-	auto root = (IndexPage*)database.getPage(rootPageID).getDataReadonly();
+	auto rootPage = database.getPage(rootPageID);
+	auto root = (IndexPage*)rootPage.getDataReadonly();
 	compare = root->makeCompare();
 	id = root->indexID;
 	keyLength = root->keyLength;
@@ -31,7 +32,8 @@ bool Index::equals(const void *data1, const void *data2) const {
 
 
 void Index::insertEntry(int nodePageID) {
-	auto node = (IndexPage*)database.getPage(nodePageID).getDataMutable();
+	auto nodePage = database.getPage(nodePageID);
+	auto node = (IndexPage*)nodePage.getDataMutable();
 	if(node->leaf)
 	{
 		int pos = node->lowerBound(keyridBuf, compare);
@@ -69,7 +71,8 @@ void Index::insertEntry(const void *pData, const RID &rid)
 	insertEntry(rootPageID);
 	if(this->needSplit)
 	{
-		auto root = (IndexPage*)database.getPage(rootPageID).getDataReadonly();
+		auto rootPage = database.getPage(rootPageID);
+		auto root = (IndexPage*)rootPage.getDataReadonly();
 		auto newRootPage = database.acquireNewPage();
 		auto newRoot = (IndexPage*)newRootPage.getDataMutable();
 		newRoot->makeRootPage(root->indexID, root->keyType, root->keyLength, false);
@@ -88,8 +91,10 @@ void Index::updateRoot(int rootPageID) {
 void Index::fixDelete(IndexPage *node, int leftPos) {
 	auto leftPageID = node->refPageID(leftPos);
 	auto rightPageID = node->refPageID(leftPos + 1);
-	auto left = (IndexPage*)database.getPage(leftPageID).getDataMutable();
-	auto right = (IndexPage*)database.getPage(rightPageID).getDataMutable();
+	auto leftPage = database.getPage(leftPageID);
+	auto rightPage = database.getPage(rightPageID);
+	auto left = (IndexPage*)leftPage.getDataMutable();
+	auto right = (IndexPage*)rightPage.getDataMutable();
 	if(left->size + right->size < node->capacity) { // need merge
 		left->mergeFromRight(right);
 		node->remove(leftPos + 1);
@@ -101,7 +106,8 @@ void Index::fixDelete(IndexPage *node, int leftPos) {
 }
 
 void Index::deleteEntry(int nodePageID) {
-	auto node = (IndexPage*)database.getPage(nodePageID).getDataMutable();
+	auto nodePage = database.getPage(nodePageID);
+	auto node = (IndexPage*)nodePage.getDataMutable();
 	if(node->leaf)
 	{
 		int pos = node->lowerBound(keyridBuf, compare);
@@ -137,7 +143,8 @@ void Index::deleteEntry(const void *pData, RID const &rid) {
 }
 
 bool Index::containsEntry(const void *pData, RID const &rid) const {
-	auto node = (IndexPage*)database.getPage(rootPageID).getDataReadonly();
+	auto page = database.getPage(rootPageID);
+	auto node = (IndexPage*)page.getDataReadonly();
 	auto compare = node->makeCompare();
 	loadToBuf(pData, rid);
 	while(true)
@@ -150,7 +157,8 @@ bool Index::containsEntry(const void *pData, RID const &rid) const {
 			return equals(key, keyridBuf);
 		}
 		int pageID = node->refPageID(std::max(0, node->upperBound(keyridBuf, compare) - 1));
-		node = (IndexPage*)database.getPage(pageID).getDataReadonly();
+		page = database.getPage(pageID);
+		node = (IndexPage*)page.getDataReadonly();
 	}
 }
 
@@ -158,7 +166,8 @@ void Index::print(int pageID) const {
 	static int indent;
 	if(pageID == 0)
 		pageID = rootPageID;
-	auto node = (IndexPage*)database.getPage(pageID).getDataReadonly();
+	auto page = database.getPage(pageID);
+	auto node = (IndexPage*)page.getDataReadonly();
 	for(int i=0; i<node->size; ++i)
 	{
 		for(int k=0; k<indent; ++k)

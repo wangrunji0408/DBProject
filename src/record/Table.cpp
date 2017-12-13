@@ -29,7 +29,8 @@ void Table::deleteData(){
 
 
 void Table::recoverMetadata() {
-	auto meta = (TableMetaPage*)database.getPage(tablePageID).getDataReadonly();
+	auto metaPage = database.getPage(tablePageID);
+	auto meta = (TableMetaPage*)metaPage.getDataReadonly();
 	recordLength = static_cast<size_t>(meta->recordLength);
 	firstDataPageID = meta->firstPageID;
 	maxRecordPerPage=(8*8096)/(8*recordLength+1);

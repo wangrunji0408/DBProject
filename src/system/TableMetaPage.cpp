@@ -36,8 +36,9 @@ void TableMetaPage::makeFromDef(TableDef const &def, Database const& database) {
 		} catch (std::exception const& e) {
 			throw std::runtime_error("Foreign key ref table name not exist");
 		}
-		auto metaPage = (TableMetaPage*)database.getPage(table->tablePageID).getDataReadonly();
-		auto fcolId = metaPage->getColomnId(fk.refName);
+		auto metaPage = database.getPage(table->tablePageID);
+		auto meta = (TableMetaPage*)metaPage.getDataReadonly();
+		auto fcolId = meta->getColomnId(fk.refName);
 		if(fcolId == -1)
 			throw std::runtime_error("Foreign key ref column name not exist");
 		columns[colId].foreignTableID = (short)table->id;
