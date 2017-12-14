@@ -26,24 +26,34 @@ struct ExecuteError: std::exception {
 	const char *what() const _NOEXCEPT override { return info.c_str(); }
 };
 
-struct ValueError {
+struct OneValueError {
 	int valueNum;
 	RecordValue value;
 	int attrNum;
 	std::string attrName;
 
-	ValueError(int valueNum, const RecordValue &value, int attrNum, const std::string &attrName) : valueNum(
+	OneValueError(int valueNum, const RecordValue &value, int attrNum, const std::string &attrName) : valueNum(
 			valueNum), value(value), attrNum(attrNum), attrName(attrName) {}
 };
 
-struct NotNullableError: ValueError {
-	NotNullableError(int valueNum, const RecordValue &value, int attrNum, const std::string &attrName)
-			: ValueError(valueNum, value, attrNum, attrName) {}
+struct ValueError: ExecuteError {
+	std::vector<OneValueError> errors;
+	ValueError(const std::vector<OneValueError> &errors) : errors(errors) {}
 };
 
-struct NotUniqueError: ValueError {
+struct NullValueError: OneValueError {
+	NullValueError(int valueNum, const RecordValue &value, int attrNum, const std::string &attrName)
+			: OneValueError(valueNum, value, attrNum, attrName) {}
+};
+
+struct NotUniqueError: OneValueError {
 	NotUniqueError(int valueNum, const RecordValue &value, int attrNum, const std::string &attrName)
-			: ValueError(valueNum, value, attrNum, attrName) {}
+			: OneValueError(valueNum, value, attrNum, attrName) {}
+};
+
+struct ValueSizeError: OneValueError {
+	ValueSizeError(int valueNum, const RecordValue &value)
+			: OneValueError(valueNum, value, 0, "") {}
 };
 
 #endif //DBPROJECT_EXCEPTIONS_H

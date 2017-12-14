@@ -19,7 +19,7 @@ TableDef Table::getDef() const {
 }
 
 void Table::checkInsertValues(std::vector<RecordValue> const &values) const {
-	auto errors = std::vector<ValueError>();
+	auto errors = std::vector<OneValueError>();
 
 	for(int i=0; i<meta->columnSize; ++i) {
 		auto const& col = meta->columns[i];
@@ -28,7 +28,7 @@ void Table::checkInsertValues(std::vector<RecordValue> const &values) const {
 			int j = 0;
 			for(auto const& v: values) {
 				if(v.values[i].empty())
-					errors.push_back(NotNullableError(j, v, i, col.name));
+					errors.push_back(NullValueError(j, v, i, col.name));
 				++j;
 			}
 		}
@@ -44,7 +44,7 @@ void Table::checkInsertValues(std::vector<RecordValue> const &values) const {
 	}
 
 	if(!errors.empty())
-		throw errors;
+		throw ValueError(errors);
 }
 
 void Table::insert(std::vector<RecordValue> const &values) {
@@ -69,7 +69,7 @@ void Table::insert(std::vector<RecordValue> const &values) {
 		try {
 			makeRecordData(recordBuf, value);
 		} catch (std::exception const& e) {
-			throw ParseError(string("Data format error: ") + e.what());
+			throw ExecuteError(string("Data format error: ") + e.what());
 		}
 		auto rid = recordSet->insert(recordBuf);
 		for(int i=0; i<indexColCount; ++i)
@@ -86,8 +86,10 @@ void Table::makeRecordData(uchar *buf, RecordValue const &value) const {
 			buf + meta->recordLength - (meta->columnSize + 7) / 8));
 	for(int i=0; i<meta->columnSize; ++i) {
 		auto& col = meta->columns[i];
-		nullBitsetPtr->set(static_cast<size_t>(i), value.values[i].empty());
-		parse(value.values[i], buf + col.offset, col.dataType, col.size);
+		auto const& isNull = value.values[i].empty();
+		nullBitsetPtr->set(static_cast<size_t>(i), isNull);
+		if(!isNull)
+			parse(value.values[i], buf + col.offset, col.dataType, col.size);
 	}
 }
 
