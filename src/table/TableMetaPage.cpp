@@ -3,7 +3,7 @@
 //
 
 #include "TableMetaPage.h"
-#include "../system/Database.h"
+#include "system/Database.h"
 
 void TableMetaPage::makeFromDef(TableDef const &def, Database const& database) {
 	std::memset(this, 0, sizeof(TableMetaPage));

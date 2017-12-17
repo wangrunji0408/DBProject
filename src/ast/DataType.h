@@ -16,13 +16,29 @@ enum DataType {
 	DATE = 5
 };
 
+inline int parseInt(const std::string &str) {
+	size_t parseEnd;
+	int v = std::stoi(str, &parseEnd);
+	if(parseEnd != str.length())
+		throw std::runtime_error("Failed to parse int");
+	return v;
+}
+
+inline float parseFloat(const std::string &str) {
+	size_t parseEnd;
+	float v = std::stof(str, &parseEnd);
+	if(parseEnd != str.length())
+		throw std::runtime_error("Failed to parse float");
+	return v;
+}
+
 inline int parseDate(const std::string &str) {
 	tm tm{0}, tm_new;
 	time_t time_new;
 	try {
-		tm.tm_year = std::stoi(str.substr(0, 4)) - 1900;
-		tm.tm_mon = std::stoi(str.substr(5, 2)) - 1;
-		tm.tm_mday = std::stoi(str.substr(8, 2));
+		tm.tm_year = parseInt(str.substr(0, 4)) - 1900;
+		tm.tm_mon = parseInt(str.substr(5, 2)) - 1;
+		tm.tm_mday = parseInt(str.substr(8, 2));
 		time_new = mktime(&tm);
 		localtime_r(&time_new, &tm_new);
 	} catch (std::exception const& e) {
@@ -40,9 +56,7 @@ inline void parse(const std::string &str, unsigned char* buf, DataType type, int
 		case UNKNOWN:
 			throw std::runtime_error("Can not parse UNKNOWN type");
 		case INT:
-			*(int*)buf = std::stoi(str);
-			if(std::to_string(*(int*)buf) != str)
-				throw std::runtime_error("Failed to parse int");
+			*(int*)buf = parseInt(str);
 			return;
 		case CHAR:
 			if(str.length() != size)
@@ -54,9 +68,7 @@ inline void parse(const std::string &str, unsigned char* buf, DataType type, int
 			str.copy((char*)buf, str.length(), 0);
 			return;
 		case FLOAT:
-			*(float*)buf = std::stof(str);
-			if(std::to_string(*(float*)buf) != str)
-				throw std::runtime_error("Failed to parse float");
+			*(float*)buf = parseFloat(str);
 			return;
 		case DATE:
 			*(int*)buf = parseDate(str);

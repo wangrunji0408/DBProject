@@ -3,8 +3,9 @@
 //
 
 #include <ast/Exceptions.h>
+#include <set>
 #include "Table.h"
-#include "Database.h"
+#include "system/Database.h"
 
 Table::Table(RecordSet* rs, Database const& database) :
 		id(rs->id), metaPageID(rs->tablePageID), name(rs->name),
@@ -18,39 +19,51 @@ TableDef Table::getDef() const {
 	return meta->toDef(database);
 }
 
-void Table::checkInsertValues(std::vector<RecordValue> const &values) const {
-	auto errors = std::vector<OneValueError>();
+void Table::checkInsertValues(std::vector<TableRecord> const &records) const {
 
 	for(int i=0; i<meta->columnSize; ++i) {
 		auto const& col = meta->columns[i];
-		if(!col.nullable) {
+		if(!col.nullable || col.primaryKey) { // TODO handle multiple primary key
 			// Check null value
-			int j = 0;
-			for(auto const& v: values) {
-				if(v.values[i].empty())
-					errors.push_back(NullValueError(j, v, i, col.name));
-				++j;
+			for(auto const& record: records)
+				if(record.isNullAtCol(i))
+					throw ExecuteError("Value can not be null");
+		}
+		if(col.unique || col.primaryKey) { // TODO handle multiple primary key
+			if(col.indexID != -1) {
+				auto index = database.getIndexManager()->getIndex(col.indexID);
+				auto vs = std::set<Data>();
+				for(auto const& record: records) {
+					auto data = record.getDataAtCol(i);
+					if(index->containsEntry(data.data()) || vs.find(data) != vs.end())
+						throw ExecuteError("Value is not unique");
+					vs.insert(std::move(data));
+				}
+			} else {
+				auto vs = std::set<Data>();
+				// Insert all col value in recordSet into vs
+				for(auto iter = recordSet->iterateRecords(); iter.hasNext(); ) {
+					auto record = iter.getNext();
+					auto tr = TableRecord(meta, record.data);
+					if(!tr.isNullAtCol(i))
+						vs.insert(tr.getDataAtCol(i));
+				}
+				for(auto const& record: records) {
+					if(!record.isNullAtCol(i)) {
+						auto data = record.getDataAtCol(i);
+						if(vs.find(data) != vs.end())
+							throw ExecuteError("Value is not unique");
+						vs.insert(std::move(data));
+					}
+				}
 			}
 		}
-		// TODO check unique
-//		if(col.unique) {
-//			if(col.indexID != -1) {
-//				auto index = database.getIndexManager()->getIndex(col.indexID);
-//
-//			} else {
-//
-//			}
-//		}
 	}
-
-	if(!errors.empty())
-		throw ValueError(errors);
 }
 
 void Table::insert(std::vector<RecordValue> const &values) {
-	static uchar recordBuf[TableMetaPage::MAX_RECORD_LENGTH];
 	static std::unique_ptr<Index> indexs[TableMetaPage::MAX_COLUMN_SIZE];
-	static short offsets[TableMetaPage::MAX_COLUMN_SIZE];
+	static short colIDs[TableMetaPage::MAX_COLUMN_SIZE];
 
 	// statistic index
 	int indexColCount = 0;
@@ -58,39 +71,32 @@ void Table::insert(std::vector<RecordValue> const &values) {
 		auto const& col = meta->columns[i];
 		if(col.indexID != -1) {
 			indexs[indexColCount] = database.getIndexManager()->getIndex(col.indexID);
-			offsets[indexColCount] = col.offset;
+			colIDs[indexColCount] = static_cast<short>(i);
 			indexColCount++;
 		}
 	}
 
-	checkInsertValues(values);
+	auto records = std::vector<TableRecord>();
+	records.reserve(values.size());
+	for(auto const& v: values) {
+		try {
+			records.emplace_back(meta, v);
+		} catch (std::exception const& e) {
+			throw ExecuteError("Failed to convert RecordValue to TableRecord");
+		}
+	}
+
+	checkInsertValues(records);
 
 	for(auto const& value: values) {
-		try {
-			makeRecordData(recordBuf, value);
-		} catch (std::exception const& e) {
-			throw ExecuteError(string("Data format error: ") + e.what());
-		}
-		auto rid = recordSet->insert(recordBuf);
+		auto record = TableRecord(meta, value);
+		auto rid = recordSet->insert(record.getDataRef());
 		for(int i=0; i<indexColCount; ++i)
-			indexs[i]->insertEntry(recordBuf + offsets[i], rid);
+			if(!record.isNullAtCol(colIDs[i]))
+				indexs[i]->insertEntry(record.getDataRefAtCol(colIDs[i]), rid);
 	}
 	meta->recordCount += values.size();
 	metaPage.getDataMutable();
-}
-
-void Table::makeRecordData(uchar *buf, RecordValue const &value) const {
-	if(value.values.size() != meta->columnSize)
-		throw ExecuteError("Value attr size not equal to column size");
-	auto nullBitsetPtr = static_cast<bitset<128>*>(static_cast<void*>(
-			buf + meta->recordLength - (meta->columnSize + 7) / 8));
-	for(int i=0; i<meta->columnSize; ++i) {
-		auto& col = meta->columns[i];
-		auto const& isNull = value.values[i].empty();
-		nullBitsetPtr->set(static_cast<size_t>(i), isNull);
-		if(!isNull)
-			parse(value.values[i], buf + col.offset, col.dataType, col.size);
-	}
 }
 
 void Table::delete_(Condition const &condition) {
@@ -120,8 +126,10 @@ void Table::update(std::vector<SetStmt> const &sets, Condition const &condition)
 			newRecords.push_back(record.copyWithNewData(data));
 		}
 	}
-	for(auto const& record: newRecords)
+	for(auto const& record: newRecords) {
 		recordSet->update(record);
+		delete[] record.data;
+	}
 }
 
 int Table::size() const {
