@@ -3,7 +3,7 @@
 //
 
 #include <system/DatabaseMetaPage.h>
-#include <system/TableMetaPage.h>
+#include <table/TableMetaPage.h>
 #include "RecordManager.h"
 #include "system/Database.h"
 

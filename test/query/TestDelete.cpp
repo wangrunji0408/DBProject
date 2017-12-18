@@ -22,10 +22,10 @@ TEST_F(TestDelete, Normal)
 	auto cmd = Delete();
 	cmd.tableName = "people";
 	cmd.where = {{
-		{"", "id", BoolExpr::OP_EQ, "300001", ""},
+		{"", "id", BoolExpr::OP_EQ, "1", ""},
 	}};
 	db->execute(cmd);
-	ASSERT_EQ(1, db->getTable("people")->size());
+	ASSERT_EQ(2, db->getTable("people")->size());
 }
 
 }

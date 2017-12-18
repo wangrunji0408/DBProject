@@ -10,6 +10,7 @@
 #include "ast/TableDef.h"
 #include "TableMetaPage.h"
 #include "filesystem/page/Page.h"
+#include "TableRecord.h"
 
 class Database;
 class RecordSet;
@@ -24,8 +25,7 @@ class Table {
 	RecordSet* const recordSet;
 	Database const& database;
 	Table(RecordSet* rs, Database const& database);
-	void checkInsertValues(std::vector<RecordValue> const &values) const;
-	void makeRecordData(unsigned char* buf, RecordValue const& value) const;
+	void checkInsertValues(std::vector<TableRecord> const &records) const;
 	std::function<bool(const void*)> makePredict(BoolExpr const& expr) const;
 	std::function<bool(const void*)> makePredict(Condition const& condition) const;
 	std::function<void(const void*)> makeUpdate(SetStmt const& set) const;

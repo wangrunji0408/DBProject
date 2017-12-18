@@ -6,7 +6,6 @@
 #include "RecordSet.h"
 #include "system/Database.h"
 #include "system/DatabaseManager.h"
-#include "system/TableMetaPage.h"
 
 RecordSet::RecordSet(RecordManager& recordManager,::std::string name,int tablePageID,int id):
 	recordManager(recordManager), name(name), tablePageID(tablePageID), id(id),

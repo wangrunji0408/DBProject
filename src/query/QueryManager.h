@@ -8,7 +8,7 @@
 
 #include <system/Database.h>
 #include <ast/Command.h>
-#include <system/TableMetaPage.h>
+#include <table/TableMetaPage.h>
 
 class QueryManager {
 	Database& database;

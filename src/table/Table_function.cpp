@@ -4,7 +4,7 @@
 
 #include <bitset>
 #include "Table.h"
-#include "Database.h"
+#include "system/Database.h"
 
 std::function<bool(const void *)> Table::makePredict(Condition const &condition) const {
 	auto fs = std::vector<std::function<bool(const void *)>>();

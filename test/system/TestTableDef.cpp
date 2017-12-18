@@ -4,7 +4,7 @@
 
 #include <gtest/gtest.h>
 #include <system/DatabaseManager.h>
-#include <system/TableMetaPage.h>
+#include <table/TableMetaPage.h>
 #include "../TestBase.h"
 
 namespace {

@@ -8,7 +8,7 @@
 #include "index/IndexManager.h"
 #include "record/RecordSet.h"
 #include "filesystem/page/Page.h"
-#include "Table.h"
+#include "table/Table.h"
 
 class QueryManager;
 class DatabaseManager;
