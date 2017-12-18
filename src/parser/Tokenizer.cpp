@@ -1,6 +1,8 @@
 #include <string>
-#include <stdexcept>
+#include "ast/Exceptions.h"
 #include "Tokenizer.h"
+using namespace std::literals::string_literals;
+
 Token Tokenizer::next(){
 	while(true){
 		if(pos>=text.length()){
@@ -24,7 +26,7 @@ Token Tokenizer::next(){
 				content+=text[pos2];
 				pos2++;
 			}
-			throw std::runtime_error("Unexpected terminal of string literal");
+			throw ParseError("Unexpected terminal of string literal"s);
 		}
 		if(text[pos]=='-'){
 			if(pos+1<text.length()&&text[pos+1]=='-'){
@@ -67,7 +69,7 @@ Token Tokenizer::next(){
 				}
 				if(text[pos2]=='.'){
 					if(isFloat){
-						throw std::runtime_error("Illegal numeric literal");
+						throw ParseError("Illegal numeric literal"s);
 					}else{
 						isFloat=true;
 					}
@@ -208,6 +210,6 @@ Token Tokenizer::next(){
 			}
 			return{TokenType::P_L};
 		}
-		throw std::runtime_error(::std::string("Unexpected character:")+text[pos]);
+		throw ParseError("Unexpected character:"s+text[pos]);
 	}
 }
