@@ -2,6 +2,7 @@
 // Created by 王润基 on 2017/12/14.
 //
 
+#include <bitset>
 #include "Table.h"
 #include "Database.h"
 
