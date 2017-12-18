@@ -7,6 +7,9 @@
 #include "ast/Exceptions.h"
 
 void InteractiveDriver::start(){
+	if(prompt){
+		output<<"> ";
+	}
 	while(!(input.eof()||input.fail()||input.bad())){
 		::std::string line;
 		::std::getline(input,line);
@@ -17,10 +20,17 @@ void InteractiveDriver::start(){
 			}catch(const ParseError& error){
 				output<<"Error when parsing command:\n"<<error.what()<<::std::endl;
 			}
+			if(prompt){
+				output<<"> ";
+			}
 			buffer.clear();
 		}else{
 			line.pop_back();
+			line.push_back('\n');
 			buffer+=line;
+			if(prompt){
+				output<<"... ";
+			}
 		}
 	}
 }
