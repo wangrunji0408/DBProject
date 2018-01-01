@@ -133,13 +133,29 @@ int Table::size() const {
 	return meta->recordCount;
 }
 
-SelectResult Table::select(Condition const &condition) {
+SelectResult Table::select(std::vector<std::string> const& selects, Condition const &condition) {
 	auto result = SelectResult();
+	auto ids = std::vector<int>();
+	if(selects.size() == 1 && selects[0] == "*") {
+		for(int i=0; i<meta->columnSize; ++i) {
+			ids.push_back(i);
+			result.colNames.push_back(string(meta->name) + "." + meta->columns[i].name);
+		}
+	} else {
+		for(auto name: selects) {
+			auto id = meta->getColomnId(name);
+			if(id == -1)
+				throw ExecuteError("Column not exist.");
+			ids.push_back(id);
+			result.colNames.push_back(string(meta->name) + "." + name);
+		}
+	}
+
 	auto predict = makePredict(condition);
 	for(auto iter = recordSet->iterateRecords(); iter.hasNext(); ) {
 		auto record = iter.getNext();
 		if(predict(record.data))
-			result.records.push_back(toRecord(record.data));
+			result.records.push_back(toRecord(record.data, ids));
 	}
 	return result;
 }
@@ -175,10 +191,10 @@ Data Table::toData(const TableRecord &value) const {
 	return data;
 }
 
-TableRecord Table::toRecord(const uchar *data) const {
+TableRecord Table::toRecord(const uchar *data, std::vector<int> const& ids) const {
 	auto record = TableRecord();
 	auto value = TableRecordRef(meta, data);
-	for(int i=0; i<meta->columnSize; ++i) {
+	for(auto i: ids) {
 		auto type = meta->columns[i].dataType;
 		if(value.isNullAtCol(i))
 			record.pushNull(type);

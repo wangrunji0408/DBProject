@@ -24,7 +24,7 @@ void QueryManager::execute(Command const &cmd) {
 SelectResult QueryManager::select(Select const &cmd) {
 	if(cmd.froms.size() == 1) {
 		auto table = database.getTable(cmd.froms[0]);
-		return table->select(cmd.where);
+		return table->select(cmd.selects, cmd.where);
 	}
 	throw std::runtime_error("Not implemented!");
 }

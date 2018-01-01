@@ -116,6 +116,7 @@
 	};
 
 	struct SelectResult: Result {
+		std::vector<std::string> colNames;
 		std::vector<TableRecord> records;
 	};
 //}

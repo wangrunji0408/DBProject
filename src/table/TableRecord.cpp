@@ -110,7 +110,8 @@ std::ostream &operator<<(std::ostream &os, const TableRecord &record) {
 			case FLOAT: os << to<float>(data); break;
 			case DATE: os << dateToString(to<int>(data)); break;
 		}
-		os << (i + 1 == record.size()? ")": ", ");
+		if(i + 1 != record.size())
+			os << ", ";
 	}
-	return os;
+	return os << ")";
 }
