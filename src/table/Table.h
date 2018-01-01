@@ -5,6 +5,7 @@
 #ifndef DBPROJECT_TABLE_H
 #define DBPROJECT_TABLE_H
 
+#include <functional>
 #include <ast/Command.h>
 #include "ast/TableDef.h"
 #include "TableMetaPage.h"

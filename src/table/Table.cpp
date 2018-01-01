@@ -2,6 +2,7 @@
 // Created by 王润基 on 2017/12/13.
 //
 
+#include <bitset>
 #include <ast/Exceptions.h>
 #include <set>
 #include "Table.h"

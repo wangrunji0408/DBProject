@@ -5,6 +5,7 @@
 #ifndef DBPROJECT_TABLERECORD_H
 #define DBPROJECT_TABLERECORD_H
 
+#include <bitset>
 #include <ast/Command.h>
 #include "TableMetaPage.h"
 

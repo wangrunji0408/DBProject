@@ -13,8 +13,8 @@ class Parser{
 	Tokenizer tokenizer;
 	Token lookahead;
 	void nextToken();
-	void eatToken(TokenType type,const char* errorMessage);
-	::std::string getIdentifier(const char* errorMessage);
+	void eatToken(TokenType type,::std::string errorMessage);
+	::std::string getIdentifier(::std::string errorMessage);
 	::std::vector<::std::unique_ptr<Statement>> parseProgram();
 	::std::unique_ptr<Statement> parseStatement();
 	::std::unique_ptr<Statement> parseShowStmt();

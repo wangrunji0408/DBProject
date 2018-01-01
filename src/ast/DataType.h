@@ -5,6 +5,8 @@
 #ifndef DBPROJECT_DATATYPE_H
 #define DBPROJECT_DATATYPE_H
 
+#include <ctime>
+#include <stdexcept>
 #include <string>
 
 enum DataType {
