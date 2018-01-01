@@ -7,6 +7,7 @@
 #include <set>
 #include "Table.h"
 #include "system/Database.h"
+#include "TableRecordRef.h"
 
 Table::Table(RecordSet* rs, Database const& database) :
 		id(rs->id), metaPageID(rs->tablePageID), name(rs->name),
@@ -21,6 +22,12 @@ TableDef Table::getDef() const {
 }
 
 void Table::checkInsertValues(std::vector<TableRecord> const &records) const {
+
+	for(auto const& record: records) {
+		auto error = check(record);
+		if(!error.empty())
+			throw ExecuteError(error);
+	}
 
 	for(int i=0; i<meta->columnSize; ++i) {
 		auto const& col = meta->columns[i];
@@ -45,7 +52,7 @@ void Table::checkInsertValues(std::vector<TableRecord> const &records) const {
 				// Insert all col value in recordSet into vs
 				for(auto iter = recordSet->iterateRecords(); iter.hasNext(); ) {
 					auto record = iter.getNext();
-					auto tr = TableRecord(meta, record.data);
+					auto tr = TableRecordRef(meta, record.data);
 					if(!tr.isNullAtCol(i))
 						vs.insert(tr.getDataAtCol(i));
 				}
@@ -62,7 +69,7 @@ void Table::checkInsertValues(std::vector<TableRecord> const &records) const {
 	}
 }
 
-void Table::insert(std::vector<RecordValue> const &values) {
+void Table::insert(std::vector<TableRecord> const &records) {
 	static std::unique_ptr<Index> indexs[TableMetaPage::MAX_COLUMN_SIZE];
 	static short colIDs[TableMetaPage::MAX_COLUMN_SIZE];
 
@@ -77,26 +84,15 @@ void Table::insert(std::vector<RecordValue> const &values) {
 		}
 	}
 
-	auto records = std::vector<TableRecord>();
-	records.reserve(values.size());
-	for(auto const& v: values) {
-		try {
-			records.emplace_back(meta, v);
-		} catch (std::exception const& e) {
-			throw ExecuteError("Failed to convert RecordValue to TableRecord");
-		}
-	}
-
 	checkInsertValues(records);
 
-	for(auto const& value: values) {
-		auto record = TableRecord(meta, value);
-		auto rid = recordSet->insert(record.getDataRef());
+	for(auto const& record: records) {
+		auto rid = recordSet->insert(toData(record).data());
 		for(int i=0; i<indexColCount; ++i)
 			if(!record.isNullAtCol(colIDs[i]))
-				indexs[i]->insertEntry(record.getDataRefAtCol(colIDs[i]), rid);
+				indexs[i]->insertEntry(record.getDataAtCol(colIDs[i]).data(), rid);
 	}
-	meta->recordCount += values.size();
+	meta->recordCount += records.size();
 	metaPage.getDataMutable();
 }
 
@@ -135,4 +131,39 @@ void Table::update(std::vector<SetStmt> const &sets, Condition const &condition)
 
 int Table::size() const {
 	return meta->recordCount;
+}
+
+void Table::select(Condition const &condition) {
+
+}
+
+std::string Table::check(TableRecord const &record) const {
+	if(record.size() != meta->columnSize)
+		return "Value attr size not equal to column size";
+	for(int i=0; i<meta->columnSize; ++i) {
+		auto const& col = meta->columns[i];
+		auto t1 = record.getTypeAtCol(i);
+		auto t2 = col.dataType;
+		if(t1 != t2 && t1 != CHAR && t1 != VARCHAR && t2 != CHAR && t2 != VARCHAR)
+			return "Column " + std::to_string(i) + " type error";
+		if(record.getDataAtCol(i).size() > col.size)
+			return "Column " + std::to_string(i) + " size exceed";
+	}
+	return "";
+}
+
+Data Table::toData(const TableRecord &value) const {
+	auto data = Data(meta->recordLength);
+	auto nullBitsetPtr = (std::bitset<128>*)(static_cast<const void*>(
+			data.data() + meta->recordLength - (meta->columnSize + 7) / 8));
+	for(int i=0; i<meta->columnSize; ++i) {
+		auto& col = meta->columns[i];
+		auto isNull = value.isNullAtCol(i);
+		nullBitsetPtr->set(static_cast<size_t>(i), isNull);
+		if(!isNull) {
+			auto const& v = value.getDataAtCol(i);
+			std::memcpy(data.data() + col.offset, v.data(), v.size());
+		}
+	}
+	return data;
 }

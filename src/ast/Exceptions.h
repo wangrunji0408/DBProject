@@ -28,11 +28,11 @@ struct ExecuteError: std::exception {
 
 struct OneValueError {
 	int valueNum;
-	RecordValue value;
+	TableRecord value;
 	int attrNum;
 	std::string attrName;
 
-	OneValueError(int valueNum, const RecordValue &value, int attrNum, const std::string &attrName) : valueNum(
+	OneValueError(int valueNum, const TableRecord &value, int attrNum, const std::string &attrName) : valueNum(
 			valueNum), value(value), attrNum(attrNum), attrName(attrName) {}
 };
 
@@ -42,17 +42,17 @@ struct ValueError: ExecuteError {
 };
 
 struct NullValueError: OneValueError {
-	NullValueError(int valueNum, const RecordValue &value, int attrNum, const std::string &attrName)
+	NullValueError(int valueNum, const TableRecord &value, int attrNum, const std::string &attrName)
 			: OneValueError(valueNum, value, attrNum, attrName) {}
 };
 
 struct NotUniqueError: OneValueError {
-	NotUniqueError(int valueNum, const RecordValue &value, int attrNum, const std::string &attrName)
+	NotUniqueError(int valueNum, const TableRecord &value, int attrNum, const std::string &attrName)
 			: OneValueError(valueNum, value, attrNum, attrName) {}
 };
 
 struct ValueSizeError: OneValueError {
-	ValueSizeError(int valueNum, const RecordValue &value)
+	ValueSizeError(int valueNum, const TableRecord &value)
 			: OneValueError(valueNum, value, 0, "") {}
 };
 

@@ -8,20 +8,9 @@
 #include <string>
 #include <vector>
 #include <ostream>
+#include <table/TableRecord.h>
 
 //namespace CommandDef {
-
-	struct RecordValue {
-		std::vector<std::string> values;
-
-		friend std::ostream &operator<<(std::ostream &os, const RecordValue &value) {
-			os << "(";
-			int i = 0;
-			for(auto const& v: value.values)
-				os << v << (++i != value.values.size()? ", ": ")");
-			return os;
-		}
-	};
 
 	struct SetStmt {
 		std::string columnName;
@@ -111,7 +100,7 @@
 
 	struct Insert: Command {
 		std::string tableName;
-		std::vector<RecordValue> records;
+		std::vector<TableRecord> records;
 
 		CommandType getType() const override {
 			return CMD_INSERT;
@@ -127,7 +116,7 @@
 	};
 
 	struct SelectResult: Result {
-		std::vector<RecordValue> records;
+		std::vector<TableRecord> records;
 	};
 //}
 

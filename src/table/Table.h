@@ -25,6 +25,8 @@ class Table {
 	RecordSet* const recordSet;
 	Database const& database;
 	Table(RecordSet* rs, Database const& database);
+	Data toData(TableRecord const& record) const;
+	std::string check(TableRecord const& record) const;
 	void checkInsertValues(std::vector<TableRecord> const &records) const;
 	std::function<bool(const void*)> makePredict(BoolExpr const& expr) const;
 	std::function<bool(const void*)> makePredict(Condition const& condition) const;
@@ -33,9 +35,10 @@ class Table {
 public:
 	TableDef getDef() const;
 	int size() const;
-	void insert(std::vector<RecordValue> const &values);
+	void insert(std::vector<TableRecord> const &values);
 	void delete_(Condition const& condition);
 	void update(std::vector<SetStmt> const& sets, Condition const& condition);
+	void select(Condition const& condition);
 };
 
 

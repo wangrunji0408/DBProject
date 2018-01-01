@@ -3,55 +3,72 @@
 //
 
 #include "TableRecord.h"
-#include <bitset>
-
-TableRecord::TableRecord(TableMetaPage *meta, const void *pData) :
-		meta(meta), pData((const unsigned char*)pData) {}
-
-std::bitset<128>* TableRecord::getNullBitsetPtr() const {
-	return (std::bitset<128>*)(static_cast<const void*>(
-			pData + meta->recordLength - (meta->columnSize + 7) / 8));
-}
 
 bool TableRecord::isNullAtCol(int i) const {
-	return getNullBitsetPtr()->test(i);
+	return datas[i].empty();
 }
 
-Data TableRecord::getData() const {
-	return Data(pData, pData + meta->recordLength);
+Data const& TableRecord::getDataAtCol(int i) const {
+	return datas[i];
 }
 
-Data TableRecord::getDataAtCol(int i) const {
-	auto const& col = meta->columns[i];
-	return Data(pData + col.offset, pData + col.offset + col.size);
+DataType TableRecord::getTypeAtCol(int i) const {
+	return types[i];
 }
 
-TableRecord::TableRecord(TableMetaPage *meta, RecordValue const &value) {
-	if(value.values.size() != meta->columnSize)
-		throw std::runtime_error("Value attr size not equal to column size");
-	auto p = new unsigned char[meta->recordLength];
-	this->meta = meta;
-	pData = p;
-	ownData = true;
-	auto nullBitsetPtr = getNullBitsetPtr();
-	for(int i=0; i<meta->columnSize; ++i) {
-		auto& col = meta->columns[i];
-		auto const& isNull = value.values[i].empty();
-		nullBitsetPtr->set(static_cast<size_t>(i), isNull);
-		if(!isNull)
-			parse(value.values[i], p + col.offset, col.dataType, col.size);
+TableRecord& TableRecord::pushInt(int x) {
+	datas.emplace_back(&x, &x + 1);
+	types.push_back(DataType::INT);
+	return *this;
+}
+
+TableRecord& TableRecord::pushFloat(float x) {
+	datas.emplace_back(&x, &x + 1);
+	types.push_back(DataType::FLOAT);
+	return *this;
+}
+
+TableRecord& TableRecord::pushString(std::string const &s) {
+	datas.emplace_back(s.begin(), s.end());
+	types.push_back(DataType::CHAR);
+	return *this;
+}
+
+TableRecord& TableRecord::pushDate(std::string const &date) {
+	int x = parseDate(date);
+	datas.emplace_back(&x, &x + 1);
+	types.push_back(DataType::DATE);
+	return *this;
+}
+
+TableRecord &TableRecord::pushNull(DataType type) {
+	types.push_back(type);
+	datas.emplace_back();
+	return *this;
+}
+
+int TableRecord::size() const {
+	return datas.size();
+}
+
+TableRecord TableRecord::fromString(std::vector<DataType> const &types, std::vector<std::string> const &values) {
+	if(types.size() != values.size())
+		throw std::runtime_error("types.size() != values.size()");
+	auto record = TableRecord();
+	record.types = types;
+	for(int i=0; i<types.size(); ++i) {
+		if(values[i].empty()) {
+			record.pushNull(types[i]);
+			continue;
+		}
+		switch (types[i]) {
+			case UNKNOWN: throw std::runtime_error("UNKNOWN type");
+			case INT: record.pushInt(parseInt(values[i])); break;
+			case CHAR:
+			case VARCHAR: record.pushString(values[i]); break;
+			case FLOAT: record.pushFloat(parseFloat(values[i])); break;
+			case DATE: record.pushDate(values[i]); break;
+		}
 	}
-}
-
-TableRecord::~TableRecord() {
-	if(ownData)
-		delete[] pData;
-}
-
-const unsigned char *TableRecord::getDataRef() const {
-	return pData;
-}
-
-const unsigned char *TableRecord::getDataRefAtCol(int i) const {
-	return pData + meta->columns[i].offset;
+	return record;
 }

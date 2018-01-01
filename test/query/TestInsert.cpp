@@ -27,8 +27,8 @@ TEST_F(TestInsert, ThrowWhenDuplicatePrimaryKey)
 	auto cmd = Insert();
 	cmd.tableName = "people";
 	cmd.records = {
-		{{"1","Alice","F","","",""}},
-		{{"1","Bob","M","","",""}},
+		TableRecord::fromString(types, {"1","Alice","F","","",""}),
+		TableRecord::fromString(types, {"1","Bob","M","","",""}),
 	};
 	ASSERT_THROW( db->execute(cmd), ExecuteError );
 }
@@ -38,17 +38,17 @@ TEST_F(TestInsert, ThrowWhenStringTooLong)
 	auto cmd = Insert();
 	cmd.tableName = "people";
 	cmd.records = {
-		{{"1","12345678901234567890123456","F","","",""}},
+		TableRecord::fromString(types, {"1","12345678901234567890123456","F","","",""}),
 	};
 	ASSERT_THROW( db->execute(cmd), ExecuteError );
 }
 
 TEST_F(TestInsert, ThrowWhenFormatError)
 {
-	vector<RecordValue> cases = {
-		{{"2147483648","Alice","F","","",""}},
-		{{"-2147483649","Alice","F","","",""}},
-		{{"1.2","Alice","F","","",""}},
+	vector<TableRecord> cases = {
+		TableRecord::fromString(types, {"2147483648","Alice","F","","",""}),
+		TableRecord::fromString(types, {"-2147483649","Alice","F","","",""}),
+		TableRecord::fromString(types, {"1.2","Alice","F","","",""}),
 	};
 	auto cmd = Insert();
 	cmd.tableName = "people";
@@ -64,7 +64,7 @@ TEST_F(TestInsert, ThrowWhenLengthError)
 	auto cmd = Insert();
 	cmd.tableName = "people";
 	cmd.records = {
-		{{"1","Alice","F","",""}},
+		TableRecord::fromString(types, {"1","Alice","F","",""}),
 	};
 	ASSERT_THROW( db->execute(cmd), ExecuteError );
 }
