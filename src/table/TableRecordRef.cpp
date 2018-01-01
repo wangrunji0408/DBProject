@@ -18,5 +18,8 @@ bool TableRecordRef::isNullAtCol(int i) const {
 
 Data TableRecordRef::getDataAtCol(int i) const {
 	auto const& col = meta->columns[i];
-	return Data(pData + col.offset, pData + col.offset + col.size);
+	auto begin = pData + col.offset;
+	if(col.dataType == VARCHAR)
+		return Data(begin, begin + strlen((char*)begin));
+	return Data(begin, begin + col.size);
 }

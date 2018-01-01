@@ -109,3 +109,7 @@ void Database::deleteTable(std::string const &name) {
 void Database::execute(Command const &cmd) {
 	queryManager->execute(cmd);
 }
+
+SelectResult Database::select(Select const &cmd) {
+	return queryManager->select(cmd);
+}

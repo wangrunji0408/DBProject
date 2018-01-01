@@ -133,8 +133,15 @@ int Table::size() const {
 	return meta->recordCount;
 }
 
-void Table::select(Condition const &condition) {
-
+SelectResult Table::select(Condition const &condition) {
+	auto result = SelectResult();
+	auto predict = makePredict(condition);
+	for(auto iter = recordSet->iterateRecords(); iter.hasNext(); ) {
+		auto record = iter.getNext();
+		if(predict(record.data))
+			result.records.push_back(toRecord(record.data));
+	}
+	return result;
 }
 
 std::string Table::check(TableRecord const &record) const {
@@ -144,7 +151,7 @@ std::string Table::check(TableRecord const &record) const {
 		auto const& col = meta->columns[i];
 		auto t1 = record.getTypeAtCol(i);
 		auto t2 = col.dataType;
-		if(t1 != t2 && t1 != CHAR && t1 != VARCHAR && t2 != CHAR && t2 != VARCHAR)
+		if(t1 != t2)
 			return "Column " + std::to_string(i) + " type error";
 		if(record.getDataAtCol(i).size() > col.size)
 			return "Column " + std::to_string(i) + " size exceed";
@@ -166,4 +173,17 @@ Data Table::toData(const TableRecord &value) const {
 		}
 	}
 	return data;
+}
+
+TableRecord Table::toRecord(const uchar *data) const {
+	auto record = TableRecord();
+	auto value = TableRecordRef(meta, data);
+	for(int i=0; i<meta->columnSize; ++i) {
+		auto type = meta->columns[i].dataType;
+		if(value.isNullAtCol(i))
+			record.pushNull(type);
+		else
+			record.push(type, value.getDataAtCol(i));
+	}
+	return record;
 }

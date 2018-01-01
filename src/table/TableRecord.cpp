@@ -17,26 +17,32 @@ DataType TableRecord::getTypeAtCol(int i) const {
 }
 
 TableRecord& TableRecord::pushInt(int x) {
-	datas.emplace_back(&x, &x + 1);
+	datas.emplace_back((char*)&x, (char*)(&x + 1));
 	types.push_back(DataType::INT);
 	return *this;
 }
 
 TableRecord& TableRecord::pushFloat(float x) {
-	datas.emplace_back(&x, &x + 1);
+	datas.emplace_back((char*)&x, (char*)(&x + 1));
 	types.push_back(DataType::FLOAT);
 	return *this;
 }
 
-TableRecord& TableRecord::pushString(std::string const &s) {
+TableRecord& TableRecord::pushChar(std::string const &s) {
 	datas.emplace_back(s.begin(), s.end());
 	types.push_back(DataType::CHAR);
 	return *this;
 }
 
+TableRecord& TableRecord::pushVarchar(std::string const &s) {
+	datas.emplace_back(s.begin(), s.end());
+	types.push_back(DataType::VARCHAR);
+	return *this;
+}
+
 TableRecord& TableRecord::pushDate(std::string const &date) {
 	int x = parseDate(date);
-	datas.emplace_back(&x, &x + 1);
+	datas.emplace_back((char*)&x, (char*)(&x + 1));
 	types.push_back(DataType::DATE);
 	return *this;
 }
@@ -44,6 +50,12 @@ TableRecord& TableRecord::pushDate(std::string const &date) {
 TableRecord &TableRecord::pushNull(DataType type) {
 	types.push_back(type);
 	datas.emplace_back();
+	return *this;
+}
+
+TableRecord &TableRecord::push(DataType type, Data const &data) {
+	types.push_back(type);
+	datas.push_back(data);
 	return *this;
 }
 
@@ -55,7 +67,6 @@ TableRecord TableRecord::fromString(std::vector<DataType> const &types, std::vec
 	if(types.size() != values.size())
 		throw std::runtime_error("types.size() != values.size()");
 	auto record = TableRecord();
-	record.types = types;
 	for(int i=0; i<types.size(); ++i) {
 		if(values[i].empty()) {
 			record.pushNull(types[i]);
@@ -64,11 +75,42 @@ TableRecord TableRecord::fromString(std::vector<DataType> const &types, std::vec
 		switch (types[i]) {
 			case UNKNOWN: throw std::runtime_error("UNKNOWN type");
 			case INT: record.pushInt(parseInt(values[i])); break;
-			case CHAR:
-			case VARCHAR: record.pushString(values[i]); break;
+			case CHAR:record.pushChar(values[i]); break;
+			case VARCHAR: record.pushVarchar(values[i]); break;
 			case FLOAT: record.pushFloat(parseFloat(values[i])); break;
 			case DATE: record.pushDate(values[i]); break;
 		}
 	}
 	return record;
+}
+
+bool operator==(const TableRecord &lhs, const TableRecord &rhs) {
+	return lhs.types == rhs.types &&
+		   lhs.datas == rhs.datas;
+}
+
+bool operator!=(const TableRecord &lhs, const TableRecord &rhs) {
+	return !(rhs == lhs);
+}
+
+template<class T>
+inline T to(Data const& data) {
+	return *(T*)data.data();
+}
+
+std::ostream &operator<<(std::ostream &os, const TableRecord &record) {
+	os << "(";
+	for(int i=0; i<record.size(); ++i) {
+		auto const& data = record.getDataAtCol(i);
+		switch (record.getTypeAtCol(i)) {
+			case UNKNOWN: os << "UNKNOWN";
+			case INT: os << to<int>(data); break;
+			case CHAR:
+			case VARCHAR: os << data.data(); break;
+			case FLOAT: os << to<float>(data); break;
+			case DATE: os << dateToString(to<int>(data)); break;
+		}
+		os << (i + 1 == record.size()? ")": ", ");
+	}
+	return os;
 }
