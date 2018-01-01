@@ -28,6 +28,7 @@ public:
 	bool isNullAtCol(int i) const;
 	Data const& getDataAtCol(int i) const;
 	DataType getTypeAtCol(int i) const;
+	void filter(std::vector<int> const& ids);
 	TableRecord& push(DataType type, Data const& data);
 	TableRecord& pushInt(int x);
 	TableRecord& pushFloat(float x);

@@ -122,3 +122,14 @@ TableRecord TableRecord::concat(const TableRecord &a, const TableRecord &b) {
 	c.datas = ::concat(a.datas, b.datas);
 	return c;
 }
+
+void TableRecord::filter(std::vector<int> const& ids) {
+	auto types0 = std::move(types);
+	auto datas0 = std::move(datas);
+	types.reserve(ids.size());
+	datas.reserve(ids.size());
+	for(int i: ids) {
+		types.push_back(types0[i]);
+		datas.push_back(std::move(datas0[i]));
+	}
+}

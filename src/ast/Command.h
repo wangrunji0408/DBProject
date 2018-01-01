@@ -118,6 +118,17 @@
 	struct SelectResult: Result {
 		std::vector<std::string> colNames;
 		std::vector<TableRecord> records;
+
+		friend std::ostream &operator<<(std::ostream &os, const SelectResult &result) {
+			os << '(';
+			for(int i=0; i<result.colNames.size(); ++i) {
+				os << result.colNames[i] << (i+1 != result.colNames.size()? ", ": "");
+			}
+			os << ')' << std::endl;
+			for(auto const& record: result.records)
+				os << record << std::endl;
+			return os;
+		}
 	};
 //}
 
