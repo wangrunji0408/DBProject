@@ -15,7 +15,7 @@ class RecordSet;
 class IndexEntityLists {
 	friend class IndexManager;
 
-	static constexpr const char* ENTITYLIST_TABLE_NAME = "IndexEntityList";
+	static constexpr const char* ENTITYLIST_TABLE_NAME = "**IndexEntityList**";
 	struct ELNode {
 		RID dataRID, nextRID;
 	};

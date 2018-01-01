@@ -6,6 +6,7 @@
 #define TEST_RECORDMANAGER_H
 
 #include <string>
+#include <vector>
 #include <memory>
 #include <record/RecordSet.h>
 #include <ast/TableDef.h>
@@ -37,6 +38,7 @@ public:
 	void createSet(::std::string name, size_t recordLength);
 	void deleteSet(::std::string name);
 	RecordSet* getSet(::std::string name);
+	::std::vector<::std::string> getSetNames()const;
 };
 
 #endif //TEST_RECORDMANAGER_H

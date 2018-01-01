@@ -98,3 +98,13 @@ RecordSet *RecordManager::getSet(::std::string name) {
 RecordSet *RecordManager::getSet(int id) const {
 	return tables[id].get();
 }
+
+::std::vector<::std::string> RecordManager::getSetNames()const{
+	::std::vector<::std::string> list;
+	for(auto& tableRecord:tables){
+		if(tableRecord){
+			list.push_back(tableRecord->name);
+		}
+	}
+	return list;
+}

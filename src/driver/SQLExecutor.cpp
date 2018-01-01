@@ -38,7 +38,12 @@ void SQLExecutor::executeSQL(::std::vector<::std::unique_ptr<Statement>> program
 			dbManager->useDatabase(dynamic_cast<UseDatabaseStmt&>(*stmt).database);
 			break;
 		case StatementType::SHOW_TABLES:
-			throw ::std::runtime_error("Not implemented");
+			for(::std::string name:dbManager->getCurrentDatabase()->getRecordManager()->getSetNames()){
+				if(name[0]!='*'){//internel tables
+					output<<name<<"\n";
+				}
+			}
+			break;
 		case StatementType::SHOW_TABLE_SCHEMA:
 			throw ::std::runtime_error("Not implemented");
 		case StatementType::CREATE_TABLE:

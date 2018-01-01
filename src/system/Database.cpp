@@ -109,3 +109,7 @@ void Database::deleteTable(std::string const &name) {
 void Database::execute(Command const &cmd) {
 	queryManager->execute(cmd);
 }
+
+::std::vector<::std::string> Database::getTableNames()const{
+	return recordManager->getSetNames();
+}

@@ -32,6 +32,31 @@ TEST_F(TestRecordManager, CanCreateAndGetSet)
 	ASSERT_NE(nullptr, rm->getSet("table"));
 }
 
+TEST_F(TestRecordManager, CanGetSetNames)
+{
+	rm->createSet("nyan", 10);
+	rm->createSet("nyanyan", 10);
+	auto list=rm->getSetNames();
+	ASSERT_EQ(3,list.size());
+	bool hasIEL=false;
+	bool hasNyan=false;
+	bool hasNyanyan=false;
+	for(auto name:list){
+		if(name=="**IndexEntityList**"){//should not use const here
+			hasIEL=true;
+		}
+		if(name=="nyan"){
+			hasNyan=true;
+		}
+		if(name=="nyanyan"){
+			hasNyanyan=true;
+		}
+	}
+	ASSERT_EQ(true,hasIEL);
+	ASSERT_EQ(true,hasNyan);
+	ASSERT_EQ(true,hasNyanyan);
+}
+
 TEST_F(TestRecordManager, ThrowWhenGetNotExistSet)
 {
 	ASSERT_ANY_THROW(rm->getSet("table"));

@@ -2,6 +2,7 @@
 #define DATABASE_H
 
 #include <string>
+#include <vector>
 #include <cstddef>
 #include <memory>
 #include <record/RecordManager.h>
@@ -59,6 +60,7 @@ public:
 	void deleteIndex(std::string const& tableName, std::string const& attrName);
 	std::unique_ptr<Index> getIndex(std::string const& tableName, std::string const& attrName) const;
 	void execute(Command const& cmd);
+	::std::vector<::std::string> getTableNames()const;
 };
 
 #endif //DATABASE_H
