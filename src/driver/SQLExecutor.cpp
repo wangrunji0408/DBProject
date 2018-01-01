@@ -16,11 +16,14 @@ void SQLExecutor::executeSQL(::std::vector<::std::unique_ptr<Statement>> program
 			{
 				bool needRestore=false;
 				::std::string previousName;
+				::std::string deletedName=dynamic_cast<DropDatabaseStmt&>(*stmt).database;
 				if(dbManager->getCurrentDatabase()!=nullptr){
 					previousName=dbManager->getCurrentDatabase()->getName();
-					needRestore=true;
+					if(previousName!=deletedName){
+						needRestore=true;
+					}
 				}
-				dbManager->useDatabase(dynamic_cast<DropDatabaseStmt&>(*stmt).database);
+				dbManager->useDatabase(deletedName);
 				dbManager->deleteCurrentDatabase();
 				if(needRestore){
 					dbManager->useDatabase(previousName);
