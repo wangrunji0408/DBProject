@@ -1,5 +1,6 @@
 #include <vector>
 #include <memory>
+#include <string>
 #include <ostream>
 #include <stdexcept>
 #include "driver/SQLExecutor.h"
@@ -8,7 +9,10 @@ void SQLExecutor::executeSQL(::std::vector<::std::unique_ptr<Statement>> program
 	for(::std::unique_ptr<Statement>& stmt:program){
 		switch(stmt->getType()){
 		case StatementType::SHOW_DATABASES:
-			throw ::std::runtime_error("Not implemented");
+			for(::std::string name:dbManager->getDatabases()){
+				output<<name<<"\n";
+			}
+			break;
 		case StatementType::CREATE_DATABASE:
 			dbManager->createDatabase(dynamic_cast<CreateDatabaseStmt&>(*stmt).database);
 			break;

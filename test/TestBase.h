@@ -15,8 +15,7 @@ protected:
 	void ClearAllDatabase() {
 #ifdef __WIN32__
 		system("del *.dbf");
-#endif
-#ifdef __APPLE__
+#else
 		system("rm *.dbf");
 #endif
 	}

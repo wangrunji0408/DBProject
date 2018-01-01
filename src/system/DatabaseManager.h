@@ -1,6 +1,7 @@
 #ifndef DATABASEMANAGER_H
 #define DATABASEMANAGER_H
 
+#include <vector>
 #include <string>
 #include <memory>
 #include "filesystem/bufmanager/BufPageManager.h"
@@ -33,6 +34,7 @@ public:
 	void useDatabase(::std::string name);
 	Database* getCurrentDatabase();
 	void deleteCurrentDatabase();
+	::std::vector<::std::string> getDatabases();
 };
 
 #endif //DATABASEMANAGER_H

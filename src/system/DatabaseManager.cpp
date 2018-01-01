@@ -1,3 +1,7 @@
+#include <sys/types.h>
+#include <dirent.h>
+#include <errno.h>
+#include <vector>
 #include <cstring>
 #include <string>
 #include <index/SysIndexPage.h>
@@ -59,4 +63,35 @@ void DatabaseManager::deleteCurrentDatabase() {
 	::std::string filename=this->currentDatabase->name+".dbf";
 	this->currentDatabase.reset(nullptr);
 	::std::remove(filename.c_str());
+}
+
+::std::vector<::std::string> DatabaseManager::getDatabases(){
+	//sorry, we use something from posix&mingw-w64 to read folder
+	DIR* currentDir=opendir(".");
+	if(currentDir==nullptr){
+		throw ::std::runtime_error("Cannot open current folder");
+	}
+	::std::vector<::std::string> content;
+	while(true){
+		errno=0;
+		dirent* entry=readdir(currentDir);
+		//sorry for not check entry type here
+		if(entry==nullptr){
+			if(errno!=0){
+				throw ::std::runtime_error("Error when reading folder content");
+			}else{
+				if(closedir(currentDir)<0){
+					throw ::std::runtime_error("Error when reading folder content");
+				}
+				return content;
+			}
+		}else{
+			::std::string name(entry->d_name);
+			if(name.length()>=4){
+				if(name.substr(name.length()-4)==".dbf"){
+					content.push_back(name.substr(0,name.length()-4));
+				}
+			}
+		}
+	}
 }

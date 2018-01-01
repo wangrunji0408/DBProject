@@ -61,6 +61,31 @@ TEST_F(TestDBManager, CanDelete)
 	ASSERT_ANY_THROW( dbm->useDatabase("db1") );
 }
 
+TEST_F(TestDBManager, CanGetDatabasesList)
+{
+	dbm->createDatabase("nekodb");
+	dbm->createDatabase("nekodbplus");
+	auto list=dbm->getDatabases();
+	ASSERT_EQ(3,list.size());
+	bool hasDb1=false;
+	bool hasNeko=false;
+	bool hasNekoPlus=false;
+	for(auto name:list){
+		if(name=="db1"){
+			hasDb1=true;
+		}
+		if(name=="nekodb"){
+			hasNeko=true;
+		}
+		if(name=="nekodbplus"){
+			hasNekoPlus=true;
+		}
+	}
+	ASSERT_EQ(true,hasDb1);
+	ASSERT_EQ(true,hasNeko);
+	ASSERT_EQ(true,hasNekoPlus);
+}
+
 TEST_F(TestDBManager, StructureOfDatabaseMetaPage)
 {
 	ASSERT_EQ(8192, sizeof(DatabaseMetaPage));

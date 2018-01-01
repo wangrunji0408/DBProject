@@ -9,6 +9,7 @@ typedef unsigned int uint;
 
 class MyBitMap {
 protected:
+	static bool inited;
 	static unsigned char h[61];
 	static uint getMask(int k) {
 		uint s = 0;
@@ -123,9 +124,11 @@ public:
 		return i % 61;
 	}
 	static void initConst() {
-		for (int i = 0; i < 32; ++ i) {
-			unsigned int k = (1 << i);
-			h[_hash(k)] = i;
+		if(!inited){
+			for (int i = 0; i < 32; ++ i) {
+				unsigned int k = (1 << i);
+				h[_hash(k)] = i;
+			}
 		}
 	}
 	static int getIndex(uint k)
@@ -157,6 +160,7 @@ public:
 		return (i << BIAS) + index;
 	}
 	MyBitMap(int cap, uint k) {
+		initConst();
 		size = (cap >> BIAS);
 		data = new uint[size];
 		uint fill = 0;
@@ -169,6 +173,7 @@ public:
 		init();
 	}
 	MyBitMap(int cap, uint* da) {
+		initConst();
 		data = da;
 		size = (cap >> BIAS);
 		init();
