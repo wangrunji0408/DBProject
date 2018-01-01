@@ -9,6 +9,14 @@
 #include <ostream>
 #include "TableMetaPage.h"
 
+template <class T>
+inline std::vector<T> concat(std::vector<T> const& v1, std::vector<T> const& v2) {
+	auto v = v1;
+	v.reserve(v1.size() + v2.size());
+	v.insert(v.end(), v2.begin(), v2.end());
+	return v;
+}
+
 typedef unsigned char uchar;
 typedef std::vector<uchar> Data;
 
@@ -31,6 +39,7 @@ public:
 								  std::vector<std::string> const& values);
 	friend bool operator==(const TableRecord &lhs, const TableRecord &rhs);
 	friend bool operator!=(const TableRecord &lhs, const TableRecord &rhs);
+	static TableRecord concat(const TableRecord &lhs, const TableRecord &rhs);
 	friend std::ostream &operator<<(std::ostream &os, const TableRecord &record);
 };
 

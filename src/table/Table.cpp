@@ -21,6 +21,23 @@ TableDef Table::getDef() const {
 	return meta->toDef(database);
 }
 
+inline int calcPKHash(TableRecordRef const& record, std::vector<int> pkIds) {
+	int hash = 0;
+	for(auto id: pkIds) {
+		for(auto c: record.getDataAtCol(id))
+			hash = (hash << 5) + hash + c;
+	}
+	return hash;
+}
+inline int calcPKHash(TableRecord const& record, std::vector<int> pkIds) {
+	int hash = 0;
+	for(auto id: pkIds) {
+		for(auto c: record.getDataAtCol(id))
+			hash = (hash << 5) + hash + c;
+	}
+	return hash;
+}
+
 void Table::checkInsertValues(std::vector<TableRecord> const &records) const {
 
 	for(auto const& record: records) {
@@ -29,15 +46,22 @@ void Table::checkInsertValues(std::vector<TableRecord> const &records) const {
 			throw ExecuteError(error);
 	}
 
+	auto pkIds = std::vector<int>();
+	for(int i=0; i<meta->columnSize; ++i) {
+		if(meta->columns[i].primaryKey)
+			pkIds.push_back(i);
+	}
+	bool onePK = pkIds.size() == 1;
+
 	for(int i=0; i<meta->columnSize; ++i) {
 		auto const& col = meta->columns[i];
-		if(!col.nullable || col.primaryKey) { // TODO handle multiple primary key
+		if(!col.nullable || col.primaryKey) {
 			// Check null value
 			for(auto const& record: records)
 				if(record.isNullAtCol(i))
 					throw ExecuteError("Value can not be null");
 		}
-		if(col.unique || col.primaryKey) { // TODO handle multiple primary key
+		if(col.unique || (col.primaryKey && onePK)) {
 			if(col.indexID != -1) {
 				auto index = database.getIndexManager()->getIndex(col.indexID);
 				auto vs = std::set<Data>();
@@ -67,6 +91,25 @@ void Table::checkInsertValues(std::vector<TableRecord> const &records) const {
 			}
 		}
 	}
+
+	// check unique for multiple primary key
+	if(!onePK) {
+		auto vs = std::set<int>();
+		// build set
+		for(auto iter = recordSet->iterateRecords(); iter.hasNext(); ) {
+			auto record = iter.getNext();
+			auto tr = TableRecordRef(meta, record.data);
+			int hash = calcPKHash(tr, pkIds);
+			vs.insert(hash);
+		}
+		//
+		for(auto const& record: records) {
+			int hash = calcPKHash(record, pkIds);
+			if(vs.find(hash) != vs.end())
+				throw ExecuteError("Value PK is not unique");
+		}
+	}
+
 }
 
 void Table::insert(std::vector<TableRecord> const &records) {

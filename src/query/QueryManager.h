@@ -12,6 +12,7 @@
 
 class QueryManager {
 	Database& database;
+	static SelectResult join(SelectResult const& a, SelectResult const& b);
 public:
 	QueryManager(Database &database);
 	void execute(Command const& cmd);

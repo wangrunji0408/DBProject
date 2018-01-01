@@ -115,3 +115,10 @@ std::ostream &operator<<(std::ostream &os, const TableRecord &record) {
 	}
 	return os << ")";
 }
+
+TableRecord TableRecord::concat(const TableRecord &a, const TableRecord &b) {
+	auto c = TableRecord();
+	c.types = ::concat(a.types, b.types);
+	c.datas = ::concat(a.datas, b.datas);
+	return c;
+}
