@@ -2,6 +2,7 @@
 // Created by 王润基 on 2018/1/1.
 //
 
+#include <cstring>
 #include "TableRecordRef.h"
 
 TableRecordRef::TableRecordRef(TableMetaPage *meta, const void *pData) :

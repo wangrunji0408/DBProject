@@ -2,6 +2,7 @@
 // Created by 王润基 on 2017/12/11.
 //
 
+#include <algorithm>
 #include <table/TableMetaPage.h>
 #include <ast/Exceptions.h>
 #include "QueryManager.h"
