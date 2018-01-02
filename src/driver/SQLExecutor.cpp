@@ -45,7 +45,8 @@ void SQLExecutor::executeSQL(::std::vector<::std::unique_ptr<Statement>> program
 			}
 			break;
 		case StatementType::SHOW_TABLE_SCHEMA:
-			throw ::std::runtime_error("Not implemented");
+			output<<(dbManager->getCurrentDatabase()->getTable(dynamic_cast<ShowTableSchemaStmt&>(*stmt).table)->getDef());
+			break;
 		case StatementType::CREATE_TABLE:
 			dbManager->getCurrentDatabase()->createTable(dynamic_cast<CreateTableStmt&>(*stmt).define);
 			break;

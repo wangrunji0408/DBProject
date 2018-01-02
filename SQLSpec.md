@@ -40,7 +40,7 @@ Note: in interactive enviroment, `\` followed by a line-feed is replaced with a 
 - Field
 	- identifier Type ColumnConstraint*
 	- PRIMARY KEY '(' identifier (',' identifier)*  ')'
-	-FOREIGN KEY '(' identifier ')' REFERENCES identifier '(' identifier ')'
+	- FOREIGN KEY '(' identifier ')' REFERENCES identifier '(' identifier ')'
 - Type
 	- INT '(' int ')'
 	- FLOAT
