@@ -110,6 +110,10 @@ void Database::execute(Command const &cmd) {
 	queryManager->execute(cmd);
 }
 
+SelectResult Database::select(Select const &cmd) {
+	return queryManager->select(cmd);
+}
+
 ::std::vector<::std::string> Database::getTableNames()const{
 	return recordManager->getSetNames();
 }

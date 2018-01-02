@@ -60,6 +60,7 @@ public:
 	void deleteIndex(std::string const& tableName, std::string const& attrName);
 	std::unique_ptr<Index> getIndex(std::string const& tableName, std::string const& attrName) const;
 	void execute(Command const& cmd);
+	SelectResult select(Select const& cmd);
 	::std::vector<::std::string> getTableNames()const;
 };
 

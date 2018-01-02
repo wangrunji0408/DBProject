@@ -49,8 +49,10 @@ std::function<bool(const void *)> Table::makePredict(BoolExpr const &expr) const
 	switch(col.dataType) {
 		case UNKNOWN:
 			throw std::runtime_error("UNKNOWN datatype");
-		case INT:
-			intValue = std::stoi(expr.rhsValue);
+		case INT: case DATE:
+			intValue = col.dataType == INT?
+					   std::stoi(expr.rhsValue):
+					   parseDate(expr.rhsValue);
 #define CMP(OP) [=](const void* pData) {return *(int*)((char*)pData + offset) OP intValue; }
 			switch(expr.op) {
 				BASIC_CASE
@@ -77,8 +79,6 @@ std::function<bool(const void *)> Table::makePredict(BoolExpr const &expr) const
 					throw std::runtime_error("Operation LIKE is not capable with type FLOAT");
 			}
 #undef CMP
-		case DATE:
-			throw std::runtime_error("Not implemented!");
 	}
 #undef BASIC_CASE
 #undef TEST_NULL

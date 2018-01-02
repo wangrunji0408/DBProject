@@ -7,6 +7,7 @@
 #include <set>
 #include "Table.h"
 #include "system/Database.h"
+#include "TableRecordRef.h"
 
 Table::Table(RecordSet* rs, Database const& database) :
 		id(rs->id), metaPageID(rs->tablePageID), name(rs->name),
@@ -20,17 +21,47 @@ TableDef Table::getDef() const {
 	return meta->toDef(database);
 }
 
+inline int calcPKHash(TableRecordRef const& record, std::vector<int> pkIds) {
+	int hash = 0;
+	for(auto id: pkIds) {
+		for(auto c: record.getDataAtCol(id))
+			hash = (hash << 5) + hash + c;
+	}
+	return hash;
+}
+inline int calcPKHash(TableRecord const& record, std::vector<int> pkIds) {
+	int hash = 0;
+	for(auto id: pkIds) {
+		for(auto c: record.getDataAtCol(id))
+			hash = (hash << 5) + hash + c;
+	}
+	return hash;
+}
+
 void Table::checkInsertValues(std::vector<TableRecord> const &records) const {
+
+	for(auto const& record: records) {
+		auto error = check(record);
+		if(!error.empty())
+			throw ExecuteError(error);
+	}
+
+	auto pkIds = std::vector<int>();
+	for(int i=0; i<meta->columnSize; ++i) {
+		if(meta->columns[i].primaryKey)
+			pkIds.push_back(i);
+	}
+	bool onePK = pkIds.size() == 1;
 
 	for(int i=0; i<meta->columnSize; ++i) {
 		auto const& col = meta->columns[i];
-		if(!col.nullable || col.primaryKey) { // TODO handle multiple primary key
+		if(!col.nullable || col.primaryKey) {
 			// Check null value
 			for(auto const& record: records)
 				if(record.isNullAtCol(i))
 					throw ExecuteError("Value can not be null");
 		}
-		if(col.unique || col.primaryKey) { // TODO handle multiple primary key
+		if(col.unique || (col.primaryKey && onePK)) {
 			if(col.indexID != -1) {
 				auto index = database.getIndexManager()->getIndex(col.indexID);
 				auto vs = std::set<Data>();
@@ -45,7 +76,7 @@ void Table::checkInsertValues(std::vector<TableRecord> const &records) const {
 				// Insert all col value in recordSet into vs
 				for(auto iter = recordSet->iterateRecords(); iter.hasNext(); ) {
 					auto record = iter.getNext();
-					auto tr = TableRecord(meta, record.data);
+					auto tr = TableRecordRef(meta, record.data);
 					if(!tr.isNullAtCol(i))
 						vs.insert(tr.getDataAtCol(i));
 				}
@@ -60,9 +91,28 @@ void Table::checkInsertValues(std::vector<TableRecord> const &records) const {
 			}
 		}
 	}
+
+	// check unique for multiple primary key
+	if(!onePK) {
+		auto vs = std::set<int>();
+		// build set
+		for(auto iter = recordSet->iterateRecords(); iter.hasNext(); ) {
+			auto record = iter.getNext();
+			auto tr = TableRecordRef(meta, record.data);
+			int hash = calcPKHash(tr, pkIds);
+			vs.insert(hash);
+		}
+		//
+		for(auto const& record: records) {
+			int hash = calcPKHash(record, pkIds);
+			if(vs.find(hash) != vs.end())
+				throw ExecuteError("Value PK is not unique");
+		}
+	}
+
 }
 
-void Table::insert(std::vector<RecordValue> const &values) {
+void Table::insert(std::vector<TableRecord> const &records) {
 	static std::unique_ptr<Index> indexs[TableMetaPage::MAX_COLUMN_SIZE];
 	static short colIDs[TableMetaPage::MAX_COLUMN_SIZE];
 
@@ -77,26 +127,15 @@ void Table::insert(std::vector<RecordValue> const &values) {
 		}
 	}
 
-	auto records = std::vector<TableRecord>();
-	records.reserve(values.size());
-	for(auto const& v: values) {
-		try {
-			records.emplace_back(meta, v);
-		} catch (std::exception const& e) {
-			throw ExecuteError("Failed to convert RecordValue to TableRecord");
-		}
-	}
-
 	checkInsertValues(records);
 
-	for(auto const& value: values) {
-		auto record = TableRecord(meta, value);
-		auto rid = recordSet->insert(record.getDataRef());
+	for(auto const& record: records) {
+		auto rid = recordSet->insert(toData(record).data());
 		for(int i=0; i<indexColCount; ++i)
 			if(!record.isNullAtCol(colIDs[i]))
-				indexs[i]->insertEntry(record.getDataRefAtCol(colIDs[i]), rid);
+				indexs[i]->insertEntry(record.getDataAtCol(colIDs[i]).data(), rid);
 	}
-	meta->recordCount += values.size();
+	meta->recordCount += records.size();
 	metaPage.getDataMutable();
 }
 
@@ -135,4 +174,75 @@ void Table::update(std::vector<SetStmt> const &sets, Condition const &condition)
 
 int Table::size() const {
 	return meta->recordCount;
+}
+
+SelectResult Table::select(std::vector<std::string> const& selects, Condition const &condition) {
+	auto result = SelectResult();
+	auto ids = std::vector<int>();
+	if(selects.size() == 1 && selects[0] == "*") {
+		for(int i=0; i<meta->columnSize; ++i) {
+			ids.push_back(i);
+			result.colNames.push_back(string(meta->name) + "." + meta->columns[i].name);
+		}
+	} else {
+		for(auto name: selects) {
+			auto id = meta->getColomnId(name);
+			if(id == -1)
+				throw ExecuteError("Column not exist.");
+			ids.push_back(id);
+			result.colNames.push_back(string(meta->name) + "." + name);
+		}
+	}
+
+	auto predict = makePredict(condition);
+	for(auto iter = recordSet->iterateRecords(); iter.hasNext(); ) {
+		auto record = iter.getNext();
+		if(predict(record.data))
+			result.records.push_back(toRecord(record.data, ids));
+	}
+	return result;
+}
+
+std::string Table::check(TableRecord const &record) const {
+	if(record.size() != meta->columnSize)
+		return "Value attr size not equal to column size";
+	for(int i=0; i<meta->columnSize; ++i) {
+		auto const& col = meta->columns[i];
+		auto t1 = record.getTypeAtCol(i);
+		auto t2 = col.dataType;
+		if(t1 != t2)
+			return "Column " + std::to_string(i) + " type error";
+		if(record.getDataAtCol(i).size() > col.size)
+			return "Column " + std::to_string(i) + " size exceed";
+	}
+	return "";
+}
+
+Data Table::toData(const TableRecord &value) const {
+	auto data = Data(meta->recordLength);
+	auto nullBitsetPtr = (std::bitset<128>*)(static_cast<const void*>(
+			data.data() + meta->recordLength - (meta->columnSize + 7) / 8));
+	for(int i=0; i<meta->columnSize; ++i) {
+		auto& col = meta->columns[i];
+		auto isNull = value.isNullAtCol(i);
+		nullBitsetPtr->set(static_cast<size_t>(i), isNull);
+		if(!isNull) {
+			auto const& v = value.getDataAtCol(i);
+			std::memcpy(data.data() + col.offset, v.data(), v.size());
+		}
+	}
+	return data;
+}
+
+TableRecord Table::toRecord(const uchar *data, std::vector<int> const& ids) const {
+	auto record = TableRecord();
+	auto value = TableRecordRef(meta, data);
+	for(auto i: ids) {
+		auto type = meta->columns[i].dataType;
+		if(value.isNullAtCol(i))
+			record.pushNull(type);
+		else
+			record.push(type, value.getDataAtCol(i));
+	}
+	return record;
 }

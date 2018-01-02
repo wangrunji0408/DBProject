@@ -53,6 +53,14 @@ inline int parseDate(const std::string &str) {
 	return static_cast<int>(time_new);
 }
 
+inline std::string dateToString(time_t x) {
+	tm tm;
+	localtime_r(&x, &tm);
+	return std::to_string(tm.tm_year + 1900)
+		   + "/" + std::to_string(tm.tm_mon + 1)
+		   + "/" + std::to_string(tm.tm_mday);
+}
+
 inline void parse(const std::string &str, unsigned char* buf, DataType type, int size) {
 	switch(type) {
 		case UNKNOWN:
