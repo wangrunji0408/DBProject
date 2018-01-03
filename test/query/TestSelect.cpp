@@ -237,8 +237,18 @@ TEST_F(TestSelect, FromOne_Where_OP_LIKE)
 	auto cmd = Select();
 	cmd.froms = {"people"};
 	cmd.selects = {"id"};
-	cmd.where = {{{"", "name", BoolExpr::OP_LIKE, "%lice", ""}}};
+	cmd.where = {{{"", "name", BoolExpr::OP_LIKE, "_lice", ""}}};
 	auto result = db->select(cmd);
+	ASSERT_EQ(1, result.records.size());
+	ASSERT_EQ(TableRecord::fromString({INT}, {"1"}), result.records[0]);
+
+	cmd.where = {{{"", "name", BoolExpr::OP_LIKE, "%o%", ""}}};
+	result = db->select(cmd);
+	ASSERT_EQ(1, result.records.size());
+	ASSERT_EQ(TableRecord::fromString({INT}, {"2"}), result.records[0]);
+
+	cmd.where = {{{"", "name", BoolExpr::OP_LIKE, "A[cil]*e", ""}}};
+	result = db->select(cmd);
 	ASSERT_EQ(1, result.records.size());
 	ASSERT_EQ(TableRecord::fromString({INT}, {"1"}), result.records[0]);
 

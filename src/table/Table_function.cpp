@@ -3,8 +3,20 @@
 //
 
 #include <bitset>
+#include <regex>
+#include <ast/Exceptions.h>
 #include "Table.h"
-#include "system/Database.h"
+
+inline
+std::function<bool(const char*)> makeLikePredict(std::string const& pattern) {
+	auto r = pattern;
+	r = std::regex_replace(r, std::regex("%"), ".*");
+	r = std::regex_replace(r, std::regex("_"), ".");
+	auto regex = std::regex(r);
+	return [=](const void* str) {
+		return std::regex_match((char*)str, regex);
+	};
+}
 
 std::function<bool(const void *)> Table::makePredict(Condition const &condition) const {
 	auto fs = std::vector<std::function<bool(const void *)>>();
@@ -22,10 +34,10 @@ std::function<bool(const void *)> Table::makePredict(Condition const &condition)
 std::function<bool(const void *)> Table::makePredict(BoolExpr const &expr) const {
 	int colID = meta->getColomnId(expr.columnName);
 	if(colID == -1)
-		throw std::runtime_error("Column name doesn't exist");
+		throw ExecuteError("Column name doesn't exist");
 	auto const& col = meta->columns[colID];
 	if(!expr.rhsAttr.empty())
-		throw std::runtime_error("Compare with attr is not supported");
+		throw ExecuteError("Compare with attr is not supported");
 
 #define CHECK_NULL(RET_VALUE)\
 	if(((bitset<128>*)((char*)pData + (bitsetOffset)))->test(colID)) return RET_VALUE;
@@ -43,7 +55,7 @@ std::function<bool(const void *)> Table::makePredict(BoolExpr const &expr) const
 	case BoolExpr::OP_GE: return CMP(>=, false);\
 	case BoolExpr::OP_IS_NULL: return TEST_NULL(true);\
 	case BoolExpr::OP_IS_NOT_NULL: return TEST_NULL(false);\
-	default: throw std::runtime_error("Unexpected op case");
+	default: throw ExecuteError("Unexpected op case");
 
 	int intValue;
 	float floatValue;
@@ -51,7 +63,7 @@ std::function<bool(const void *)> Table::makePredict(BoolExpr const &expr) const
 	bool testNull = expr.op == BoolExpr::OP_IS_NULL || expr.op == BoolExpr::OP_IS_NOT_NULL;
 	switch(col.dataType) {
 		case UNKNOWN:
-			throw std::runtime_error("UNKNOWN datatype");
+			throw ExecuteError("UNKNOWN datatype");
 		case INT: case DATE:
 			if(!testNull)
 			intValue = col.dataType == INT?
@@ -61,7 +73,7 @@ std::function<bool(const void *)> Table::makePredict(BoolExpr const &expr) const
 			switch(expr.op) {
 				BASIC_CASE
 				case BoolExpr::OP_LIKE:
-					throw std::runtime_error("Operation LIKE is not capable with type INT");
+					throw ExecuteError("Operation LIKE is not capable with type INT");
 			}
 #undef CMP
 		case CHAR:
@@ -72,7 +84,8 @@ std::function<bool(const void *)> Table::makePredict(BoolExpr const &expr) const
 			switch(expr.op) {
 				BASIC_CASE
 				case BoolExpr::OP_LIKE:
-					return [=](const void* pData) {return false;}; // TODO
+					auto predict = makeLikePredict(expr.rhsValue);
+					return [=](const void* pData) {CHECK_NULL(false) return predict((char*)pData + offset); };
 			}
 #undef CMP
 		case FLOAT:
@@ -82,7 +95,7 @@ std::function<bool(const void *)> Table::makePredict(BoolExpr const &expr) const
 			switch(expr.op) {
 				BASIC_CASE
 				case BoolExpr::OP_LIKE:
-					throw std::runtime_error("Operation LIKE is not capable with type FLOAT");
+					throw ExecuteError("Operation LIKE is not capable with type FLOAT");
 			}
 #undef CMP
 	}
@@ -104,7 +117,7 @@ std::function<void(const void *)> Table::makeUpdate(const vector<SetStmt> &sets)
 std::function<void(const void *)> Table::makeUpdate(const SetStmt &set) const {
 	int colID = meta->getColomnId(set.columnName);
 	if(colID == -1)
-		throw std::runtime_error("Column name doesn't exist");
+		throw ExecuteError("Column name doesn't exist");
 	auto const& col = meta->columns[colID];
 
 	int offset = col.offset;
@@ -112,7 +125,7 @@ std::function<void(const void *)> Table::makeUpdate(const SetStmt &set) const {
 
 	if(set.value.empty()) {
 		if(!col.nullable)
-			throw std::runtime_error("Can not set NULL to non-nullable attribute");
+			throw ExecuteError("Can not set NULL to non-nullable attribute");
 		return [=](const void * pData) {
 			((bitset<128>*)((char*)pData + bitsetOffset))->set(colID);
 		};
@@ -125,9 +138,11 @@ std::function<void(const void *)> Table::makeUpdate(const SetStmt &set) const {
 
 	switch(col.dataType) {
 		case UNKNOWN:
-			throw std::runtime_error("UNKNOWN datatype");
-		case INT:
-			intValue = std::stoi(set.value);
+			throw ExecuteError("UNKNOWN datatype");
+		case INT: case DATE:
+			intValue = col.dataType == INT?
+					   std::stoi(set.value):
+					   parseDate(set.value);
 			return [=](const void * pData) {
 				*(int*)((char*)pData + offset) = intValue;
 				RESET_NULLABLE;
@@ -145,8 +160,6 @@ std::function<void(const void *)> Table::makeUpdate(const SetStmt &set) const {
 				*(float*)((char*)pData + offset) = floatValue;
 				RESET_NULLABLE;
 			};
-		case DATE:
-			throw std::runtime_error("Not implemented!");
 	}
 #undef RESET_NULLABLE
 }

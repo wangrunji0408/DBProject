@@ -197,8 +197,6 @@ QueryManager::makePredict(SelectResult const& result, BoolExpr const &expr) {
 
 			switch(expr.op) {
 				BASIC_CASE
-				case BoolExpr::OP_LIKE:
-					throw std::runtime_error("Operation LIKE is not capable with type INT");
 			}
 #undef CMP
 		case CHAR:
@@ -207,12 +205,10 @@ QueryManager::makePredict(SelectResult const& result, BoolExpr const &expr) {
 			CHECK_NULL\
 			auto v1 = (char*)record.getDataAtCol(lhsId).data();\
 			auto v2 = (char*)record.getDataAtCol(rhsId).data();\
-			return 0 OP strcmp(v1,v2); }
+			return strcmp(v1,v2) OP 0; }
 
 			switch(expr.op) {
 				BASIC_CASE
-				case BoolExpr::OP_LIKE:
-					return [=](TableRecord const &record) {return false;}; // TODO
 			}
 #undef CMP
 		case FLOAT:
@@ -223,8 +219,6 @@ QueryManager::makePredict(SelectResult const& result, BoolExpr const &expr) {
 			return v1 OP v2; }
 			switch(expr.op) {
 				BASIC_CASE
-				case BoolExpr::OP_LIKE:
-					throw std::runtime_error("Operation LIKE is not capable with type FLOAT");
 			}
 #undef CMP
 	}
