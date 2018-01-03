@@ -151,6 +151,7 @@ std::function<void(const void *)> Table::makeUpdate(const SetStmt &set) const {
 				*(int*)((char*)pData + offset) = intValue;
 				RESET_NULLABLE;
 			};
+			break;
 		case CHAR:
 		case VARCHAR:
 			strValue = set.value;
@@ -159,6 +160,7 @@ std::function<void(const void *)> Table::makeUpdate(const SetStmt &set) const {
 				std::strncpy((char*)pData + offset, strValue.c_str(), col.size);
 				RESET_NULLABLE;
 			};
+			break;
 		case FLOAT:
 			floatValue = std::stof(set.value);
 			data = &floatValue;
@@ -166,6 +168,7 @@ std::function<void(const void *)> Table::makeUpdate(const SetStmt &set) const {
 				*(float*)((char*)pData + offset) = floatValue;
 				RESET_NULLABLE;
 			};
+			break;
 	}
 #undef RESET_NULLABLE
 

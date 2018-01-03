@@ -4,6 +4,7 @@
 
 #include <system/DatabaseMetaPage.h>
 #include <table/TableMetaPage.h>
+#include <ast/Exceptions.h>
 #include "RecordManager.h"
 #include "system/Database.h"
 
@@ -92,7 +93,7 @@ RecordSet *RecordManager::getSet(::std::string name) {
 			return tables[i].get();
 		}
 	}
-	throw ::std::runtime_error("A table with this name do not exist");
+	throw NameNotExistError("table", name);
 }
 
 RecordSet *RecordManager::getSet(int id) const {
