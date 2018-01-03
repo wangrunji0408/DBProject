@@ -16,7 +16,7 @@ protected:
 		TestQueryBase::Reopen();
 	}
 
-	void insert(int N) {
+	void insertBooks(int N) {
 		auto cmd = Insert();
 		cmd.tableName = "book";
 		cmd.records.reserve(N);
@@ -24,6 +24,32 @@ protected:
 			auto record = TableRecord();
 			record.pushInt(i);
 			record.pushVarchar("Book" + std::to_string(i));
+
+			cmd.records.push_back(record);
+		}
+		db->execute(cmd);
+	}
+
+	void insertPeoples(int N) {
+		auto cmd = Insert();
+		cmd.tableName = "people";
+		cmd.records.reserve(N);
+		for(int i=0; i<N; ++i) {
+			auto record = TableRecord::fromString(types,
+				{std::to_string(i),"People" + std::to_string(i),"M","","","",""});
+			cmd.records.push_back(record);
+		}
+		db->execute(cmd);
+	}
+
+	void insertBorrows(int N) {
+		auto cmd = Insert();
+		cmd.tableName = "borrow";
+		cmd.records.reserve(N);
+		for(int i=0; i<N; ++i) {
+			auto record = TableRecord();
+			record.pushInt(i);
+			record.pushInt(i);
 			cmd.records.push_back(record);
 		}
 		db->execute(cmd);
@@ -39,7 +65,7 @@ TEST_F(TestOptimize, Insert_1e4_100ms)
 	const int N = 10000;
 
 	GTEST_TIMEOUT_BEGIN
-	insert(N);
+	insertBooks(N);
 	GTEST_TIMEOUT_END(100)
 
 	ASSERT_EQ(N, db->getTable("book")->size());
@@ -48,7 +74,7 @@ TEST_F(TestOptimize, Insert_1e4_100ms)
 TEST_F(TestOptimize, Update_1e4_10ms)
 {
 	const int N = 10000;
-	insert(N);
+	insertBooks(N);
 
 	GTEST_TIMEOUT_BEGIN
 	auto cmd = Update();
@@ -61,7 +87,7 @@ TEST_F(TestOptimize, Update_1e4_10ms)
 TEST_F(TestOptimize, SelectWithIndex_1e5_100ms)
 {
 	const int N = 1 << 14;
-	insert(N);
+	insertBooks(N);
 
 	GTEST_TIMEOUT_BEGIN
 	for(int i=0; i<100000; ++i) {
@@ -80,7 +106,7 @@ TEST_F(TestOptimize, SelectWithIndex_1e5_100ms)
 TEST_F(TestOptimize, UpdateWithIndex_1e5_100ms)
 {
 	const int N = 1 << 14;
-	insert(N);
+	insertBooks(N);
 
 	GTEST_TIMEOUT_BEGIN
 	for(int i=0; i<100000; ++i) {
@@ -92,6 +118,26 @@ TEST_F(TestOptimize, UpdateWithIndex_1e5_100ms)
 		db->execute(cmd);
 	}
 	GTEST_TIMEOUT_END(100)
+}
+
+TEST_F(TestOptimize, SelectWithForeignKey_1e4_150ms)
+{
+	const int N = 10000;
+	insertBooks(N);
+	insertPeoples(N);
+	insertBorrows(N);
+
+	GTEST_TIMEOUT_BEGIN
+	auto select = Select();
+	select.froms = {"book", "borrow"};
+	select.selects = {"book.id"};
+	select.where = {{
+		{"book", "id", BoolExpr::OP_EQ, "", "borrow.book_id"},
+//		{"borrow", "people_id", BoolExpr::OP_EQ, "1", ""},
+	}};
+	auto result = db->select(select);
+	ASSERT_EQ(10000, result.records.size());
+	GTEST_TIMEOUT_END(150)
 }
 
 }

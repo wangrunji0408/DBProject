@@ -35,12 +35,19 @@ inline string getColName(string const& str) {
 SelectResult QueryManager::select(Select const &cmd) {
 	if(cmd.froms.empty())
 		throw ExecuteError("Froms is empty");
-	if(cmd.froms.size() == 1) {
-		auto tableName = cmd.froms[0];
-		auto table = database.getTable(tableName);
-		// check selects
-		auto selects = std::vector<std::string>();
-		if(cmd.selects.size() == 1 && cmd.selects[0] == "*")
+	if(cmd.froms.size() == 1)
+		return selectFromOne(cmd);
+	if(cmd.froms.size() == 2)
+		return selectFromTwo(cmd);
+	return selectFromMany(cmd);
+}
+
+SelectResult QueryManager::selectFromOne(const Select &cmd) const {
+	auto tableName = cmd.froms[0];
+	auto table = database.getTable(tableName);
+	// check selects
+	auto selects = vector<string>();
+	if(cmd.selects.size() == 1 && cmd.selects[0] == "*")
 			selects = {"*"};
 		else
 			for(auto const& fullname: cmd.selects) {
@@ -50,33 +57,82 @@ SelectResult QueryManager::select(Select const &cmd) {
 					throw NameNotExistError("table", t);
 				selects.push_back(c);
 			}
-		// check wheres
-		for(auto const& expr: cmd.where.ands)
-			if(expr.tableName != tableName && !expr.tableName.empty())
-				throw NameNotExistError("table", expr.tableName);
-		return table->select(selects, cmd.where);
-	}
+	// check wheres
+	for(auto const& expr: cmd.where.ands)
+		if(expr.tableName != tableName && !expr.tableName.empty())
+			throw NameNotExistError("table", expr.tableName);
+	return table->select(selects, cmd.where);
+}
 
+SelectResult QueryManager::selectFromTwo(const Select &cmd) const {
+	auto relatedCols = getRelatedCols(cmd.where);
+
+	for(auto const& expr: cmd.where.ands) {
+		auto table = database.getTable(expr.tableName);
+		auto def = table->getDef();
+		if(!expr.rhsAttr.empty()
+		   && expr.op == BoolExpr::OP_EQ
+		   && def.primaryKeys.size() == 1
+		   && def.primaryKeys[0] == expr.columnName) {
+			// find t1.pk == t2.foreign
+
+			// select from t2
+			auto table2Name = getTableName(expr.rhsAttr);
+			auto result2 = selectOne(cmd, relatedCols, table2Name);
+
+			// complete selects
+			auto const& table1Name = expr.tableName;
+			auto ss = relatedCols[table1Name];
+			for(auto const& fullname: cmd.selects)
+				if(getTableName(fullname) == table1Name)
+					ss.insert(getColName(fullname));
+			auto selects = std::vector<std::string>(ss.begin(), ss.end());
+			// filter wheres
+			auto cond = Condition();
+			cond.ands.push_back(expr);
+			for(auto const& expr: cmd.where.ands)
+				if(expr.tableName == table1Name && expr.rhsAttr.empty())
+					cond.ands.push_back(expr);
+			auto& e = cond.ands[0];
+			e.rhsAttr = "";
+
+			auto result = SelectResult();
+			int indexDataId = result2.indexOf(expr.rhsAttr);
+
+			// foreach find in t1 then join
+			for(auto const& record: result2.records) {
+				auto indexData = record.getDataAtCol(indexDataId);
+				e.rhsValue = std::to_string(*(int*)indexData.data()); // TODO support other type (now only INT)
+				// select
+				auto result1 = table->select(selects, cond);
+				if(result1.records.size() > 1)
+					throw std::runtime_error("WTF! size > 1");
+				if(result.colNames.empty())
+					result.colNames = concat(result1.colNames, result2.colNames);
+				if(result1.records.size() == 1)
+					result.records.push_back(TableRecord::concat(result1.records[0], record));
+			}
+			auto crossCond = Condition();
+			for(auto const& expr: cmd.where.ands)
+				if(!expr.rhsAttr.empty())
+					crossCond.ands.push_back(expr);
+			filter(result, crossCond);
+			select(result, cmd.selects);
+			return result;
+		}
+
+	}
+	// can not optimize
+	return selectFromMany(cmd);
+}
+
+SelectResult QueryManager::selectFromMany(const Select &cmd) const {
 	auto relatedCols = getRelatedCols(cmd.where);
 
 	auto results = std::vector<SelectResult>();
 	results.reserve(cmd.froms.size());
 	for(const auto &tableName: cmd.froms) {
-		auto table = database.getTable(tableName);
-		// filter selects
-//		auto selects = std::vector<std::string>();
-		auto& ss = relatedCols[tableName];
-		for(auto const& fullname: cmd.selects)
-			if(getTableName(fullname) == tableName)
-				ss.insert(getColName(fullname));
-		auto selects = std::vector<std::string>(ss.begin(), ss.end());
-		// filter wheres
-		auto cond = Condition();
-		for(auto const& expr: cmd.where.ands)
-			if(expr.tableName == tableName && expr.rhsAttr.empty())
-				cond.ands.push_back(expr);
-		// select
-		results.push_back(table->select(selects, cond));
+		results.push_back(selectOne(cmd, relatedCols, tableName));
 	}
 
 	// sort results by size
@@ -117,6 +173,25 @@ SelectResult QueryManager::select(Select const &cmd) {
 	}
 
 	return result;
+}
+
+SelectResult QueryManager::selectOne(const Select &cmd, const map<string, set<string>> &relatedCols, const string &tableName) const {
+	auto table = database.getTable(tableName);
+	// filter selects
+	auto ss = relatedCols.count(tableName) == 1?
+			  relatedCols.at(tableName):
+			  std::set<string>();
+	for(auto const& fullname: cmd.selects)
+		if(getTableName(fullname) == tableName)
+			ss.insert(getColName(fullname));
+	auto selects = std::vector<std::string>(ss.begin(), ss.end());
+	// filter wheres
+	auto cond = Condition();
+	for(auto const& expr: cmd.where.ands)
+		if(expr.tableName == tableName && expr.rhsAttr.empty())
+			cond.ands.push_back(expr);
+	// select
+	return table->select(selects, cond);
 }
 
 void QueryManager::update(Update const &cmd) {

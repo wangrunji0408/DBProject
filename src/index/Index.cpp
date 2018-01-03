@@ -221,12 +221,16 @@ IndexIterator Index::begin() const {
 
 IndexIterator Index::lowerBound(const void *pData) const {
 	auto pos = lowerBound(pData, RID(0,0));
+	if(pos == RID(-1,-1))	// end
+		return IndexIterator((Index&)*this, database.getPage(0), -1);
 	auto page = database.getPage(pos.pageId);
 	return IndexIterator((Index&)*this, page, pos.slotId);
 }
 
 IndexIterator Index::upperBound(const void *pData) const {
 	auto pos = lowerBound(pData, RID(-1,-1));
+	if(pos == RID(-1,-1))	// end
+		return IndexIterator((Index&)*this, database.getPage(0), -1);
 	auto page = database.getPage(pos.pageId);
 	return IndexIterator((Index&)*this, page, pos.slotId);
 }
