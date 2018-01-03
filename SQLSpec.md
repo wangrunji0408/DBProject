@@ -7,7 +7,7 @@
 - Sequence start woth `/*` and end with `*/` or EOS should be ignored
 - Sequence matched by regex `[a-zA-Z_][0-9a-zA-Z_]*` is a keyword or identifier token
 	- It is a keyword token when it is one of these(case insensitively):
-		- `AND` `CREATE` `DATABASE` `DATABASES` `DATE` `DELETE` `DESC` `DROP` `FLOAT` `FOREIGN` `FROM`
+		- `AND` `CREATE` `DATABASE` `DATABASES` `DATE` `DELETE` `DESC` `DROP` `FLOAT` `FOREIGN` `FROM` `GROUPBY`
 		- `INDEX` `INSERT` `INT` `INTO` `IS` `LIKE` `KEY` `NOT` `NULL`
 		- `PRIMARY` `REFERENCES` `SELECT` `SET` `SHOW` `TABLE` `TABLES`
 		- `UNIQUE` `UPDATE` `USE` `VALUES` `VARCHAR` `WHERE`
@@ -51,9 +51,9 @@ Note: in interactive enviroment, `\` followed by a line-feed is replaced with a 
 	- UNIQUE
 - QueryCommand
 	- INSERT INTO identifier VALUES ValueLists
-	- DELETE FROM identifier WHERE Where
-	- UPDATE identifier SET Set WHERE Where
-	- SELECT Select FROM TableList WHERE where
+	- DELETE FROM identifier (WHERE Where)?
+	- UPDATE identifier SET Set (WHERE Where)?
+	- SELECT Select FROM TableList (WHERE where)? (GROUPBY ColumnSpec)?
 - Where
 	- Condition (AND Condition)*
 - Condition

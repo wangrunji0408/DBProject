@@ -22,6 +22,7 @@ enum class TokenType{
 	K_FLOAT,
 	K_FOREIGN,
 	K_FROM,
+	K_GROUPBY,
 	K_INDEX,
 	K_INSERT,
 	K_INT,

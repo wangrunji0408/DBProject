@@ -77,13 +77,16 @@ void Parser::eatToken(TokenType type,::std::string errorMessage){
 	if(lookahead.type==TokenType::K_INSERT){
 		return parseInsertStmt();
 	}
+	if(lookahead.type==TokenType::K_SELECT){
+		return parseSelectStmt();
+	}
 	if(lookahead.type==TokenType::K_SHOW){
 		return parseShowStmt();
 	}
 	if(lookahead.type==TokenType::K_USE){
 		return parseUseStmt();
 	}
-	throw ParseError("Expected keyword CREATE/DELETE/DESC/DROP/INSERT/SHOW/USE"s);
+	throw ParseError("Expected keyword CREATE/DELETE/DESC/DROP/INSERT/SELECT/SHOW/USE"s);
 }
 ::std::unique_ptr<Statement> Parser::parseShowStmt(){
 	eatToken(TokenType::K_SHOW,"Expected keyword SHOW"s);
@@ -198,11 +201,48 @@ void Parser::eatToken(TokenType type,::std::string errorMessage){
 	eatToken(TokenType::K_FROM,"Expected keyword FROM"s);
 	::std::unique_ptr<Delete> deleteCmd=::std::make_unique<Delete>();
 	deleteCmd->tableName=getIdentifier("Expected table name"s);
-	eatToken(TokenType::K_WHERE,"Expected keyword WHERE"s);
-	parseWhere(deleteCmd->where);
+	if(lookahead.type==TokenType::K_WHERE){
+		nextToken();
+		parseWhere(deleteCmd->where);
+	}
 	::std::unique_ptr<CommandStmt> cmdStmt=::std::make_unique<CommandStmt>();
 	cmdStmt->command=::std::move(deleteCmd);
 	return ::std::move(cmdStmt);
+}
+::std::unique_ptr<Statement> Parser::parseSelectStmt(){
+	eatToken(TokenType::K_SELECT,"Expected keyword SELECT"s);
+	::std::unique_ptr<Select> selectCmd=::std::make_unique<Select>();
+	if(lookahead.type==TokenType::P_STAR){
+		nextToken();
+		selectCmd->selects.push_back("*");
+	}else{
+		if(lookahead.type!=TokenType::IDENTIFIER){
+			throw ParseError("Expected column specification or '*'"s);
+		}
+		selectCmd->selects.push_back(parseColumnSpecString());
+		while(lookahead.type==TokenType::P_COMMA){
+			nextToken();
+			selectCmd->selects.push_back(parseColumnSpecString());
+		}
+	}
+	eatToken(TokenType::K_FROM,"Expected keyword FROM"s);
+	selectCmd->froms.push_back(getIdentifier("Expected table name"s));
+	while(lookahead.type==TokenType::P_COMMA){
+		nextToken();
+		selectCmd->froms.push_back(getIdentifier("Expected table name"s));
+	}
+	if(lookahead.type==TokenType::K_WHERE){
+		nextToken();
+		parseWhere(selectCmd->where);
+	}
+	if(lookahead.type==TokenType::K_GROUPBY){
+		nextToken();
+		selectCmd->groupBy=parseColumnSpecString();
+	}
+	::std::unique_ptr<CommandStmt> cmdStmt=::std::make_unique<CommandStmt>();
+	cmdStmt->command=::std::move(selectCmd);
+	return ::std::move(cmdStmt);
+
 }
 void Parser::parseTableDefineField(TableDef& tableDefine,bool& primaryKeySetted){
 	if(lookahead.type==TokenType::IDENTIFIER){
@@ -358,14 +398,7 @@ BoolExpr Parser::parseCondition(){
 	parseOp(boolExpr.op);
 	if((boolExpr.op!=BoolExpr::OP_IS_NOT_NULL)&&(boolExpr.op!=BoolExpr::OP_IS_NULL)){
 		if(lookahead.type==TokenType::IDENTIFIER){
-			::std::string table;
-			::std::string column;
-			parseColumnSpec(table,column);
-			if(table==""){
-				boolExpr.rhsAttr=column;
-			}else{
-				boolExpr.rhsAttr=table+"."+column;
-			}
+			boolExpr.rhsAttr=parseColumnSpecString();
 			return boolExpr;
 		}
 		if(lookahead.type==TokenType::INT){
@@ -396,6 +429,17 @@ void Parser::parseColumnSpec(::std::string& table,::std::string& column){
 	}else{
 		table="";
 		column=name1;
+	}
+}
+
+::std::string Parser::parseColumnSpecString(){
+	::std::string table;
+	::std::string column;
+	parseColumnSpec(table,column);
+	if(table==""){
+		return column;
+	}else{
+		return table+"."+column;
 	}
 }
 void Parser::parseOp(BoolExpr::Operator& op){

@@ -112,8 +112,8 @@ TEST_F(TestParser, HandleInsertCommandStatements)
 
 TEST_F(TestParser, HandleDeleteCommandStatements)
 {
-	auto statements=Parser::parseString("delete from sekai where human is not null and love is null and you<>me and hate>100");
-	ASSERT_EQ(statements.size(),1);
+	auto statements=Parser::parseString("delete from sekai where human is not null and love is null and you<>me and hate>100;delete from datas");
+	ASSERT_EQ(statements.size(),2);
 	ASSERT_EQ(statements[0]->getType(),StatementType::COMMAND);
 	auto& command=dynamic_cast<CommandStmt&>(*statements[0]).command;
 	ASSERT_EQ(command->getType(),CMD_DELETE);
@@ -134,7 +134,47 @@ TEST_F(TestParser, HandleDeleteCommandStatements)
 	ASSERT_EQ(dynamic_cast<Delete&>(*command).where.ands[3].op,BoolExpr::OP_GT);
 	ASSERT_EQ(dynamic_cast<Delete&>(*command).where.ands[3].rhsAttr,"");
 	ASSERT_EQ(dynamic_cast<Delete&>(*command).where.ands[3].rhsValue,"100");
+	ASSERT_EQ(statements[1]->getType(),StatementType::COMMAND);
+	auto& command2=dynamic_cast<CommandStmt&>(*statements[1]).command;
+	ASSERT_EQ(command2->getType(),CMD_DELETE);
+	ASSERT_EQ(dynamic_cast<Delete&>(*command2).tableName,"datas");
+	ASSERT_EQ(dynamic_cast<Delete&>(*command2).where.ands.size(),0);
 
+}
+
+TEST_F(TestParser, HandleSelectCommandStatements){
+	auto statements=Parser::parseString("select * from box groupby type;select statement,program.name from program,function where function.name like '?box?' and program.length<=20");
+	ASSERT_EQ(statements.size(),2);
+	ASSERT_EQ(statements[0]->getType(),StatementType::COMMAND);
+	auto& command=dynamic_cast<CommandStmt&>(*statements[0]).command;
+	ASSERT_EQ(command->getType(),CMD_SELECT);
+	ASSERT_EQ(dynamic_cast<Select&>(*command).selects.size(),1);
+	ASSERT_EQ(dynamic_cast<Select&>(*command).selects[0],"*");
+	ASSERT_EQ(dynamic_cast<Select&>(*command).froms.size(),1);
+	ASSERT_EQ(dynamic_cast<Select&>(*command).froms[0],"box");
+	ASSERT_EQ(dynamic_cast<Select&>(*command).where.ands.size(),0);
+	ASSERT_EQ(dynamic_cast<Select&>(*command).groupBy,"type");
+	ASSERT_EQ(statements[1]->getType(),StatementType::COMMAND);
+	auto& command2=dynamic_cast<CommandStmt&>(*statements[1]).command;
+	ASSERT_EQ(command2->getType(),CMD_SELECT);
+	ASSERT_EQ(dynamic_cast<Select&>(*command2).selects.size(),2);
+	ASSERT_EQ(dynamic_cast<Select&>(*command2).selects[0],"statement");
+	ASSERT_EQ(dynamic_cast<Select&>(*command2).selects[1],"program.name");
+	ASSERT_EQ(dynamic_cast<Select&>(*command2).froms.size(),2);
+	ASSERT_EQ(dynamic_cast<Select&>(*command2).froms[0],"program");
+	ASSERT_EQ(dynamic_cast<Select&>(*command2).froms[1],"function");
+	ASSERT_EQ(dynamic_cast<Select&>(*command2).where.ands.size(),2);
+	ASSERT_EQ(dynamic_cast<Select&>(*command2).where.ands[0].tableName,"function");
+	ASSERT_EQ(dynamic_cast<Select&>(*command2).where.ands[0].columnName,"name");
+	ASSERT_EQ(dynamic_cast<Select&>(*command2).where.ands[0].op,BoolExpr::OP_LIKE);
+	ASSERT_EQ(dynamic_cast<Select&>(*command2).where.ands[0].rhsAttr,"");
+	ASSERT_EQ(dynamic_cast<Select&>(*command2).where.ands[0].rhsValue,"?box?");
+	ASSERT_EQ(dynamic_cast<Select&>(*command2).where.ands[1].tableName,"program");
+	ASSERT_EQ(dynamic_cast<Select&>(*command2).where.ands[1].columnName,"length");
+	ASSERT_EQ(dynamic_cast<Select&>(*command2).where.ands[1].op,BoolExpr::OP_LE);
+	ASSERT_EQ(dynamic_cast<Select&>(*command2).where.ands[1].rhsAttr,"");
+	ASSERT_EQ(dynamic_cast<Select&>(*command2).where.ands[1].rhsValue,"20");
+	ASSERT_EQ(dynamic_cast<Select&>(*command2).groupBy,"");
 }
 
 }

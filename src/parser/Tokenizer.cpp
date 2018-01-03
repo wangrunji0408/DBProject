@@ -123,6 +123,8 @@ Token Tokenizer::next(){
 				return{TokenType::K_FOREIGN};
 			}else if(content=="from"){
 				return{TokenType::K_FROM};
+			}else if(content=="groupby"){
+				return{TokenType::K_GROUPBY};
 			}else if(content=="index"){
 				return{TokenType::K_INDEX};
 			}else if(content=="insert"){
