@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <ostream>
+#include <algorithm>
 #include <table/TableRecord.h>
 
 //namespace CommandDef {
