@@ -18,6 +18,18 @@ enum DataType {
 	DATE = 5
 };
 
+inline std::string to_string(DataType t) {
+	switch (t) {
+		case UNKNOWN: 	return "UNKNOWN";
+		case INT:		return "INT";
+		case CHAR:		return "CHAR";
+		case VARCHAR:	return "VARCHAR";
+		case FLOAT:		return "FLOAT";
+		case DATE:		return "DATE";
+	}
+	return "ERROR";
+}
+
 inline int parseInt(const std::string &str) {
 	size_t parseEnd;
 	int v = std::stoi(str, &parseEnd);

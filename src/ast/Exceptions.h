@@ -49,9 +49,9 @@ struct NotUniqueError: ExecuteError {
 	NotUniqueError() : ExecuteError("NotUnique") {}
 };
 
-struct ValueSizeError: OneValueError {
-	ValueSizeError(int valueNum, const TableRecord &value)
-			: OneValueError(valueNum, value, 0, "") {}
+struct ValueTypeError: ExecuteError {
+	ValueTypeError(DataType expected, DataType actual) :
+			ExecuteError("ValueTypeError expect: " + to_string(expected) + " actual: " + to_string(actual)) {}
 };
 
 struct ForeignKeyNotExistError: ExecuteError {

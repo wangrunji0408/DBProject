@@ -211,11 +211,24 @@ std::string Table::check(TableRecord const &record) const {
 		return "Value attr size not equal to column size";
 	for(int i=0; i<meta->columnSize; ++i) {
 		auto const& col = meta->columns[i];
+		auto const& value = record.getDataAtCol(i);
+		auto isNull = record.isNullAtCol(i);
 		auto t1 = record.getTypeAtCol(i);
 		auto t2 = col.dataType;
-		if(t1 != t2)
+		if((t1 == VARCHAR || t1 == CHAR) && (t2 == VARCHAR || t2 == CHAR)) {
+		} else if((t1 == VARCHAR || t1 == CHAR) && t2 == DATE) {
+			try {
+				parseDate((char*)value.data());
+			} catch (std::runtime_error const&) {
+				return "Date format error";
+			}
+			continue;
+		} else if(t1 == INT || t2 == FLOAT) {
+		} else if(isNull) {
+		} else if(t1 != t2) {
 			return "Column " + std::to_string(i) + " type error";
-		if(record.getDataAtCol(i).size() > col.size)
+		}
+		if(value.size() > col.size)
 			return "Column " + std::to_string(i) + " size exceed";
 	}
 	return "";
@@ -230,8 +243,16 @@ Data Table::toData(const TableRecord &value) const {
 		auto isNull = value.isNullAtCol(i);
 		nullBitsetPtr->set(static_cast<size_t>(i), isNull);
 		if(!isNull) {
+			auto type = value.getTypeAtCol(i);
 			auto const& v = value.getDataAtCol(i);
-			std::memcpy(data.data() + col.offset, v.data(), v.size());
+			if(col.dataType == DATE && (type == VARCHAR || type == CHAR)) {
+				int x = parseDate((char*)v.data());
+				std::memcpy(data.data() + col.offset, &x, sizeof(x));
+			} else if(col.dataType == FLOAT && type == INT) {
+				float x = *(int*)v.data();
+				std::memcpy(data.data() + col.offset, &x, sizeof(x));
+			} else
+				std::memcpy(data.data() + col.offset, v.data(), v.size());
 		}
 	}
 	return data;

@@ -22,7 +22,18 @@ TEST_F(TestInsert, Normal)
 	insertRecords();
 }
 
-TEST_F(TestInsert, ThrowWhenDuplicateSinglePrimaryKey)
+TEST_F(TestInsert, ImplicitTypeCast)
+{
+	auto cmd = Insert();
+	cmd.tableName = "people";
+	cmd.records = {
+			TableRecord::fromString({INT, CHAR, VARCHAR, UNKNOWN, VARCHAR, INT, INT},
+									{"1","Alice","F","","1997/04/02","150","20"}),
+	};
+	db->execute(cmd);
+}
+
+	TEST_F(TestInsert, ThrowWhenDuplicateSinglePrimaryKey)
 {
 	auto cmd = Insert();
 	cmd.tableName = "people";
