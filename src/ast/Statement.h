@@ -75,7 +75,7 @@ struct DropIndexStmt:Statement{
 };
 
 struct CommandStmt:Statement{
-	Command command;
+	::std::unique_ptr<Command> command;
 	StatementType getType()override{return StatementType::COMMAND;}
 };
 

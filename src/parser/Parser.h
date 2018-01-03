@@ -6,6 +6,7 @@
 #include <memory>
 #include "parser/Tokenizer.h"
 #include "ast/TableDef.h"
+#include <table/TableRecord.h>
 
 struct Statement;
 
@@ -22,9 +23,12 @@ class Parser{
 	::std::unique_ptr<Statement> parseDescStmt();
 	::std::unique_ptr<Statement> parseDropStmt();
 	::std::unique_ptr<Statement> parseUseStmt();
+	::std::unique_ptr<Statement> parseInsertStmt();
 	void parseTableDefineField(TableDef& tableDefine,bool& primaryKeySetted);
 	void parseTypeDefine(DataType& type,size_t& size);
 	void parseColumnConstraint(bool& nullable,bool& unique);
+	TableRecord parseTableRecord();
+	void parseTableRecordValue(TableRecord& tableRecord);
 	Parser(const ::std::string text);
 	::std::vector<::std::unique_ptr<Statement>> parse();
 public:

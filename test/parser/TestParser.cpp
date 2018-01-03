@@ -1,6 +1,7 @@
 #include "../TestBase.h"
 #include "parser/Parser.h"
 #include "ast/Statement.h"
+#include "ast/Command.h"
 
 namespace {
 
@@ -18,13 +19,13 @@ protected:
 
 TEST_F(TestParser, HandleEmptyProgram)
 {
-	::std::vector<::std::unique_ptr<Statement>> statements=Parser::parseString(";;;\n;\n");
+	auto statements=Parser::parseString(";;;\n;\n");
 	ASSERT_EQ(statements.size(),0);
 }
 
 TEST_F(TestParser, HandleShowStatements)
 {
-	::std::vector<::std::unique_ptr<Statement>> statements=Parser::parseString("show databases;show tables;show table pika");
+	auto statements=Parser::parseString("show databases;show tables;show table pika");
 	ASSERT_EQ(statements.size(),3);
 	ASSERT_EQ(statements[0]->getType(),StatementType::SHOW_DATABASES);
 	ASSERT_EQ(statements[1]->getType(),StatementType::SHOW_TABLES);
@@ -34,7 +35,7 @@ TEST_F(TestParser, HandleShowStatements)
 
 TEST_F(TestParser, HandleUseStatements)
 {
-	::std::vector<::std::unique_ptr<Statement>> statements=Parser::parseString("use neko;use database nyan");
+	auto statements=Parser::parseString("use neko;use database nyan");
 	ASSERT_EQ(statements.size(),2);
 	ASSERT_EQ(statements[0]->getType(),StatementType::USE_DATABASE);
 	ASSERT_EQ(statements[1]->getType(),StatementType::USE_DATABASE);
@@ -44,7 +45,7 @@ TEST_F(TestParser, HandleUseStatements)
 
 TEST_F(TestParser, HandleDescStatements)
 {
-	::std::vector<::std::unique_ptr<Statement>> statements=Parser::parseString("desc\nnyanko;;;;");
+	auto statements=Parser::parseString("desc\nnyanko;;;;");
 	ASSERT_EQ(statements.size(),1);
 	ASSERT_EQ(statements[0]->getType(),StatementType::SHOW_TABLE_SCHEMA);
 	ASSERT_EQ(dynamic_cast<ShowTableSchemaStmt&>(*statements[0]).table,"nyanko");
@@ -52,7 +53,7 @@ TEST_F(TestParser, HandleDescStatements)
 
 TEST_F(TestParser, HandleDropStatements)
 {
-	::std::vector<::std::unique_ptr<Statement>> statements=Parser::parseString("drop database ditto;drop table mirror;drop index kirby(type)");
+	auto statements=Parser::parseString("drop database ditto;drop table mirror;drop index kirby(type)");
 	ASSERT_EQ(statements.size(),3);
 	ASSERT_EQ(statements[0]->getType(),StatementType::DROP_DATABASE);
 	ASSERT_EQ(statements[1]->getType(),StatementType::DROP_TABLE);
@@ -65,7 +66,7 @@ TEST_F(TestParser, HandleDropStatements)
 
 TEST_F(TestParser, HandleSimpleCreateStatements)
 {
-	::std::vector<::std::unique_ptr<Statement>> statements=Parser::parseString("create database world;create index page(homepage)");
+	auto statements=Parser::parseString("create database world;create index page(homepage)");
 	ASSERT_EQ(statements.size(),2);
 	ASSERT_EQ(statements[0]->getType(),StatementType::CREATE_DATABASE);
 	ASSERT_EQ(statements[1]->getType(),StatementType::CREATE_INDEX);
@@ -76,7 +77,7 @@ TEST_F(TestParser, HandleSimpleCreateStatements)
 
 TEST_F(TestParser, HandleCreateTableStatements)
 {
-	::std::vector<::std::unique_ptr<Statement>> statements=Parser::parseString("create table pika(chu int(10),nyan float not null unique,err date unique,pie varchar(1000) not null,primary key(chu,nyan),foreign key(err)references world(end),foreign key(pie)references eat(able))");
+	auto statements=Parser::parseString("create table pika(chu int(10),nyan float not null unique,err date unique,pie varchar(1000) not null,primary key(chu,nyan),foreign key(err)references world(end),foreign key(pie)references eat(able))");
 	ASSERT_EQ(statements.size(),1);
 	ASSERT_EQ(statements[0]->getType(),StatementType::CREATE_TABLE);
 	auto define = TableDef();
@@ -90,6 +91,23 @@ TEST_F(TestParser, HandleCreateTableStatements)
 	define.foreignKeys.push_back(ForeignKeyDef{"err","world","end"});
 	define.foreignKeys.push_back(ForeignKeyDef{"pie","eat","able"});
 	ASSERT_EQ(define,dynamic_cast<CreateTableStmt&>(*statements[0]).define);
+}
+
+TEST_F(TestParser, HandleInsertCommandStatements)
+{
+	auto statements=Parser::parseString("insert into world values ('2099-12-31',100,null,'null'),(5.5)");
+	ASSERT_EQ(statements.size(),1);
+	ASSERT_EQ(statements[0]->getType(),StatementType::COMMAND);
+	auto& command=dynamic_cast<CommandStmt&>(*statements[0]).command;
+	ASSERT_EQ(command->getType(),CMD_INSERT);
+	ASSERT_EQ(dynamic_cast<Insert&>(*command).tableName,"world");
+	ASSERT_EQ(dynamic_cast<Insert&>(*command).records.size(),2);
+	TableRecord tr0;
+	tr0.pushVarchar("2099-12-31").pushInt(100).pushNull(UNKNOWN).pushVarchar("null");
+	ASSERT_EQ(dynamic_cast<Insert&>(*command).records[0],tr0);
+	ASSERT_EQ(dynamic_cast<Insert&>(*command).records[1].size(),1);
+	ASSERT_EQ(dynamic_cast<Insert&>(*command).records[1].getTypeAtCol(0),FLOAT);
+	ASSERT_DOUBLE_EQ(*(float*)(dynamic_cast<Insert&>(*command).records[1].getDataAtCol(0).data()),5.5);
 }
 
 }

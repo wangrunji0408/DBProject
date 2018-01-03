@@ -4,7 +4,9 @@
 #include "parser/Parser.h"
 #include "parser/Tokenizer.h"
 #include "ast/Statement.h"
+#include "ast/Command.h"
 #include "ast/Exceptions.h"
+#include "table/TableRecord.h"
 using namespace std::literals::string_literals;
 
 Parser::Parser(const ::std::string text):tokenizer(text){
@@ -75,7 +77,10 @@ void Parser::eatToken(TokenType type,::std::string errorMessage){
 	if(lookahead.type==TokenType::K_USE){
 		return parseUseStmt();
 	}
-	throw ParseError("Expected keyword CREATE/DESC/DROP/SHOW/USE"s);
+	if(lookahead.type==TokenType::K_INSERT){
+		return parseInsertStmt();
+	}
+	throw ParseError("Expected keyword CREATE/DESC/DROP/INSERT/SHOW/USE"s);
 }
 ::std::unique_ptr<Statement> Parser::parseShowStmt(){
 	eatToken(TokenType::K_SHOW,"Expected keyword SHOW"s);
@@ -169,6 +174,21 @@ void Parser::eatToken(TokenType type,::std::string errorMessage){
 	::std::unique_ptr<UseDatabaseStmt> useStmt=::std::make_unique<UseDatabaseStmt>();
 	useStmt->database=getIdentifier("Expected database name"s);
 	return ::std::move(useStmt);
+}
+::std::unique_ptr<Statement> Parser::parseInsertStmt(){
+	eatToken(TokenType::K_INSERT,"Expected keyword INSERT"s);
+	eatToken(TokenType::K_INTO,"Expected keyword INTO"s);
+	::std::unique_ptr<Insert> insertCmd=::std::make_unique<Insert>();
+	insertCmd->tableName=getIdentifier("Expected table name"s);
+	eatToken(TokenType::K_VALUES,"Expected keyword VALUES"s);
+	insertCmd->records.push_back(parseTableRecord());
+	while(lookahead.type==TokenType::P_COMMA){
+		nextToken();
+		insertCmd->records.push_back(parseTableRecord());
+	}
+	::std::unique_ptr<CommandStmt> cmdStmt=::std::make_unique<CommandStmt>();
+	cmdStmt->command=::std::move(insertCmd);
+	return ::std::move(cmdStmt);
 }
 void Parser::parseTableDefineField(TableDef& tableDefine,bool& primaryKeySetted){
 	if(lookahead.type==TokenType::IDENTIFIER){
@@ -274,4 +294,40 @@ void Parser::parseColumnConstraint(bool& nullable,bool& unique){
 		return;
 	}
 	throw ParseError("Expected ')' or ',' or keyword NOT/UNIQUE"s);
+}
+
+TableRecord Parser::parseTableRecord(){
+	TableRecord tableRecord;
+	eatToken(TokenType::P_LPARENT,"Expected '('"s);
+	parseTableRecordValue(tableRecord);
+	while(lookahead.type==TokenType::P_COMMA){
+		nextToken();
+		parseTableRecordValue(tableRecord);
+	}
+	eatToken(TokenType::P_RPARENT,"Expected ')'"s);
+	return tableRecord;
+}
+
+void Parser::parseTableRecordValue(TableRecord& tableRecord){
+	if(lookahead.type==TokenType::K_NULL){
+		tableRecord.pushNull(UNKNOWN);
+		nextToken();
+		return;
+	}
+	if(lookahead.type==TokenType::INT){
+		tableRecord.pushInt(lookahead.intValue);
+		nextToken();
+		return;
+	}
+	if(lookahead.type==TokenType::FLOAT){
+		tableRecord.pushFloat(lookahead.floatValue);
+		nextToken();
+		return;
+	}
+	if(lookahead.type==TokenType::STRING){
+		tableRecord.pushVarchar(lookahead.stringValue);
+		nextToken();
+		return;
+	}
+	throw ParseError("Expected int, float, string or keyword NULL"s);
 }

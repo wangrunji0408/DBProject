@@ -76,6 +76,7 @@ Note: in interactive enviroment, `\` followed by a line-feed is replaced with a 
 - Value
 	- NULL
 	- int
+	- float
 	- string
 - Op
 	- '='
