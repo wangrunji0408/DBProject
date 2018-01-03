@@ -153,13 +153,10 @@ void Table::insert(std::vector<TableRecord> const &records) {
 }
 
 void Table::delete_(Condition const &condition) {
-	auto predict = makePredict(condition);
 	auto rids = std::vector<RID>();
-	for(auto iter = recordSet->iterateRecords(); iter.hasNext(); ) {
-		auto record = iter.getNext();
-		if(predict(record.data))
-			rids.push_back(record.recordID);
-	}
+	filterThenForeach(condition, [&](Record const& record) {
+		rids.push_back(record.recordID);
+	});
 	for(auto const& rid: rids)
 		recordSet->remove(rid);
 	meta->recordCount -= rids.size();
@@ -167,18 +164,14 @@ void Table::delete_(Condition const &condition) {
 }
 
 void Table::update(std::vector<SetStmt> const &sets, Condition const &condition) {
-	auto predict = makePredict(condition);
 	auto updateFunc = makeUpdate(sets);
 	auto newRecords = std::vector<Record>();
-	for(auto iter = recordSet->iterateRecords(); iter.hasNext(); ) {
-		auto record = iter.getNext();
-		if(predict(record.data)) {
-			auto data = new char[meta->recordLength];
-			std::memcpy(data, record.data, meta->recordLength);
-			updateFunc(data);
-			newRecords.push_back(record.copyWithNewData(data));
-		}
-	}
+	filterThenForeach(condition, [&](Record const& record) {
+		auto data = new char[meta->recordLength];
+		std::memcpy(data, record.data, meta->recordLength);
+		updateFunc(data);
+		newRecords.push_back(record.copyWithNewData(data));
+	});
 	for(auto const& record: newRecords) {
 		recordSet->update(record);
 		delete[] record.data;
@@ -207,12 +200,9 @@ SelectResult Table::select(std::vector<std::string> const& selects, Condition co
 		}
 	}
 
-	auto predict = makePredict(condition);
-	for(auto iter = recordSet->iterateRecords(); iter.hasNext(); ) {
-		auto record = iter.getNext();
-		if(predict(record.data))
-			result.records.push_back(toRecord(record.data, ids));
-	}
+	filterThenForeach(condition, [&](Record const& record) {
+		result.records.push_back(toRecord(record.data, ids));
+	});
 	return result;
 }
 
@@ -221,11 +211,24 @@ std::string Table::check(TableRecord const &record) const {
 		return "Value attr size not equal to column size";
 	for(int i=0; i<meta->columnSize; ++i) {
 		auto const& col = meta->columns[i];
+		auto const& value = record.getDataAtCol(i);
+		auto isNull = record.isNullAtCol(i);
 		auto t1 = record.getTypeAtCol(i);
 		auto t2 = col.dataType;
-		if(t1 != t2)
+		if((t1 == VARCHAR || t1 == CHAR) && (t2 == VARCHAR || t2 == CHAR)) {
+		} else if((t1 == VARCHAR || t1 == CHAR) && t2 == DATE) {
+			try {
+				parseDate((char*)value.data());
+			} catch (std::runtime_error const&) {
+				return "Date format error";
+			}
+			continue;
+		} else if(t1 == INT || t2 == FLOAT) {
+		} else if(isNull) {
+		} else if(t1 != t2) {
 			return "Column " + std::to_string(i) + " type error";
-		if(record.getDataAtCol(i).size() > col.size)
+		}
+		if(value.size() > col.size)
 			return "Column " + std::to_string(i) + " size exceed";
 	}
 	return "";
@@ -240,8 +243,16 @@ Data Table::toData(const TableRecord &value) const {
 		auto isNull = value.isNullAtCol(i);
 		nullBitsetPtr->set(static_cast<size_t>(i), isNull);
 		if(!isNull) {
+			auto type = value.getTypeAtCol(i);
 			auto const& v = value.getDataAtCol(i);
-			std::memcpy(data.data() + col.offset, v.data(), v.size());
+			if(col.dataType == DATE && (type == VARCHAR || type == CHAR)) {
+				int x = parseDate((char*)v.data());
+				std::memcpy(data.data() + col.offset, &x, sizeof(x));
+			} else if(col.dataType == FLOAT && type == INT) {
+				float x = *(int*)v.data();
+				std::memcpy(data.data() + col.offset, &x, sizeof(x));
+			} else
+				std::memcpy(data.data() + col.offset, v.data(), v.size());
 		}
 	}
 	return data;
@@ -258,4 +269,22 @@ TableRecord Table::toRecord(const uchar *data, std::vector<int> const& ids) cons
 			record.push(type, value.getDataAtCol(i));
 	}
 	return record;
+}
+
+void Table::filterThenForeach(Condition const &condition, std::function<void(Record const&)> const& process) {
+	auto sub = selectWithIndex(condition);
+	auto predict = makePredict(condition);
+	if(sub.first) {
+		for(auto const& rid: sub.second) {
+			auto record = recordSet->getRecord(rid);
+			if(predict(record.data))
+				process(record);
+		}
+	} else {
+		for(auto iter = recordSet->iterateRecords(); iter.hasNext(); ) {
+			auto record = iter.getNext();
+			if(predict(record.data))
+				process(record);
+		}
+	}
 }

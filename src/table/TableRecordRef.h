@@ -8,9 +8,7 @@
 
 #include <bitset>
 #include "TableMetaPage.h"
-
-typedef unsigned char uchar;
-typedef std::vector<uchar> Data;
+#include "util/header.h"
 
 class TableRecordRef {
 public:

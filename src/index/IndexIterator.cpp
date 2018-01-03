@@ -42,3 +42,25 @@ bool IndexIterator::moveNext() {
 	}
 	return true;
 }
+
+bool operator==(const IndexIterator &lhs, const IndexIterator &rhs) {
+	return lhs.end == rhs.end &&
+		   lhs.slotID == rhs.slotID &&
+		   lhs.page == rhs.page;
+}
+
+bool operator!=(const IndexIterator &lhs, const IndexIterator &rhs) {
+	return !(rhs == lhs);
+}
+
+bool IndexIterator::isEnd() const {
+	return end;
+}
+
+IndexIterator::IndexIterator(IndexIterator const &it):
+		index(it.index), page(it.page)
+{
+	end = it.end;
+	slotID = it.slotID;
+	index.iteratorCount++;
+}
