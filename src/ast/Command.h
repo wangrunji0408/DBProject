@@ -119,6 +119,11 @@
 		std::vector<std::string> colNames;
 		std::vector<TableRecord> records;
 
+		int indexOf(std::string const& name) const {
+			auto it = std::find(colNames.begin(), colNames.end(), name);
+			return it == colNames.end()? -1: it - colNames.begin();
+		}
+
 		friend std::ostream &operator<<(std::ostream &os, const SelectResult &result) {
 			os << '(';
 			for(int i=0; i<result.colNames.size(); ++i) {

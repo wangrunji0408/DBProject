@@ -47,24 +47,20 @@ SelectResult QueryManager::select(Select const &cmd) {
 				auto t = getTableName(fullname);
 				auto c = getColName(fullname);
 				if(t != tableName && !t.empty())
-					throw ExecuteError("Invalid table name in 'select'");
+					throw NameNotExistError("table", t);
 				selects.push_back(c);
 			}
 		// check wheres
 		for(auto const& expr: cmd.where.ands)
 			if(expr.tableName != tableName && !expr.tableName.empty())
-				throw ExecuteError("Invalid table name in 'where'");
+				throw NameNotExistError("table", expr.tableName);
 		return table->select(selects, cmd.where);
 	}
-	// filter cross conditions
-	auto crossConds = Condition();
-	for(auto const& expr: cmd.where.ands)
-		if(!expr.rhsAttr.empty())
-			crossConds.ands.push_back(expr);
 
 	auto relatedCols = getRelatedCols(cmd.where);
 
 	auto results = std::vector<SelectResult>();
+	results.reserve(cmd.froms.size());
 	for(const auto &tableName: cmd.froms) {
 		auto table = database.getTable(tableName);
 		// filter selects
@@ -83,14 +79,42 @@ SelectResult QueryManager::select(Select const &cmd) {
 		results.push_back(table->select(selects, cond));
 	}
 
-	// join
-	auto result = results[0];
-	for(int i=1; i<cmd.froms.size(); ++i) {
-		result = join(result, results[i]);
-	}
+	// sort results by size
+	auto order = std::vector<int>(results.size());
+	for(int i=0; i<results.size(); ++i)
+		order[i] = i;
+	std::sort(order.begin(), order.end(), [&](int i, int j) {
+		return results[i].records.size() < results[j].records.size();
+	});
 
-	filter(result, crossConds);
+	// filter cross conditions
+	auto restExprs = Condition();
+	for(auto const& expr: cmd.where.ands)
+		if(!expr.rhsAttr.empty())
+			restExprs.ands.push_back(expr);
+
+	// join
+	auto result = results[order[0]];
+	for(int i=1; i<cmd.froms.size(); ++i) {
+		result = join(result, results[order[i]]);
+
+		auto tempExprs = std::move(restExprs.ands);
+		auto cond = Condition();
+		for(auto const& expr: tempExprs) {
+			auto lhsId = result.indexOf(expr.tableName + "." + expr.columnName);
+			auto rhsId = result.indexOf(expr.rhsAttr);
+			if(lhsId != -1 && rhsId != -1)
+				cond.ands.push_back(expr);
+			else
+				restExprs.ands.push_back(expr);
+		}
+		filter(result, cond);
+	}
 	select(result, cmd.selects);
+
+	if(!restExprs.ands.empty()) {
+		throw NameNotExistError("column", "(where)");
+	}
 
 	return result;
 }
@@ -120,12 +144,6 @@ SelectResult QueryManager::join(SelectResult const &a, SelectResult const& b) {
 	return c;
 }
 
-template <class T>
-inline int indexOf(std::vector<T> const& vec, T const& value) {
-	auto it = std::find(vec.begin(), vec.end(), value);
-	return it == vec.end()? -1: it - vec.begin();
-}
-
 void QueryManager::filter(SelectResult& a, Condition const &cond) {
 	auto predict = makePredict(a, cond);
 	auto records = std::move(a.records);
@@ -137,9 +155,9 @@ void QueryManager::filter(SelectResult& a, Condition const &cond) {
 void QueryManager::select(SelectResult &result, std::vector<std::string> const &colNames) {
 	auto ids = std::vector<int>();
 	for(auto const& name: colNames) {
-		int id = indexOf(result.colNames, name);
+		int id = result.indexOf(name);
 		if(id == -1)
-			throw ExecuteError("Colunm not exist");
+			throw NameNotExistError("colunm", name);
 		ids.push_back(id);
 	}
 	result.colNames = colNames;
@@ -164,14 +182,16 @@ QueryManager::makePredict(SelectResult const& result, Condition const &condition
 std::function<bool(TableRecord const &)>
 QueryManager::makePredict(SelectResult const& result, BoolExpr const &expr) {
 
-	auto lhsId = indexOf(result.colNames, expr.tableName + "." + expr.columnName);
-	auto rhsId = indexOf(result.colNames, expr.rhsAttr);
-	if(lhsId == -1 || rhsId == -1)
-		throw ExecuteError("Column name doesn't exist");
+	auto lhsId = result.indexOf(expr.tableName + "." + expr.columnName);
+	auto rhsId = result.indexOf(expr.rhsAttr);
+	if(lhsId == -1)
+		throw NameNotExistError("column", expr.tableName + "." + expr.columnName);
+	if(rhsId == -1)
+		throw NameNotExistError("column", expr.rhsAttr);
 	auto type = result.records[0].getTypeAtCol(lhsId);
 	auto rType = result.records[0].getTypeAtCol(rhsId);
 	if(type != rType)
-		throw ExecuteError("Type not match");
+		throw ValueTypeError(type, rType);
 
 #define BASIC_CASE \
 	case BoolExpr::OP_EQ: return CMP(==);\
