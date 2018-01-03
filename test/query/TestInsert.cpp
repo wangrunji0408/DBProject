@@ -27,8 +27,8 @@ TEST_F(TestInsert, ThrowWhenDuplicateSinglePrimaryKey)
 	auto cmd = Insert();
 	cmd.tableName = "people";
 	cmd.records = {
-		TableRecord::fromString(types, {"1","Alice","F","","",""}),
-		TableRecord::fromString(types, {"1","Bob","M","","",""}),
+		TableRecord::fromString(types, {"1","Alice","F","","","",""}),
+		TableRecord::fromString(types, {"1","Bob","M","","","",""}),
 	};
 	ASSERT_THROW( db->execute(cmd), ExecuteError );
 }
@@ -44,25 +44,36 @@ TEST_F(TestInsert, ThrowWhenDuplicateMultiPrimaryKey)
 	ASSERT_THROW( db->execute(cmd), ExecuteError );
 }
 
+TEST_F(TestInsert, ThrowWhenUniqueError)
+{
+	insertRecords();
+	auto cmd = Insert();
+	cmd.tableName = "people";
+	cmd.records = {
+		TableRecord::fromString(types, {"4","Dog","F","110104199704021111","","",""}),
+	};
+	ASSERT_THROW( db->execute(cmd), ExecuteError );
+}
+
 TEST_F(TestInsert, ThrowWhenStringTooLong)
 {
 	auto cmd = Insert();
 	cmd.tableName = "people";
 	cmd.records = {
-		TableRecord::fromString(types, {"1","12345678901234567890123456","F","","",""}),
+		TableRecord::fromString(types, {"1","12345678901234567890123456","F","","","",""}),
 	};
 	ASSERT_THROW( db->execute(cmd), ExecuteError );
 }
 
 TEST_F(TestInsert, ThrowWhenFormatError)
 {
-	ASSERT_ANY_THROW( TableRecord::fromString(types, {"2147483648","Alice","F","","",""}) );
-	ASSERT_ANY_THROW( TableRecord::fromString(types, {"-2147483649","Alice","F","","",""}) );
-	ASSERT_ANY_THROW( TableRecord::fromString(types, {"1.2","Alice","F","","",""}) );
-	ASSERT_ANY_THROW( TableRecord::fromString(types, {"1","Alice","F","","2000/2/30",""}) );
+	ASSERT_ANY_THROW( TableRecord::fromString(types, {"2147483648","Alice","F","","","",""}) );
+	ASSERT_ANY_THROW( TableRecord::fromString(types, {"-2147483649","Alice","F","","","",""}) );
+	ASSERT_ANY_THROW( TableRecord::fromString(types, {"1.2","Alice","F","","","",""}) );
+	ASSERT_ANY_THROW( TableRecord::fromString(types, {"1","Alice","F","","2000/2/30","",""}) );
 	vector<TableRecord> cases = {
-		TableRecord::fromString({FLOAT, VARCHAR, CHAR, CHAR, DATE, FLOAT},
-								{"1.2","Alice","F","","",""}),
+		TableRecord::fromString({FLOAT, VARCHAR, CHAR, CHAR, DATE, FLOAT, INT},
+								{"1.2","Alice","F","","","",""}),
 	};
 	auto cmd = Insert();
 	cmd.tableName = "people";
@@ -78,8 +89,8 @@ TEST_F(TestInsert, ThrowWhenLengthError)
 	auto cmd = Insert();
 	cmd.tableName = "people";
 	cmd.records = {
-		TableRecord::fromString({INT, VARCHAR, CHAR, CHAR, DATE},
-								{"1","Alice","F","",""}),
+		TableRecord::fromString({INT, VARCHAR, CHAR, CHAR, DATE, FLOAT},
+								{"1","Alice","F","","",""}),
 	};
 	ASSERT_THROW( db->execute(cmd), ExecuteError );
 }

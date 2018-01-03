@@ -27,18 +27,20 @@ std::function<bool(const void *)> Table::makePredict(BoolExpr const &expr) const
 	if(!expr.rhsAttr.empty())
 		throw std::runtime_error("Compare with attr is not supported");
 
+#define CHECK_NULL(RET_VALUE)\
+	if(((bitset<128>*)((char*)pData + (bitsetOffset)))->test(colID)) return RET_VALUE;
 #define TEST_NULL(isNull) [=](const void* pData) {return ((bitset<128>*)((char*)pData + (bitsetOffset)))->test(colID) == (isNull); }
 
 	int offset = col.offset;
 	int bitsetOffset = meta->recordLength - (meta->columnSize + 7)/ 8;
 
 #define BASIC_CASE \
-	case BoolExpr::OP_EQ: return CMP(==);\
-	case BoolExpr::OP_NE: return CMP(!=);\
-	case BoolExpr::OP_LT: return CMP(<);\
-	case BoolExpr::OP_GT: return CMP(>);\
-	case BoolExpr::OP_LE: return CMP(<=);\
-	case BoolExpr::OP_GE: return CMP(>=);\
+	case BoolExpr::OP_EQ: return CMP(==, false);\
+	case BoolExpr::OP_NE: return CMP(!=, true);\
+	case BoolExpr::OP_LT: return CMP(<, false);\
+	case BoolExpr::OP_GT: return CMP(>, false);\
+	case BoolExpr::OP_LE: return CMP(<=, false);\
+	case BoolExpr::OP_GE: return CMP(>=, false);\
 	case BoolExpr::OP_IS_NULL: return TEST_NULL(true);\
 	case BoolExpr::OP_IS_NOT_NULL: return TEST_NULL(false);\
 	default: throw std::runtime_error("Unexpected op case");
@@ -46,14 +48,16 @@ std::function<bool(const void *)> Table::makePredict(BoolExpr const &expr) const
 	int intValue;
 	float floatValue;
 	string strValue;
+	bool testNull = expr.op == BoolExpr::OP_IS_NULL || expr.op == BoolExpr::OP_IS_NOT_NULL;
 	switch(col.dataType) {
 		case UNKNOWN:
 			throw std::runtime_error("UNKNOWN datatype");
 		case INT: case DATE:
+			if(!testNull)
 			intValue = col.dataType == INT?
 					   std::stoi(expr.rhsValue):
 					   parseDate(expr.rhsValue);
-#define CMP(OP) [=](const void* pData) {return *(int*)((char*)pData + offset) OP intValue; }
+#define CMP(OP, NULL_RET) [=](const void* pData) {CHECK_NULL(NULL_RET) return *(int*)((char*)pData + offset) OP intValue; }
 			switch(expr.op) {
 				BASIC_CASE
 				case BoolExpr::OP_LIKE:
@@ -62,8 +66,9 @@ std::function<bool(const void *)> Table::makePredict(BoolExpr const &expr) const
 #undef CMP
 		case CHAR:
 		case VARCHAR:
+			if(!testNull)
 			strValue = expr.rhsValue;
-#define CMP(OP) [=](const void* pData) {return 0 OP strValue.compare((char*)pData + offset); }
+#define CMP(OP, NULL_RET) [=](const void* pData) {CHECK_NULL(NULL_RET) return 0 OP strValue.compare((char*)pData + offset); }
 			switch(expr.op) {
 				BASIC_CASE
 				case BoolExpr::OP_LIKE:
@@ -71,8 +76,9 @@ std::function<bool(const void *)> Table::makePredict(BoolExpr const &expr) const
 			}
 #undef CMP
 		case FLOAT:
+			if(!testNull)
 			floatValue = std::stof(expr.rhsValue);
-#define CMP(OP) [=](const void* pData) {return *(float*)((char*)pData + offset) OP floatValue;}
+#define CMP(OP, NULL_RET) [=](const void* pData) {CHECK_NULL(NULL_RET) return *(float*)((char*)pData + offset) OP floatValue;}
 			switch(expr.op) {
 				BASIC_CASE
 				case BoolExpr::OP_LIKE:

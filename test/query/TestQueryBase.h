@@ -22,11 +22,12 @@ protected:
 			{"gender", CHAR, 1, false, false},
 			{"id_num", CHAR, 18, true, true},
 			{"birthday", DATE, 4, true, false},
-			{"height", FLOAT, 4, true, false}
+			{"height", FLOAT, 4, true, false},
+			{"age", INT, 4, true, false},
 		};
 		people.primaryKeys = {"id"};
 		db->createTable(people);
-		types = {INT, VARCHAR, CHAR, CHAR, DATE, FLOAT};
+		types = {INT, VARCHAR, CHAR, CHAR, DATE, FLOAT, INT};
 
 		auto book = TableDef();
 		book.name = "book";
@@ -53,9 +54,9 @@ protected:
 		auto cmd = Insert();
 		cmd.tableName = "people";
 		cmd.records = {
-			TableRecord::fromString(types, {"1","Alice","F","110104199704015833","1997/04/01","160.2"}),
-			TableRecord::fromString(types, {"2","Bob","M","110104199704021111","1997/04/02","170.1"}),
-			TableRecord::fromString(types, {"3","Cat","M","","",""}),
+			TableRecord::fromString(types, {"1","Alice","F","110104199704015833","1997/04/01","160.2","20"}),
+			TableRecord::fromString(types, {"2","Bob","M","110104199704021111","1997/04/02","170.1","21"}),
+			TableRecord::fromString(types, {"3","Cat","M","","","",""}),
 		};
 		db->execute(cmd);
 

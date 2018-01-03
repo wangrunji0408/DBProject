@@ -185,7 +185,7 @@ SelectResult Table::select(std::vector<std::string> const& selects, Condition co
 			result.colNames.push_back(string(meta->name) + "." + meta->columns[i].name);
 		}
 	} else {
-		for(auto name: selects) {
+		for(const auto &name: selects) {
 			auto id = meta->getColomnId(name);
 			if(id == -1)
 				throw ExecuteError("Column not exist.");

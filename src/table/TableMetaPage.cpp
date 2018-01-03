@@ -20,7 +20,7 @@ void TableMetaPage::makeFromDef(TableDef const &def, Database const& database) {
 		auto const& col = def.columns[i];
 		columns[i].makeFromDef(col);
 		columns[i].offset = static_cast<short>(recordLength);
-		recordLength += col.size;
+		recordLength += columns[i].size;	// if (VAR)CHAR then size++
 	}
 	int nullBitsetBytes = (columnSize + 7) / 8;
 	recordLength += nullBitsetBytes;
@@ -95,6 +95,8 @@ void TableMetaPage::Column::makeFromDef(ColumnDef const &def) {
 	indexID = -1;
 	foreignColumnID = -1;
 	foreignTableID = -1;
+	if(dataType == CHAR || dataType == VARCHAR)
+		size++;
 }
 
 ColumnDef TableMetaPage::Column::toDef() const {
@@ -104,5 +106,7 @@ ColumnDef TableMetaPage::Column::toDef() const {
 	def.dataType = dataType;
 	def.unique = unique;
 	def.nullable = nullable;
+	if(dataType == CHAR || dataType == VARCHAR)
+		def.size--;
 	return def;
 }
