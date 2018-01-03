@@ -153,13 +153,10 @@ void Table::insert(std::vector<TableRecord> const &records) {
 }
 
 void Table::delete_(Condition const &condition) {
-	auto predict = makePredict(condition);
 	auto rids = std::vector<RID>();
-	for(auto iter = recordSet->iterateRecords(); iter.hasNext(); ) {
-		auto record = iter.getNext();
-		if(predict(record.data))
-			rids.push_back(record.recordID);
-	}
+	filterThenForeach(condition, [&](Record const& record) {
+		rids.push_back(record.recordID);
+	});
 	for(auto const& rid: rids)
 		recordSet->remove(rid);
 	meta->recordCount -= rids.size();
@@ -167,18 +164,14 @@ void Table::delete_(Condition const &condition) {
 }
 
 void Table::update(std::vector<SetStmt> const &sets, Condition const &condition) {
-	auto predict = makePredict(condition);
 	auto updateFunc = makeUpdate(sets);
 	auto newRecords = std::vector<Record>();
-	for(auto iter = recordSet->iterateRecords(); iter.hasNext(); ) {
-		auto record = iter.getNext();
-		if(predict(record.data)) {
-			auto data = new char[meta->recordLength];
-			std::memcpy(data, record.data, meta->recordLength);
-			updateFunc(data);
-			newRecords.push_back(record.copyWithNewData(data));
-		}
-	}
+	filterThenForeach(condition, [&](Record const& record) {
+		auto data = new char[meta->recordLength];
+		std::memcpy(data, record.data, meta->recordLength);
+		updateFunc(data);
+		newRecords.push_back(record.copyWithNewData(data));
+	});
 	for(auto const& record: newRecords) {
 		recordSet->update(record);
 		delete[] record.data;
@@ -207,22 +200,9 @@ SelectResult Table::select(std::vector<std::string> const& selects, Condition co
 		}
 	}
 
-	auto sub = selectWithIndex(condition);
-	auto predict = makePredict(condition);
-
-	if(sub.first) {
-		for(auto const& rid: sub.second) {
-			auto record = recordSet->getRecord(rid);
-			if(predict(record.data))
-				result.records.push_back(toRecord(record.data, ids));
-		}
-	} else {
-		for(auto iter = recordSet->iterateRecords(); iter.hasNext(); ) {
-			auto record = iter.getNext();
-			if(predict(record.data))
-				result.records.push_back(toRecord(record.data, ids));
-		}
-	}
+	filterThenForeach(condition, [&](Record const& record) {
+		result.records.push_back(toRecord(record.data, ids));
+	});
 	return result;
 }
 
@@ -268,4 +248,22 @@ TableRecord Table::toRecord(const uchar *data, std::vector<int> const& ids) cons
 			record.push(type, value.getDataAtCol(i));
 	}
 	return record;
+}
+
+void Table::filterThenForeach(Condition const &condition, std::function<void(Record const&)> const& process) {
+	auto sub = selectWithIndex(condition);
+	auto predict = makePredict(condition);
+	if(sub.first) {
+		for(auto const& rid: sub.second) {
+			auto record = recordSet->getRecord(rid);
+			if(predict(record.data))
+				process(record);
+		}
+	} else {
+		for(auto iter = recordSet->iterateRecords(); iter.hasNext(); ) {
+			auto record = iter.getNext();
+			if(predict(record.data))
+				process(record);
+		}
+	}
 }

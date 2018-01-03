@@ -7,7 +7,7 @@
 
 #include <functional>
 #include <ast/Command.h>
-#include <record/RID.h>
+#include <record/Record.h>
 #include "ast/TableDef.h"
 #include "TableMetaPage.h"
 #include "filesystem/page/Page.h"
@@ -30,6 +30,7 @@ class Table {
 	TableRecord toRecord(const uchar* data, std::vector<int> const& ids) const;
 	std::string check(TableRecord const& record) const;
 	void checkInsertValues(std::vector<TableRecord> const &records) const;
+	void filterThenForeach(Condition const& condition, std::function<void(const Record&)> const& process);
 	std::pair<bool, std::vector<RID>> selectWithIndex(Condition const& condition) const;
 	std::function<bool(const void*)> makePredict(BoolExpr const& expr) const;
 	std::function<bool(const void*)> makePredict(Condition const& condition) const;

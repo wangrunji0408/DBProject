@@ -10,11 +10,23 @@ class TestOptimize : public TestQueryBase
 protected:
 	void SetUp() override {
 		TestQueryBase::SetUp();
-		insertRecords();
 	}
 
 	void Reopen() override {
 		TestQueryBase::Reopen();
+	}
+
+	void insert(int N) {
+		auto cmd = Insert();
+		cmd.tableName = "book";
+		cmd.records.reserve(N);
+		for(int i=0; i<N; ++i) {
+			auto record = TableRecord();
+			record.pushInt(i);
+			record.pushVarchar("Book" + std::to_string(i));
+			cmd.records.push_back(record);
+		}
+		db->execute(cmd);
 	}
 };
 
@@ -22,43 +34,38 @@ protected:
 #define GTEST_TIMEOUT_END(X) return; }); \
 EXPECT_TRUE(asyncFuture.wait_for(std::chrono::milliseconds(X)) != std::future_status::timeout);
 
-TEST_F(TestOptimize, Insert_1e5_4s)
+TEST_F(TestOptimize, Insert_1e4_100ms)
 {
-	const int N = 100000;
+	const int N = 10000;
 
 	GTEST_TIMEOUT_BEGIN
-	auto cmd = Insert();
-	cmd.tableName = "book";
-	cmd.records.reserve(N);
-	for(int i=0; i<N; ++i) {
-		auto record = TableRecord();
-		record.pushInt(i+10);
-		record.pushVarchar("Book" + std::to_string(i));
-		cmd.records.push_back(record);
-	}
-	db->execute(cmd);
-	GTEST_TIMEOUT_END(4000)
+	insert(N);
+	GTEST_TIMEOUT_END(100)
 
-	ASSERT_EQ(N+2, db->getTable("book")->size());
+	ASSERT_EQ(N, db->getTable("book")->size());
 }
 
-TEST_F(TestOptimize, SearchWithIndex_1e5_1s)
+TEST_F(TestOptimize, Update_1e4_10ms)
 {
-	const int N = 100000;
-	auto cmd = Insert();
+	const int N = 10000;
+	insert(N);
+
+	GTEST_TIMEOUT_BEGIN
+	auto cmd = Update();
 	cmd.tableName = "book";
-	cmd.records.reserve(N);
-	for(int i=0; i<N; ++i) {
-		auto record = TableRecord();
-		record.pushInt(i+10);
-		record.pushVarchar("Book" + std::to_string(i));
-		cmd.records.push_back(record);
-	}
+	cmd.sets = {{"name", "Name"}};
 	db->execute(cmd);
+	GTEST_TIMEOUT_END(10)
+}
+
+TEST_F(TestOptimize, SelectWithIndex_1e5_100ms)
+{
+	const int N = 1 << 14;
+	insert(N);
 
 	GTEST_TIMEOUT_BEGIN
 	for(int i=0; i<100000; ++i) {
-		int r = rand() % (1 << 16) + 10;
+		int r = rand() % N;
 		auto select = Select();
 		select.froms = {"book"};
 		select.selects = {"id"};
@@ -67,7 +74,24 @@ TEST_F(TestOptimize, SearchWithIndex_1e5_1s)
 		ASSERT_EQ(1, result.records.size());
 		ASSERT_EQ(TableRecord().pushInt(r), result.records[0]);
 	}
-	GTEST_TIMEOUT_END(1000)
+	GTEST_TIMEOUT_END(100)
+}
+
+TEST_F(TestOptimize, UpdateWithIndex_1e5_100ms)
+{
+	const int N = 1 << 14;
+	insert(N);
+
+	GTEST_TIMEOUT_BEGIN
+	for(int i=0; i<100000; ++i) {
+		int r = rand() % N;
+		auto cmd = Update();
+		cmd.tableName = "book";
+		cmd.sets = {{"name", "Name"}};
+		cmd.where = {{{"", "id", BoolExpr::OP_EQ, std::to_string(r), ""}}};
+		db->execute(cmd);
+	}
+	GTEST_TIMEOUT_END(100)
 }
 
 }
