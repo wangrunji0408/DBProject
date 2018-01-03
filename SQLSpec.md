@@ -8,13 +8,13 @@
 - Sequence matched by regex `[a-zA-Z_][0-9a-zA-Z_]*` is a keyword or identifier token
 	- It is a keyword token when it is one of these(case insensitively):
 		- `AND` `CREATE` `DATABASE` `DATABASES` `DATE` `DELETE` `DESC` `DROP` `FLOAT` `FOREIGN` `FROM`
-		- `INDEX` `INSERT` `INT` `INTO` `IS` `KEY` `NOT` `NULL`
+		- `INDEX` `INSERT` `INT` `INTO` `IS` `LIKE` `KEY` `NOT` `NULL`
 		- `PRIMARY` `REFERENCES` `SELECT` `SET` `SHOW` `TABLE` `TABLES`
 		- `UNIQUE` `UPDATE` `USE` `VALUES` `VARCHAR` `WHERE`
 	- In any other case it is a identifier token
 - Sequence matched by regex `[0-9]*([0-9]\.|\.[0-9])[0-9]*` is a float token
 - Sequence matched by regex `[0-9]*` is a int token
-- Sequence `;` `,` `=` `<>` `>=` `<=` `>` `<` is also token
+- Sequence `;` `,` `*` `=` `<>` `>=` `<=` `>` `<` are also tokens.  `.` is also a token if there is not digits or `.` before or after it.
 
 Note: in interactive enviroment, `\` followed by a line-feed is replaced with a single line-feed.
 
@@ -57,24 +57,28 @@ Note: in interactive enviroment, `\` followed by a line-feed is replaced with a 
 - Where
 	- Condition (AND Condition)*
 - Condition
-	- identifier Op Value
-	- identifier Op identifier
-	- identifier IS NOT? NULL
+	- ColumnSpec Op Value
+	- ColumnSpec Op ColumnSpec
+	- ColumnSpec IS NOT? NULL
 - Set
 	- Assign (',' Assign)*
 - Assign
 	- identifier '=' Value
 - Select
 	- '*'
-	- identifier (',' identifier)
+	- ColumnSpec (',' ColumnSpec)
+- ColumnSpec
+	- (identifier '.')? identifier
 - TableList
 	- identifier (',' identifier)
 - ValueLists
 	- ValueList (',' ValueList)*
 - ValueList
-	- '(' Value (',' Value)* ')'
-- Value
+	- '(' NullableValue (',' NullableValue)* ')'
+- NullableValue
 	- NULL
+	- Value
+- Value
 	- int
 	- float
 	- string
@@ -85,3 +89,4 @@ Note: in interactive enviroment, `\` followed by a line-feed is replaced with a 
 	- '>='
 	- '<='
 	- '<>'
+	- LIKE

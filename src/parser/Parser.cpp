@@ -65,11 +65,17 @@ void Parser::eatToken(TokenType type,::std::string errorMessage){
 	if(lookahead.type==TokenType::K_CREATE){
 		return parseCreateStmt();
 	}
+	if(lookahead.type==TokenType::K_DELETE){
+		return parseDeleteStmt();
+	}
 	if(lookahead.type==TokenType::K_DESC){
 		return parseDescStmt();
 	}
 	if(lookahead.type==TokenType::K_DROP){
 		return parseDropStmt();
+	}
+	if(lookahead.type==TokenType::K_INSERT){
+		return parseInsertStmt();
 	}
 	if(lookahead.type==TokenType::K_SHOW){
 		return parseShowStmt();
@@ -77,10 +83,7 @@ void Parser::eatToken(TokenType type,::std::string errorMessage){
 	if(lookahead.type==TokenType::K_USE){
 		return parseUseStmt();
 	}
-	if(lookahead.type==TokenType::K_INSERT){
-		return parseInsertStmt();
-	}
-	throw ParseError("Expected keyword CREATE/DESC/DROP/INSERT/SHOW/USE"s);
+	throw ParseError("Expected keyword CREATE/DELETE/DESC/DROP/INSERT/SHOW/USE"s);
 }
 ::std::unique_ptr<Statement> Parser::parseShowStmt(){
 	eatToken(TokenType::K_SHOW,"Expected keyword SHOW"s);
@@ -188,6 +191,17 @@ void Parser::eatToken(TokenType type,::std::string errorMessage){
 	}
 	::std::unique_ptr<CommandStmt> cmdStmt=::std::make_unique<CommandStmt>();
 	cmdStmt->command=::std::move(insertCmd);
+	return ::std::move(cmdStmt);
+}
+::std::unique_ptr<Statement> Parser::parseDeleteStmt(){
+	eatToken(TokenType::K_DELETE,"Expected keyword DELETE"s);
+	eatToken(TokenType::K_FROM,"Expected keyword FROM"s);
+	::std::unique_ptr<Delete> deleteCmd=::std::make_unique<Delete>();
+	deleteCmd->tableName=getIdentifier("Expected table name"s);
+	eatToken(TokenType::K_WHERE,"Expected keyword WHERE"s);
+	parseWhere(deleteCmd->where);
+	::std::unique_ptr<CommandStmt> cmdStmt=::std::make_unique<CommandStmt>();
+	cmdStmt->command=::std::move(deleteCmd);
 	return ::std::move(cmdStmt);
 }
 void Parser::parseTableDefineField(TableDef& tableDefine,bool& primaryKeySetted){
@@ -330,4 +344,107 @@ void Parser::parseTableRecordValue(TableRecord& tableRecord){
 		return;
 	}
 	throw ParseError("Expected int, float, string or keyword NULL"s);
+}
+void Parser::parseWhere(Condition& where){
+	where.ands.push_back(parseCondition());
+	while(lookahead.type==TokenType::K_AND){
+		nextToken();
+		where.ands.push_back(parseCondition());
+	}
+}
+BoolExpr Parser::parseCondition(){
+	BoolExpr boolExpr;
+	parseColumnSpec(boolExpr.tableName,boolExpr.columnName);
+	parseOp(boolExpr.op);
+	if((boolExpr.op!=BoolExpr::OP_IS_NOT_NULL)&&(boolExpr.op!=BoolExpr::OP_IS_NULL)){
+		if(lookahead.type==TokenType::IDENTIFIER){
+			::std::string table;
+			::std::string column;
+			parseColumnSpec(table,column);
+			if(table==""){
+				boolExpr.rhsAttr=column;
+			}else{
+				boolExpr.rhsAttr=table+"."+column;
+			}
+			return boolExpr;
+		}
+		if(lookahead.type==TokenType::INT){
+			boolExpr.rhsValue=::std::to_string(lookahead.intValue);
+			nextToken();
+			return boolExpr;
+		}
+		if(lookahead.type==TokenType::FLOAT){
+			boolExpr.rhsValue=::std::to_string(lookahead.floatValue);
+			nextToken();
+			return boolExpr;
+		}
+		if(lookahead.type==TokenType::STRING){
+			boolExpr.rhsValue=lookahead.stringValue;
+			nextToken();
+			return boolExpr;
+		}
+		throw ParseError("Expected int, float, string or column specification"s);
+	}
+	return boolExpr;
+}
+void Parser::parseColumnSpec(::std::string& table,::std::string& column){
+	::std::string name1=getIdentifier("Expected column specification"s);
+	if(lookahead.type==TokenType::P_DOT){
+		table=name1;
+		nextToken();
+		column=getIdentifier("Expected column name"s);
+	}else{
+		table="";
+		column=name1;
+	}
+}
+void Parser::parseOp(BoolExpr::Operator& op){
+	if(lookahead.type==TokenType::P_EQ){
+		nextToken();
+		op=BoolExpr::OP_EQ;
+		return;
+	}
+	if(lookahead.type==TokenType::P_NE){
+		nextToken();
+		op=BoolExpr::OP_NE;
+		return;
+	}
+	if(lookahead.type==TokenType::P_L){
+		nextToken();
+		op=BoolExpr::OP_LT;
+		return;
+	}
+	if(lookahead.type==TokenType::P_G){
+		nextToken();
+		op=BoolExpr::OP_GT;
+		return;
+	}
+	if(lookahead.type==TokenType::P_LE){
+		nextToken();
+		op=BoolExpr::OP_LE;
+		return;
+	}
+	if(lookahead.type==TokenType::P_GE){
+		nextToken();
+		op=BoolExpr::OP_GE;
+		return;
+	}
+	if(lookahead.type==TokenType::K_LIKE){
+		nextToken();
+		op=BoolExpr::OP_LIKE;
+		return;
+	}
+	if(lookahead.type==TokenType::K_IS){
+		nextToken();
+		if(lookahead.type==TokenType::K_NOT){
+			nextToken();
+			eatToken(TokenType::K_NULL,"Expected keyword NULL"s);
+			op=BoolExpr::OP_IS_NOT_NULL;
+			return;
+		}
+		eatToken(TokenType::K_NULL,"Expected keyword NULL"s);
+		op=BoolExpr::OP_IS_NULL;
+		return;
+	}
+	throw ParseError("Expected operator, IS NULL or IS NOT NULL"s);
 }

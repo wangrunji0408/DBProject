@@ -80,6 +80,9 @@ Token Tokenizer::next(){
 				break;
 			}
 			pos=pos2;
+			if(content=="."){
+				return {TokenType::P_DOT};
+			}
 			if(isFloat){
 				return {TokenType::FLOAT,0,::std::stod(content)};
 			}else{
@@ -130,6 +133,8 @@ Token Tokenizer::next(){
 				return{TokenType::K_INTO};
 			}else if(content=="is"){
 				return{TokenType::K_IS};
+			}else if(content=="like"){
+				return{TokenType::K_LIKE};
 			}else if(content=="key"){
 				return{TokenType::K_KEY};
 			}else if(content=="not"){
@@ -181,6 +186,10 @@ Token Tokenizer::next(){
 		if(text[pos]==','){
 			pos++;
 			return{TokenType::P_COMMA};
+		}
+		if(text[pos]=='*'){
+			pos++;
+			return{TokenType::P_STAR};
 		}
 		if(text[pos]=='='){
 			pos++;

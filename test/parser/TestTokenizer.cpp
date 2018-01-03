@@ -64,15 +64,15 @@ TEST_F(TestTokenizer, HandleNumerics)
 	ASSERT_ANY_THROW(tk.next());
 }
 
-TEST_F(TestTokenizer, RejectSingleDot)
+TEST_F(TestTokenizer, RejectDoubleDot)
 {
-	Tokenizer tk("    .    ");
+	Tokenizer tk("    ..    ");
 	ASSERT_ANY_THROW(tk.next());
 }
 
 TEST_F(TestTokenizer, HandleKeywordAndIdentifier)
 {
-	Tokenizer tk("AnD CReaTE DATAbaSE dATABASES DATE delete DEsC DRoP fLOAT FOreIGN FRom INdeX InsERT INt iNTO IS KEy not NULL PRiMArY REfERENCES SELeCT seT sHOw TablE TABLEs uNIque UPDATe USE VAlUES VARchAR wHERE zEbr_a0 _3nyANko");
+	Tokenizer tk("AnD CReaTE DATAbaSE dATABASES DATE delete DEsC DRoP fLOAT FOreIGN FRom INdeX InsERT INt iNTO IS lIkE KEy not NULL PRiMArY REfERENCES SELeCT seT sHOw TablE TABLEs uNIque UPDATe USE VAlUES VARchAR wHERE zEbr_a0 _3nyANko");
 	ASSERT_EQ(tk.next().type,TokenType::K_AND);
 	ASSERT_EQ(tk.next().type,TokenType::K_CREATE);
 	ASSERT_EQ(tk.next().type,TokenType::K_DATABASE);
@@ -89,6 +89,7 @@ TEST_F(TestTokenizer, HandleKeywordAndIdentifier)
 	ASSERT_EQ(tk.next().type,TokenType::K_INT);
 	ASSERT_EQ(tk.next().type,TokenType::K_INTO);
 	ASSERT_EQ(tk.next().type,TokenType::K_IS);
+	ASSERT_EQ(tk.next().type,TokenType::K_LIKE);
 	ASSERT_EQ(tk.next().type,TokenType::K_KEY);
 	ASSERT_EQ(tk.next().type,TokenType::K_NOT);
 	ASSERT_EQ(tk.next().type,TokenType::K_NULL);
@@ -116,7 +117,7 @@ TEST_F(TestTokenizer, HandleKeywordAndIdentifier)
 
 TEST_F(TestTokenizer, HandlePunctuations)
 {
-	Tokenizer tk("();,=<>>=<=><\n=<<>>= ( = > < <> >= <= , ; )");
+	Tokenizer tk("();,=<>>=<=><\n=<<>>= ( = > < <> >= <= , ; . * ).**.*");
 	ASSERT_EQ(tk.next().type,TokenType::P_LPARENT);
 	ASSERT_EQ(tk.next().type,TokenType::P_RPARENT);
 	ASSERT_EQ(tk.next().type,TokenType::P_SEMICOLON);
@@ -140,7 +141,14 @@ TEST_F(TestTokenizer, HandlePunctuations)
 	ASSERT_EQ(tk.next().type,TokenType::P_LE);
 	ASSERT_EQ(tk.next().type,TokenType::P_COMMA);
 	ASSERT_EQ(tk.next().type,TokenType::P_SEMICOLON);
+	ASSERT_EQ(tk.next().type,TokenType::P_DOT);
+	ASSERT_EQ(tk.next().type,TokenType::P_STAR);
 	ASSERT_EQ(tk.next().type,TokenType::P_RPARENT);
+	ASSERT_EQ(tk.next().type,TokenType::P_DOT);
+	ASSERT_EQ(tk.next().type,TokenType::P_STAR);
+	ASSERT_EQ(tk.next().type,TokenType::P_STAR);
+	ASSERT_EQ(tk.next().type,TokenType::P_DOT);
+	ASSERT_EQ(tk.next().type,TokenType::P_STAR);
 	ASSERT_EQ(tk.next().type,TokenType::EOS);
 }
 

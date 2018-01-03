@@ -110,4 +110,31 @@ TEST_F(TestParser, HandleInsertCommandStatements)
 	ASSERT_DOUBLE_EQ(*(float*)(dynamic_cast<Insert&>(*command).records[1].getDataAtCol(0).data()),5.5);
 }
 
+TEST_F(TestParser, HandleDeleteCommandStatements)
+{
+	auto statements=Parser::parseString("delete from sekai where human is not null and love is null and you<>me and hate>100");
+	ASSERT_EQ(statements.size(),1);
+	ASSERT_EQ(statements[0]->getType(),StatementType::COMMAND);
+	auto& command=dynamic_cast<CommandStmt&>(*statements[0]).command;
+	ASSERT_EQ(command->getType(),CMD_DELETE);
+	ASSERT_EQ(dynamic_cast<Delete&>(*command).tableName,"sekai");
+	ASSERT_EQ(dynamic_cast<Delete&>(*command).where.ands.size(),4);
+	ASSERT_EQ(dynamic_cast<Delete&>(*command).where.ands[0].tableName,"");
+	ASSERT_EQ(dynamic_cast<Delete&>(*command).where.ands[0].columnName,"human");
+	ASSERT_EQ(dynamic_cast<Delete&>(*command).where.ands[0].op,BoolExpr::OP_IS_NOT_NULL);
+	ASSERT_EQ(dynamic_cast<Delete&>(*command).where.ands[1].tableName,"");
+	ASSERT_EQ(dynamic_cast<Delete&>(*command).where.ands[1].columnName,"love");
+	ASSERT_EQ(dynamic_cast<Delete&>(*command).where.ands[1].op,BoolExpr::OP_IS_NULL);
+	ASSERT_EQ(dynamic_cast<Delete&>(*command).where.ands[2].tableName,"");
+	ASSERT_EQ(dynamic_cast<Delete&>(*command).where.ands[2].columnName,"you");
+	ASSERT_EQ(dynamic_cast<Delete&>(*command).where.ands[2].op,BoolExpr::OP_NE);
+	ASSERT_EQ(dynamic_cast<Delete&>(*command).where.ands[2].rhsAttr,"me");
+	ASSERT_EQ(dynamic_cast<Delete&>(*command).where.ands[3].tableName,"");
+	ASSERT_EQ(dynamic_cast<Delete&>(*command).where.ands[3].columnName,"hate");
+	ASSERT_EQ(dynamic_cast<Delete&>(*command).where.ands[3].op,BoolExpr::OP_GT);
+	ASSERT_EQ(dynamic_cast<Delete&>(*command).where.ands[3].rhsAttr,"");
+	ASSERT_EQ(dynamic_cast<Delete&>(*command).where.ands[3].rhsValue,"100");
+
+}
+
 }
