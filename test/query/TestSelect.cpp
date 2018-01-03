@@ -295,7 +295,7 @@ TEST_F(TestSelect, FromTwo_Where)
 	cmd.froms = {"people", "borrow"};
 	cmd.selects = {"borrow.book_id"};
 	cmd.where = {{
-	 	{"borrow", "people_id", BoolExpr::OP_EQ, "", "people.id"},
+	 	{"people", "id", BoolExpr::OP_EQ, "", "borrow.people_id"},
 	 	{"people", "name", BoolExpr::OP_EQ, "Alice", ""}
 	}};
 	auto result = db->select(cmd);

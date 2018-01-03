@@ -23,6 +23,10 @@ class QueryManager {
 			SelectResult const& result, Condition const& cond);
 	static std::map<std::string, std::set<std::string>>
 			getRelatedCols(Condition const& cond);
+	SelectResult selectOne(const Select &cmd, const map<string, set<string>> &relatedCols, const string &tableName) const;
+	SelectResult selectFromOne(const Select &cmd) const;
+	SelectResult selectFromTwo(const Select &cmd) const;
+	SelectResult selectFromMany(const Select &cmd) const;
 public:
 	QueryManager(Database &database);
 	void execute(Command const& cmd);

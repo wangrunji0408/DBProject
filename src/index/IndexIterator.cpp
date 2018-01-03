@@ -8,6 +8,8 @@
 IndexIterator::IndexIterator(Index &index, Page page, int slotID):
 	index(index), slotID(slotID), page(page)
 {
+	if(slotID == -1)
+		end = true;
 	index.iteratorCount++;
 }
 
@@ -44,6 +46,8 @@ bool IndexIterator::moveNext() {
 }
 
 bool operator==(const IndexIterator &lhs, const IndexIterator &rhs) {
+	if(lhs.end == rhs.end && lhs.end)
+		return true;
 	return lhs.end == rhs.end &&
 		   lhs.slotID == rhs.slotID &&
 		   lhs.page == rhs.page;
