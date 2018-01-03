@@ -24,6 +24,7 @@ class Database{
 	friend class TableMetaPage;
 	friend class RecordSet;
 	friend class Index;
+	friend class Table;
 
 	static const int DBMETA_PAGEID = 0;
 	static const int SYSINDEX_PAGEID = 1;
@@ -35,6 +36,8 @@ class Database{
 
 	const int fileID;
 	::std::string name;
+
+	Table* getTable(int id) const;
 
 public: // TODO 这里为了测试暂时公开，寻找测试私有函数的解决方案
 	// 抽象页管理操作，封装BufManager，为底层Manager提供接口

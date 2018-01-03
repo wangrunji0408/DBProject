@@ -6,6 +6,7 @@
 #include <regex>
 #include <ast/Exceptions.h>
 #include "Table.h"
+#include "system/Database.h"
 
 inline
 std::function<bool(const char*)> makeLikePredict(std::string const& pattern) {
@@ -34,7 +35,7 @@ std::function<bool(const void *)> Table::makePredict(Condition const &condition)
 std::function<bool(const void *)> Table::makePredict(BoolExpr const &expr) const {
 	int colID = meta->getColomnId(expr.columnName);
 	if(colID == -1)
-		throw ExecuteError("Column name doesn't exist");
+		throw NameNotExistError("column", expr.columnName);
 	auto const& col = meta->columns[colID];
 	if(!expr.rhsAttr.empty())
 		throw ExecuteError("Compare with attr is not supported");
@@ -117,7 +118,7 @@ std::function<void(const void *)> Table::makeUpdate(const vector<SetStmt> &sets)
 std::function<void(const void *)> Table::makeUpdate(const SetStmt &set) const {
 	int colID = meta->getColomnId(set.columnName);
 	if(colID == -1)
-		throw ExecuteError("Column name doesn't exist");
+		throw NameNotExistError("column", set.columnName);
 	auto const& col = meta->columns[colID];
 
 	int offset = col.offset;
@@ -125,7 +126,7 @@ std::function<void(const void *)> Table::makeUpdate(const SetStmt &set) const {
 
 	if(set.value.empty()) {
 		if(!col.nullable)
-			throw ExecuteError("Can not set NULL to non-nullable attribute");
+			throw NullValueError();
 		return [=](const void * pData) {
 			((bitset<128>*)((char*)pData + bitsetOffset))->set(colID);
 		};
@@ -135,31 +136,48 @@ std::function<void(const void *)> Table::makeUpdate(const SetStmt &set) const {
 	int intValue;
 	float floatValue;
 	string strValue;
+	const void* data;
+	std::function<void(const void *)> ret;
 
 	switch(col.dataType) {
-		case UNKNOWN:
+		default:
 			throw ExecuteError("UNKNOWN datatype");
 		case INT: case DATE:
 			intValue = col.dataType == INT?
 					   std::stoi(set.value):
 					   parseDate(set.value);
-			return [=](const void * pData) {
+			data = &intValue;
+			ret = [=](const void * pData) {
 				*(int*)((char*)pData + offset) = intValue;
 				RESET_NULLABLE;
 			};
 		case CHAR:
 		case VARCHAR:
 			strValue = set.value;
-			return [=](const void * pData) {
+			data = strValue.data();
+			ret = [=](const void * pData) {
 				std::strncpy((char*)pData + offset, strValue.c_str(), col.size);
 				RESET_NULLABLE;
 			};
 		case FLOAT:
 			floatValue = std::stof(set.value);
-			return [=](const void * pData) {
+			data = &floatValue;
+			ret = [=](const void * pData) {
 				*(float*)((char*)pData + offset) = floatValue;
 				RESET_NULLABLE;
 			};
 	}
 #undef RESET_NULLABLE
+
+	if(col.foreignTableID != -1) {
+		// check foreign key
+		auto foreignTable = database.getTable(col.foreignTableID);
+		auto indexID = foreignTable->meta->columns[col.foreignColumnID].indexID;
+		if(indexID == -1)
+			throw std::runtime_error("Foreign key without an index is not supported");
+		auto index = database.getIndexManager()->getIndex(indexID);
+		if(!index->containsEntry(data))
+			throw ForeignKeyNotExistError();
+	}
+	return ret;
 }

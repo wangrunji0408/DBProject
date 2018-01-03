@@ -36,24 +36,26 @@ struct OneValueError {
 			valueNum), value(value), attrNum(attrNum), attrName(attrName) {}
 };
 
-struct ValueError: ExecuteError {
-	std::vector<OneValueError> errors;
-	ValueError(const std::vector<OneValueError> &errors) : errors(errors) {}
+struct NameNotExistError: ExecuteError {
+	NameNotExistError(std::string const& argument, std::string const& name) :
+			ExecuteError("Name '" + name + "' not exist in " + argument) {}
 };
 
-struct NullValueError: OneValueError {
-	NullValueError(int valueNum, const TableRecord &value, int attrNum, const std::string &attrName)
-			: OneValueError(valueNum, value, attrNum, attrName) {}
+struct NullValueError: ExecuteError {
+	NullValueError() : ExecuteError("NullValue") {}
 };
 
-struct NotUniqueError: OneValueError {
-	NotUniqueError(int valueNum, const TableRecord &value, int attrNum, const std::string &attrName)
-			: OneValueError(valueNum, value, attrNum, attrName) {}
+struct NotUniqueError: ExecuteError {
+	NotUniqueError() : ExecuteError("NotUnique") {}
 };
 
 struct ValueSizeError: OneValueError {
 	ValueSizeError(int valueNum, const TableRecord &value)
 			: OneValueError(valueNum, value, 0, "") {}
+};
+
+struct ForeignKeyNotExistError: ExecuteError {
+	ForeignKeyNotExistError() : ExecuteError("ForeignKeyNotExist") {}
 };
 
 #endif //DBPROJECT_EXCEPTIONS_H

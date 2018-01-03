@@ -262,6 +262,20 @@ TEST_F(TestSelect, FromOne_Where_OP_LIKE)
 	ASSERT_THROW( db->select(cmd), ExecuteError );
 }
 
+TEST_F(TestSelect, FromOne_Where_And)
+{
+	auto cmd = Select();
+	cmd.froms = {"people"};
+	cmd.selects = {"id"};
+	cmd.where = {{
+		{"", "id", BoolExpr::OP_LE, "2", ""},
+		{"", "name", BoolExpr::OP_GE, "B", ""},
+	}};
+	auto result = db->select(cmd);
+	ASSERT_EQ(1, result.records.size());
+	ASSERT_EQ(TableRecord::fromString({INT}, {"2"}), result.records[0]);
+}
+
 TEST_F(TestSelect, FromTwo)
 {
 	auto cmd = Select();

@@ -59,7 +59,7 @@ void Table::checkInsertValues(std::vector<TableRecord> const &records) const {
 			// Check null value
 			for(auto const& record: records)
 				if(record.isNullAtCol(i))
-					throw ExecuteError("Value can not be null");
+					throw NullValueError();
 		}
 		if(col.unique || (col.primaryKey && onePK)) {
 			if(col.indexID != -1) {
@@ -68,7 +68,7 @@ void Table::checkInsertValues(std::vector<TableRecord> const &records) const {
 				for(auto const& record: records) {
 					auto data = record.getDataAtCol(i);
 					if(index->containsEntry(data.data()) || vs.find(data) != vs.end())
-						throw ExecuteError("Value is not unique");
+						throw NotUniqueError();
 					vs.insert(std::move(data));
 				}
 			} else {
@@ -84,10 +84,23 @@ void Table::checkInsertValues(std::vector<TableRecord> const &records) const {
 					if(!record.isNullAtCol(i)) {
 						auto data = record.getDataAtCol(i);
 						if(vs.find(data) != vs.end())
-							throw ExecuteError("Value is not unique");
+							throw NotUniqueError();
 						vs.insert(std::move(data));
 					}
 				}
+			}
+		}
+		if(col.foreignTableID != -1) {
+			// check foreign key
+			auto foreignTable = database.getTable(col.foreignTableID);
+			auto indexID = foreignTable->meta->columns[col.foreignColumnID].indexID;
+			if(indexID == -1)
+				throw std::runtime_error("Foreign key without an index is not supported");
+			auto index = database.getIndexManager()->getIndex(indexID);
+			for(auto const& record: records) {
+				auto const& data = record.getDataAtCol(i);
+				if(!index->containsEntry(data.data()))
+					throw ForeignKeyNotExistError();
 			}
 		}
 	}
@@ -106,7 +119,7 @@ void Table::checkInsertValues(std::vector<TableRecord> const &records) const {
 		for(auto const& record: records) {
 			int hash = calcPKHash(record, pkIds);
 			if(vs.find(hash) != vs.end())
-				throw ExecuteError("Value PK is not unique");
+				throw NotUniqueError();
 		}
 	}
 
@@ -188,7 +201,7 @@ SelectResult Table::select(std::vector<std::string> const& selects, Condition co
 		for(const auto &name: selects) {
 			auto id = meta->getColomnId(name);
 			if(id == -1)
-				throw ExecuteError("Column not exist.");
+				throw NameNotExistError("column", name);
 			ids.push_back(id);
 			result.colNames.push_back(string(meta->name) + "." + name);
 		}

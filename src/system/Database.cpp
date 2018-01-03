@@ -113,3 +113,7 @@ void Database::execute(Command const &cmd) {
 SelectResult Database::select(Select const &cmd) {
 	return queryManager->select(cmd);
 }
+
+Table *Database::getTable(int id) const {
+	return new Table(recordManager->tables[id].get(), *this);
+}

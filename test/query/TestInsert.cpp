@@ -30,7 +30,7 @@ TEST_F(TestInsert, ThrowWhenDuplicateSinglePrimaryKey)
 		TableRecord::fromString(types, {"1","Alice","F","","","",""}),
 		TableRecord::fromString(types, {"1","Bob","M","","","",""}),
 	};
-	ASSERT_THROW( db->execute(cmd), ExecuteError );
+	ASSERT_THROW( db->execute(cmd), NotUniqueError );
 }
 
 TEST_F(TestInsert, ThrowWhenDuplicateMultiPrimaryKey)
@@ -41,7 +41,28 @@ TEST_F(TestInsert, ThrowWhenDuplicateMultiPrimaryKey)
 	cmd.records = {
 		TableRecord::fromString({INT,INT}, {"1","1"}),
 	};
-	ASSERT_THROW( db->execute(cmd), ExecuteError );
+	ASSERT_THROW( db->execute(cmd), NotUniqueError );
+}
+
+TEST_F(TestInsert, ThrowWhenPrimaryKeyIsNull)
+{
+	auto cmd = Insert();
+	cmd.tableName = "people";
+	cmd.records = {
+			TableRecord::fromString(types, {"","Alice","F","","","",""}),
+	};
+	ASSERT_THROW( db->execute(cmd), NullValueError );
+}
+
+TEST_F(TestInsert, ThrowWhenForeignKeyNotExist)
+{
+	insertRecords();
+	auto cmd = Insert();
+	cmd.tableName = "borrow";
+	cmd.records = {
+			TableRecord::fromString({INT,INT}, {"1","3"}),
+	};
+	ASSERT_THROW( db->execute(cmd), ForeignKeyNotExistError );
 }
 
 TEST_F(TestInsert, ThrowWhenUniqueError)
@@ -52,7 +73,7 @@ TEST_F(TestInsert, ThrowWhenUniqueError)
 	cmd.records = {
 		TableRecord::fromString(types, {"4","Dog","F","110104199704021111","","",""}),
 	};
-	ASSERT_THROW( db->execute(cmd), ExecuteError );
+	ASSERT_THROW( db->execute(cmd), NotUniqueError );
 }
 
 TEST_F(TestInsert, ThrowWhenStringTooLong)
