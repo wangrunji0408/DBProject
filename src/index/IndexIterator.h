@@ -22,10 +22,14 @@ class IndexIterator {
 
 	IndexIterator(Index& index, Page page, int slotID);
 public:
+	IndexIterator(IndexIterator const& it);
 	~IndexIterator();
 	bool moveNext();
 	void* getKey();
 	RID getRID();
+	bool isEnd() const;
+	friend bool operator==(const IndexIterator &lhs, const IndexIterator &rhs);
+	friend bool operator!=(const IndexIterator &lhs, const IndexIterator &rhs);
 };
 
 

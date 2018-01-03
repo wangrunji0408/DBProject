@@ -207,11 +207,21 @@ SelectResult Table::select(std::vector<std::string> const& selects, Condition co
 		}
 	}
 
+	auto sub = selectWithIndex(condition);
 	auto predict = makePredict(condition);
-	for(auto iter = recordSet->iterateRecords(); iter.hasNext(); ) {
-		auto record = iter.getNext();
-		if(predict(record.data))
-			result.records.push_back(toRecord(record.data, ids));
+
+	if(sub.first) {
+		for(auto const& rid: sub.second) {
+			auto record = recordSet->getRecord(rid);
+			if(predict(record.data))
+				result.records.push_back(toRecord(record.data, ids));
+		}
+	} else {
+		for(auto iter = recordSet->iterateRecords(); iter.hasNext(); ) {
+			auto record = iter.getNext();
+			if(predict(record.data))
+				result.records.push_back(toRecord(record.data, ids));
+		}
 	}
 	return result;
 }

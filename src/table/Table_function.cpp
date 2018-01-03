@@ -5,6 +5,7 @@
 #include <bitset>
 #include <regex>
 #include <ast/Exceptions.h>
+#include <cstring>
 #include "Table.h"
 #include "system/Database.h"
 
@@ -183,4 +184,75 @@ std::function<void(const void *)> Table::makeUpdate(const SetStmt &set) const {
 			throw ForeignKeyNotExistError();
 	}
 	return ret;
+}
+
+std::pair<bool, std::vector<RID>> Table::selectWithIndex(Condition const &condition) const {
+	auto rids = std::vector<RID>();
+
+	for(auto const& expr: condition.ands) {
+		if(expr.op == BoolExpr::OP_LIKE
+		   || expr.op == BoolExpr::OP_IS_NULL
+		   || expr.op == BoolExpr::OP_IS_NOT_NULL
+		   || expr.op == BoolExpr::OP_NE)
+			continue;
+		int colID = meta->getColomnId(expr.columnName);
+		if(colID == -1)
+			continue;
+		auto const& col = meta->columns[colID];
+		if(col.indexID == -1)
+			continue;
+		auto index = database.getIndexManager()->getIndex(col.indexID);
+
+		int intValue;
+		float floatValue;
+		string strValue;
+		const void* data;
+		switch(col.dataType) {
+			default:
+				throw ExecuteError("UNKNOWN datatype");
+			case INT: case DATE:
+				intValue = col.dataType == INT?
+						   std::stoi(expr.rhsValue):
+						   parseDate(expr.rhsValue);
+				data = &intValue;
+				break;
+			case CHAR:
+			case VARCHAR:
+				data = expr.rhsValue.data();
+				break;
+			case FLOAT:
+				floatValue = std::stof(expr.rhsValue);
+				data = &floatValue;
+				break;
+		}
+
+		if(expr.op == BoolExpr::OP_EQ) {
+			auto it0 = index->lowerBound(data);
+			auto it1 = index->upperBound(data);
+			for(;it0 != it1; it0.moveNext())
+				rids.push_back(it0.getRID());
+		} else if (expr.op == BoolExpr::OP_LT) {
+			auto it0 = index->begin();
+			auto it1 = index->lowerBound(data);
+			for(;it0 != it1; it0.moveNext())
+				rids.push_back(it0.getRID());
+		} else if (expr.op == BoolExpr::OP_GT) {
+			auto it0 = index->upperBound(data);
+			for(;it0.isEnd(); it0.moveNext())
+				rids.push_back(it0.getRID());
+		} else if (expr.op == BoolExpr::OP_LE) {
+			auto it0 = index->begin();
+			auto it1 = index->upperBound(data);
+			for(;it0 != it1; it0.moveNext())
+				rids.push_back(it0.getRID());
+		} else if (expr.op == BoolExpr::OP_GE) {
+			auto it0 = index->lowerBound(data);
+			for(;it0.isEnd(); it0.moveNext())
+				rids.push_back(it0.getRID());
+		} else {
+			throw std::runtime_error("Should not reach here");
+		}
+		return std::make_pair(true, rids);
+	}
+	return std::make_pair(false, rids);
 }

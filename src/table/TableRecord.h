@@ -8,6 +8,7 @@
 #include <bitset>
 #include <ostream>
 #include "TableMetaPage.h"
+#include "util/header.h"
 
 template <class T>
 inline std::vector<T> concat(std::vector<T> const& v1, std::vector<T> const& v2) {
@@ -16,9 +17,6 @@ inline std::vector<T> concat(std::vector<T> const& v1, std::vector<T> const& v2)
 	v.insert(v.end(), v2.begin(), v2.end());
 	return v;
 }
-
-typedef unsigned char uchar;
-typedef std::vector<uchar> Data;
 
 class TableRecord {
 	std::vector<DataType> types;

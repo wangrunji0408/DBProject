@@ -316,4 +316,20 @@ TEST_F(TestSelect, FromTwo_Where_Unique)
 	ASSERT_EQ(TableRecord::fromString({INT}, {"2"}), result.records[1]);
 }
 
+TEST_F(TestSelect, FromThree_Where)
+{
+	auto cmd = Select();
+	cmd.froms = {"people", "borrow", "book"};
+	cmd.selects = {"people.name", "book.name"};
+	cmd.where = {{
+		 {"borrow", "people_id", BoolExpr::OP_EQ, "", "people.id"},
+		 {"borrow", "book_id", BoolExpr::OP_EQ, "", "book.id"},
+	}};
+	auto result = db->select(cmd);
+	ASSERT_EQ(3, result.records.size());
+	ASSERT_EQ(TableRecord::fromString({VARCHAR, VARCHAR}, {"Alice", "Book1"}), result.records[0]);
+	ASSERT_EQ(TableRecord::fromString({VARCHAR, VARCHAR}, {"Alice", "Book2"}), result.records[1]);
+	ASSERT_EQ(TableRecord::fromString({VARCHAR, VARCHAR}, {"Bob", "Book2"}), result.records[2]);
+}
+
 }
