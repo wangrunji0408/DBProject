@@ -29,13 +29,17 @@ TableRecord& TableRecord::pushFloat(float x) {
 }
 
 TableRecord& TableRecord::pushChar(std::string const &s) {
-	datas.emplace_back(s.begin(), s.end());
+	auto data = Data(s.begin(), s.end());
+	data.push_back('\0');
+	datas.push_back(data);
 	types.push_back(DataType::CHAR);
 	return *this;
 }
 
 TableRecord& TableRecord::pushVarchar(std::string const &s) {
-	datas.emplace_back(s.begin(), s.end());
+	auto data = Data(s.begin(), s.end());
+	data.push_back('\0');
+	datas.push_back(data);
 	types.push_back(DataType::VARCHAR);
 	return *this;
 }

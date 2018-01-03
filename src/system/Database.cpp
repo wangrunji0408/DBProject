@@ -117,3 +117,7 @@ SelectResult Database::select(Select const &cmd) {
 ::std::vector<::std::string> Database::getTableNames()const{
 	return recordManager->getSetNames();
 }
+
+Table *Database::getTable(int id) const {
+	return new Table(recordManager->tables[id].get(), *this);
+}

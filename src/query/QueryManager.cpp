@@ -182,6 +182,8 @@ QueryManager::makePredict(SelectResult const& result, BoolExpr const &expr) {
 	case BoolExpr::OP_LE: return CMP(<=);\
 	case BoolExpr::OP_GE: return CMP(>=);\
 	default: throw std::runtime_error("Unexpected op case");
+#define CHECK_NULL \
+	if(record.isNullAtCol(lhsId) || record.isNullAtCol(rhsId)) return false;
 
 	switch(type) {
 		case UNKNOWN:
@@ -189,38 +191,35 @@ QueryManager::makePredict(SelectResult const& result, BoolExpr const &expr) {
 		case INT:
 		case DATE:
 #define CMP(OP) [=](TableRecord const &record) {\
+			CHECK_NULL\
 			int v1 = *(int*)record.getDataAtCol(lhsId).data();\
 			int v2 = *(int*)record.getDataAtCol(rhsId).data();\
 			return v1 OP v2; }
 
 			switch(expr.op) {
 				BASIC_CASE
-				case BoolExpr::OP_LIKE:
-					throw std::runtime_error("Operation LIKE is not capable with type INT");
 			}
 #undef CMP
 		case CHAR:
 		case VARCHAR:
 #define CMP(OP) [=](TableRecord const &record) {\
+			CHECK_NULL\
 			auto v1 = (char*)record.getDataAtCol(lhsId).data();\
 			auto v2 = (char*)record.getDataAtCol(rhsId).data();\
-			return strcmp(v1,v2); }
+			return strcmp(v1,v2) OP 0; }
 
 			switch(expr.op) {
 				BASIC_CASE
-				case BoolExpr::OP_LIKE:
-					return [=](TableRecord const &record) {return false;}; // TODO
 			}
 #undef CMP
 		case FLOAT:
 #define CMP(OP) [=](TableRecord const &record) {\
+			CHECK_NULL\
 			float v1 = *(float*)record.getDataAtCol(lhsId).data();\
 			float v2 = *(float*)record.getDataAtCol(rhsId).data();\
 			return v1 OP v2; }
 			switch(expr.op) {
 				BASIC_CASE
-				case BoolExpr::OP_LIKE:
-					throw std::runtime_error("Operation LIKE is not capable with type FLOAT");
 			}
 #undef CMP
 	}
