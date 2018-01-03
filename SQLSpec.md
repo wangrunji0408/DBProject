@@ -34,7 +34,7 @@ Note: in interactive enviroment, `\` followed by a line-feed is replaced with a 
 	- DROP TABLE identifier
 	- CREATE INDEX identifier '(' identifier ')'
 	- DROP INDEX identifier '(' identifier ')'
-	- TODO
+	- QueryCommand
 - TableDefine
 	- Field (',' Field)*
 - Field
@@ -49,3 +49,38 @@ Note: in interactive enviroment, `\` followed by a line-feed is replaced with a 
 - ColumnConstraint
 	- NOT NULL
 	- UNIQUE
+- QueryCommand
+	- INSERT INTO identifier VALUES ValueLists
+	- DELETE FROM identifier WHERE Where
+	- UPDATE identifier SET Set WHERE Where
+	- SELECT Select FROM TableList WHERE where
+- Where
+	- Condition (AND Condition)*
+- Condition
+	- identifier Op Value
+	- identifier Op identifier
+	- identifier IS NOT? NULL
+- Set
+	- Assign (',' Assign)*
+- Assign
+	- identifier '=' Value
+- Select
+	- '*'
+	- identifier (',' identifier)
+- TableList
+	- identifier (',' identifier)
+- ValueLists
+	- ValueList (',' ValueList)*
+- ValueList
+	- '(' Value (',' Value)* ')'
+- Value
+	- NULL
+	- int
+	- string
+- Op
+	- '='
+	- '>'
+	- '<'
+	- '>='
+	- '<='
+	- '<>'

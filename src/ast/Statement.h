@@ -4,6 +4,7 @@
 #include <string>
 #include <stdexcept>
 #include "ast/TableDef.h"
+#include "ast/Command.h"
 
 enum class StatementType{
 	SHOW_DATABASES,
@@ -15,7 +16,8 @@ enum class StatementType{
 	CREATE_TABLE,
 	DROP_TABLE,
 	CREATE_INDEX,
-	DROP_INDEX
+	DROP_INDEX,
+	COMMAND
 };
 
 struct Statement{
@@ -70,6 +72,11 @@ struct DropIndexStmt:Statement{
 	::std::string table;
 	::std::string column;
 	StatementType getType()override{return StatementType::DROP_INDEX;}
+};
+
+struct CommandStmt:Statement{
+	Command command;
+	StatementType getType()override{return StatementType::COMMAND;}
 };
 
 #endif //STATEMENT_H
