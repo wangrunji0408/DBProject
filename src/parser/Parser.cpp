@@ -83,10 +83,13 @@ void Parser::eatToken(TokenType type,::std::string errorMessage){
 	if(lookahead.type==TokenType::K_SHOW){
 		return parseShowStmt();
 	}
+	if(lookahead.type==TokenType::K_UPDATE){
+		return parseUpdateStmt();
+	}
 	if(lookahead.type==TokenType::K_USE){
 		return parseUseStmt();
 	}
-	throw ParseError("Expected keyword CREATE/DELETE/DESC/DROP/INSERT/SELECT/SHOW/USE"s);
+	throw ParseError("Expected keyword CREATE/DELETE/DESC/DROP/INSERT/SELECT/SHOW/UPDATE/USE"s);
 }
 ::std::unique_ptr<Statement> Parser::parseShowStmt(){
 	eatToken(TokenType::K_SHOW,"Expected keyword SHOW"s);
@@ -242,7 +245,24 @@ void Parser::eatToken(TokenType type,::std::string errorMessage){
 	::std::unique_ptr<CommandStmt> cmdStmt=::std::make_unique<CommandStmt>();
 	cmdStmt->command=::std::move(selectCmd);
 	return ::std::move(cmdStmt);
-
+}
+::std::unique_ptr<Statement> Parser::parseUpdateStmt(){
+	eatToken(TokenType::K_UPDATE,"Expected keyword UPDATE"s);
+	::std::unique_ptr<Update> updateCmd=::std::make_unique<Update>();
+	updateCmd->tableName=getIdentifier("Expected table name"s);
+	eatToken(TokenType::K_SET,"Expected keyword SET"s);
+	updateCmd->sets.push_back(parseUpdateSet());
+	while(lookahead.type==TokenType::P_COMMA){
+		nextToken();
+		updateCmd->sets.push_back(parseUpdateSet());
+	}
+	if(lookahead.type==TokenType::K_WHERE){
+		nextToken();
+		parseWhere(updateCmd->where);
+	}
+	::std::unique_ptr<CommandStmt> cmdStmt=::std::make_unique<CommandStmt>();
+	cmdStmt->command=::std::move(updateCmd);
+	return ::std::move(cmdStmt);
 }
 void Parser::parseTableDefineField(TableDef& tableDefine,bool& primaryKeySetted){
 	if(lookahead.type==TokenType::IDENTIFIER){
@@ -491,4 +511,24 @@ void Parser::parseOp(BoolExpr::Operator& op){
 		return;
 	}
 	throw ParseError("Expected operator, IS NULL or IS NOT NULL"s);
+}
+SetStmt Parser::parseUpdateSet(){
+	SetStmt assign;
+	assign.columnName=getIdentifier("Expected column name"s);
+	eatToken(TokenType::P_EQ,"Expected '='"s);
+	if(lookahead.type==TokenType::INT){
+		assign.value=::std::to_string(lookahead.intValue);
+		nextToken();
+		return assign;
+	}
+	if(lookahead.type==TokenType::FLOAT){
+		assign.value=::std::to_string(lookahead.floatValue);
+		nextToken();
+		return assign;
+	}
+	if(lookahead.type==TokenType::STRING){
+		assign.value=lookahead.stringValue;
+		nextToken();
+		return assign;
+	}
 }

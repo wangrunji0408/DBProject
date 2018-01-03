@@ -27,6 +27,7 @@ class Parser{
 	::std::unique_ptr<Statement> parseInsertStmt();
 	::std::unique_ptr<Statement> parseDeleteStmt();
 	::std::unique_ptr<Statement> parseSelectStmt();
+	::std::unique_ptr<Statement> parseUpdateStmt();
 	void parseTableDefineField(TableDef& tableDefine,bool& primaryKeySetted);
 	void parseTypeDefine(DataType& type,size_t& size);
 	void parseColumnConstraint(bool& nullable,bool& unique);
@@ -37,6 +38,7 @@ class Parser{
 	void parseColumnSpec(::std::string& table,::std::string& column);
 	::std::string parseColumnSpecString();
 	void parseOp(BoolExpr::Operator& op);
+	SetStmt parseUpdateSet();
 	Parser(const ::std::string text);
 	::std::vector<::std::unique_ptr<Statement>> parse();
 public:

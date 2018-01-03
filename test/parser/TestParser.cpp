@@ -177,4 +177,32 @@ TEST_F(TestParser, HandleSelectCommandStatements){
 	ASSERT_EQ(dynamic_cast<Select&>(*command2).groupBy,"");
 }
 
+TEST_F(TestParser, HandleUpdateCommandStatements){
+	auto statements=Parser::parseString("update windows set version=10;update software set version='2018/8/15',time=0 where version<='2017/8/15'");
+	ASSERT_EQ(statements.size(),2);
+	ASSERT_EQ(statements[0]->getType(),StatementType::COMMAND);
+	auto& command=dynamic_cast<CommandStmt&>(*statements[0]).command;
+	ASSERT_EQ(command->getType(),CMD_UPDATE);
+	ASSERT_EQ(dynamic_cast<Update&>(*command).tableName,"windows");
+	ASSERT_EQ(dynamic_cast<Update&>(*command).sets.size(),1);
+	ASSERT_EQ(dynamic_cast<Update&>(*command).sets[0].columnName,"version");
+	ASSERT_EQ(dynamic_cast<Update&>(*command).sets[0].value,"10");
+	ASSERT_EQ(dynamic_cast<Update&>(*command).where.ands.size(),0);
+	ASSERT_EQ(statements[1]->getType(),StatementType::COMMAND);
+	auto& command2=dynamic_cast<CommandStmt&>(*statements[1]).command;
+	ASSERT_EQ(command2->getType(),CMD_UPDATE);
+	ASSERT_EQ(dynamic_cast<Update&>(*command2).tableName,"software");
+	ASSERT_EQ(dynamic_cast<Update&>(*command2).sets.size(),2);
+	ASSERT_EQ(dynamic_cast<Update&>(*command2).sets[0].columnName,"version");
+	ASSERT_EQ(dynamic_cast<Update&>(*command2).sets[0].value,"2018/8/15");
+	ASSERT_EQ(dynamic_cast<Update&>(*command2).sets[1].columnName,"time");
+	ASSERT_EQ(dynamic_cast<Update&>(*command2).sets[1].value,"0");
+	ASSERT_EQ(dynamic_cast<Update&>(*command2).where.ands.size(),1);
+	ASSERT_EQ(dynamic_cast<Update&>(*command2).where.ands[0].tableName,"");
+	ASSERT_EQ(dynamic_cast<Update&>(*command2).where.ands[0].columnName,"version");
+	ASSERT_EQ(dynamic_cast<Update&>(*command2).where.ands[0].op,BoolExpr::OP_LE);
+	ASSERT_EQ(dynamic_cast<Update&>(*command2).where.ands[0].rhsAttr,"");
+	ASSERT_EQ(dynamic_cast<Update&>(*command2).where.ands[0].rhsValue,"2017/8/15");
+}
+
 }
