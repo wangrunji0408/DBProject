@@ -3,7 +3,7 @@
 //
 
 #include "../TestBase.h"
-#include "indexmanager/IndexPage.h"
+#include "index/IndexPage.h"
 
 namespace {
 

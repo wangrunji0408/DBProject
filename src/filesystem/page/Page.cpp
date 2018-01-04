@@ -4,16 +4,18 @@
 
 #include "Page.h"
 
-BufType Page::getDataReadonly()
+BufType Page::getDataReadonly() const
 {
-	loadToBuf();
+	int bufIndex;
+	auto bufData = bufPageManager->getPage(fileId, pageId, bufIndex);
 	bufPageManager->access(bufIndex);
 	return bufData;
 }
 
-BufType Page::getDataMutable()
+BufType Page::getDataMutable() const
 {
-	loadToBuf();
+	int bufIndex;
+	auto bufData = bufPageManager->getPage(fileId, pageId, bufIndex);
 	bufPageManager->markDirty(bufIndex);
 	return bufData;
 }
@@ -25,10 +27,6 @@ Page::~Page()
 Page::Page(BufPageManager *bufPageManager, int fileId, int pageId):
 	bufPageManager(bufPageManager), fileId(fileId), pageId(pageId)
 {
-}
-
-void Page::loadToBuf() {
-	bufData = bufPageManager->getPage(fileId, pageId, bufIndex);
 }
 
 bool operator==(const Page &lhs, const Page &rhs) {

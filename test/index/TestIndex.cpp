@@ -4,7 +4,7 @@
 
 #include <random>
 #include "../TestBase.h"
-#include "indexmanager/IndexPage.h"
+#include "index/IndexPage.h"
 
 namespace {
 
@@ -31,7 +31,7 @@ protected:
 	}
 
 	IndexManager* im = nullptr;
-	Index* index = nullptr;
+	std::unique_ptr<Index> index = nullptr;
 	int indexID;
 };
 
@@ -57,6 +57,8 @@ TEST_F(TestIndex, UniqueCanInsertAndFindEntry)
 	Reopen();
 	for(int i=0; i<n; ++i)
 		ASSERT_TRUE(index->containsEntry(new int(i), RID(i, i)));
+	for(int i=0; i<n; ++i)
+		ASSERT_TRUE(index->containsEntry(new int(i)));
 }
 
 TEST_F(TestIndex, UniqueCanDelete)
@@ -117,7 +119,7 @@ TEST_F(TestIndex, UniqueCanIterate)
 	std::shuffle(data, data + n, std::default_random_engine());
 	for(int i=0; i<n; ++i)
 		index->insertEntry(data + i, RID(data[i], data[i]));
-	auto iter = index->getIterator();
+	auto iter = index->begin();
 	for(int i=0; i<n; ++i)
 	{
 		ASSERT_EQ(i, *(int*)iter.getKey());
@@ -174,18 +176,31 @@ TEST_F(TestIndex, CanIterate)
 	std::shuffle(data, data + n, std::default_random_engine());
 	for(int i=0; i<n; ++i)
 		index->insertEntry(new int(data[i] % (n/3)), RID(data[i], data[i]));
-	auto iter = index->getIterator();
+	auto iter = index->begin();
 	for(int i=0; i<n; ++i)
 	{
 		ASSERT_EQ(i/3, *(int*)iter.getKey());
 		ASSERT_EQ(i != n-1, iter.moveNext());
 	}
+	auto iter1 = index->lowerBound(new int(5));
+	ASSERT_EQ(5, *(int*)iter1.getKey());
+	ASSERT_EQ(RID(5,5), iter1.getRID());
+	ASSERT_TRUE(iter1.moveNext());
+	ASSERT_EQ(5, *(int*)iter1.getKey());
+	ASSERT_EQ(RID(5+1002/3,5+1002/3), iter1.getRID());
+	ASSERT_TRUE(iter1.moveNext());
+	ASSERT_EQ(5, *(int*)iter1.getKey());
+	ASSERT_EQ(RID(5+1002/3*2,5+1002/3*2), iter1.getRID());
+
+	auto iter2 = index->upperBound(new int(5));
+	ASSERT_EQ(6, *(int*)iter2.getKey());
+	ASSERT_EQ(RID(6,6), iter2.getRID());
 }
 
 TEST_F(TestIndex, RandomInsertDeleteFind)
 {
 	const int n = 1000;
-	bool in[n] = {0};
+	bool in[n] = {false};
 	int data[n];
 	for(int i=0; i<n; ++i)
 		data[i] = i % (n/3);
@@ -210,11 +225,24 @@ TEST_F(TestIndex, RandomInsertDeleteFind)
 TEST_F(TestIndex, ThrowWhenTryToModifyDuringIterating)
 {
 	{
-		auto iter = index->getIterator();
+		auto iter = index->begin();
 		ASSERT_ANY_THROW( index->insertEntry(new int(1), RID(1,1)) );
 		ASSERT_ANY_THROW( index->deleteEntry(new int(1), RID(1,1)) );
 	}
 	index->insertEntry(new int(1), RID(1,1));
+}
+
+TEST_F(TestIndex, ContainsEntry)
+{
+	ASSERT_FALSE( index->containsEntry(new int(1)) );
+	index->insertEntry(new int(1), RID(1,1));
+	ASSERT_TRUE( index->containsEntry(new int(1)) );
+	index->insertEntry(new int(1), RID(1,2));
+	ASSERT_TRUE( index->containsEntry(new int(1)) );
+	index->deleteEntry(new int(1), RID(1,1));
+	ASSERT_TRUE( index->containsEntry(new int(1)) );
+	index->deleteEntry(new int(1), RID(1,2));
+	ASSERT_FALSE( index->containsEntry(new int(1)) );
 }
 
 }

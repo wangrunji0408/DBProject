@@ -39,7 +39,7 @@ CREATE TABLE orders(
 	website_id INT(10) NOT NULL,
 	customer_id INT(10) NOT NULL,
 	book_id INT(10) NOT NULL,
-	date DATE,
+	date0 DATE,
 	quantity INT(10),
 	PRIMARY KEY (id),
 	FOREIGN KEY (website_id) REFERENCES website(id),

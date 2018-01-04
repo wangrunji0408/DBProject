@@ -26,7 +26,7 @@
 
 using namespace std;
 
-int main() {
+void testFileSystem() {
 	MyBitMap::initConst();   //新加的初始化
 	FileManager* fm = new FileManager();
 	BufPageManager* bpm = new BufPageManager(fm);
@@ -65,5 +65,4 @@ int main() {
 	}
 	//程序结束前可以调用BufPageManager的某个函数将缓存中的内容写回
 	//具体的函数大家可以看看ppt或者程序的注释
-	return 0;
 }

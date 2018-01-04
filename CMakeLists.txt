@@ -8,13 +8,8 @@ include_directories(src)
 file(GLOB SOURCES
         src/filesystem/*/*.h
         src/filesystem/*/*.cpp
-        src/recordmanager/*.h
-        src/recordmanager/*.cpp
-        src/indexmanager/*.h
-        src/indexmanager/*.cpp
-        src/systemmanager/*.h
-        src/systemmanager/*.cpp
-        src/ast/*.h
+        src/**/*.h
+        src/**/*.cpp
         src/*.h
         src/*.cpp)
 
@@ -24,7 +19,6 @@ list(REMOVE_ITEM SOURCES src/main.cpp)
 
 add_library(DBLib SHARED ${SOURCES})
 
-project(Test)
 
 # Download and unpack googletest at configure time
 configure_file(CMakeLists.txt.in googletest-download/CMakeLists.txt)
@@ -57,7 +51,7 @@ if (CMAKE_VERSION VERSION_LESS 2.8.11)
   include_directories("${gtest_SOURCE_DIR}/include")
 endif()
 
-file(GLOB TEST_SOURCES test/*.cpp test/*.h test/**/*.cpp)
+file(GLOB TEST_SOURCES test/*.cpp test/*.h test/**/*.cpp test/**/*.h)
 
 # Now simply link against gtest or gtest_main as needed. Eg
 add_executable(Test ${TEST_SOURCES})
