@@ -4,6 +4,7 @@
 #include <ostream>
 #include <stdexcept>
 #include "driver/SQLExecutor.h"
+#include "ast/Command.h"
 
 void SQLExecutor::executeSQL(::std::vector<::std::unique_ptr<Statement>> program,::std::ostream& output){
 	for(::std::unique_ptr<Statement>& stmt:program){
@@ -58,6 +59,16 @@ void SQLExecutor::executeSQL(::std::vector<::std::unique_ptr<Statement>> program
 			break;
 		case StatementType::DROP_INDEX:
 			dbManager->getCurrentDatabase()->deleteIndex(dynamic_cast<DropIndexStmt&>(*stmt).table,dynamic_cast<DropIndexStmt&>(*stmt).column);
+			break;
+		case StatementType::COMMAND:
+			{
+				Command& cmd=*(dynamic_cast<CommandStmt&>(*stmt).command);
+				if(cmd.getType()==CMD_SELECT){
+					output<<(dbManager->getCurrentDatabase()->select(dynamic_cast<Select&>(cmd)));
+				}else{
+					dbManager->getCurrentDatabase()->execute(cmd);
+				}
+			}
 			break;
 		default:
 			throw ::std::runtime_error("Unknown statement type");

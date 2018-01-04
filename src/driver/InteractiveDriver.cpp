@@ -14,9 +14,13 @@ void InteractiveDriver::start(){
 		::std::string line;
 		::std::getline(input,line);
 		if(line.back()!='\\'){
+			buffer+=line;
+			if(buffer=="exit"){
+				return;
+			}
 			::std::vector<::std::unique_ptr<Statement>> program;
 			try{
-				executer.executeSQL(Parser::parseString(buffer+line),output);
+				executer.executeSQL(Parser::parseString(buffer),output);
 			}catch(const ParseError& error){
 				output<<"Error when parsing command:\n"<<error.what()<<::std::endl;
 			}
