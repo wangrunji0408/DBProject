@@ -16,7 +16,7 @@
 - Sequence matched by regex `[0-9]*` is a int token
 - Sequence `;` `,` `*` `=` `<>` `>=` `<=` `>` `<` are also tokens.  `.` is also a token if there is not digits or `.` before or after it.
 
-Note: in interactive enviroment, `\` followed by a line-feed is replaced with a single line-feed.
+Note: in interactive enviroment, `\` followed by a line-feed is replaced with a single line-feed, and a string `exit` terminate the executor.
 
 ## Grammars
 
