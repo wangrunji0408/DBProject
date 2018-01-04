@@ -15,6 +15,7 @@ class InteractiveDriver{
 public:
 	InteractiveDriver(::std::istream& input,::std::ostream& output,bool prompt=false):input(input),output(output),prompt(prompt){}
 	void start();
+	void execute(std::string const& cmd);
 };
 
 #endif //INTERACTIVEDRIVER_H
