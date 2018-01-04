@@ -311,9 +311,10 @@ TEST_F(TestSelect, FromTwo_Where_Unique)
 	cmd.selects = {"borrow.book_id"};
 	cmd.where = {{{"borrow", "people_id", BoolExpr::OP_EQ, "", "people.id"}}};
 	auto result = db->select(cmd);
-	ASSERT_EQ(2, result.records.size());
+	ASSERT_EQ(3, result.records.size());
 	ASSERT_EQ(TableRecord::fromString({INT}, {"1"}), result.records[0]);
 	ASSERT_EQ(TableRecord::fromString({INT}, {"2"}), result.records[1]);
+	ASSERT_EQ(TableRecord::fromString({INT}, {"2"}), result.records[2]);
 }
 
 TEST_F(TestSelect, FromThree_Where)

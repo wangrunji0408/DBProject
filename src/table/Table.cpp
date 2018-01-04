@@ -153,10 +153,31 @@ void Table::insert(std::vector<TableRecord> const &records) {
 }
 
 void Table::delete_(Condition const &condition) {
+	static std::unique_ptr<Index> indexs[TableMetaPage::MAX_COLUMN_SIZE];
+	static short colIDs[TableMetaPage::MAX_COLUMN_SIZE];
+
+	// statistic index
+	int indexColCount = 0;
+	for(int i=0; i<meta->columnSize; ++i) {
+		auto const& col = meta->columns[i];
+		if(col.indexID != -1) {
+			indexs[indexColCount] = database.getIndexManager()->getIndex(col.indexID);
+			colIDs[indexColCount] = static_cast<short>(i);
+			indexColCount++;
+		}
+	}
+
 	auto rids = std::vector<RID>();
 	filterThenForeach(condition, [&](Record const& record) {
 		rids.push_back(record.recordID);
 	});
+
+	for(auto const& rid: rids) {
+		auto record = TableRecordRef(meta, recordSet->getRecord(rid).data);
+		for(int i=0; i<indexColCount; ++i)
+			if(!record.isNullAtCol(colIDs[i]))
+				indexs[i]->deleteEntry(record.getDataAtCol(colIDs[i]).data(), rid);
+	}
 	for(auto const& rid: rids)
 		recordSet->remove(rid);
 	meta->recordCount -= rids.size();

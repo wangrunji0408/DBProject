@@ -105,14 +105,18 @@ inline T to(Data const& data) {
 std::ostream &operator<<(std::ostream &os, const TableRecord &record) {
 	os << "(";
 	for(int i=0; i<record.size(); ++i) {
-		auto const& data = record.getDataAtCol(i);
-		switch (record.getTypeAtCol(i)) {
-			case UNKNOWN: os << "UNKNOWN";
-			case INT: os << to<int>(data); break;
-			case CHAR:
-			case VARCHAR: os << data.data(); break;
-			case FLOAT: os << to<float>(data); break;
-			case DATE: os << dateToString(to<int>(data)); break;
+		if(record.isNullAtCol(i)) {
+			os << "null";
+		} else {
+			auto const& data = record.getDataAtCol(i);
+			switch (record.getTypeAtCol(i)) {
+				case UNKNOWN: os << "UNKNOWN";
+				case INT: os << to<int>(data); break;
+				case CHAR:
+				case VARCHAR: os << '\'' << data.data() << '\''; break;
+				case FLOAT: os << to<float>(data); break;
+				case DATE: os << dateToString(to<int>(data)); break;
+			}
 		}
 		if(i + 1 != record.size())
 			os << ", ";
